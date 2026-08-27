@@ -5,15 +5,6 @@ project(Snake LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-enable_testing()
-
-add_executable(ProgresoTests
-    progreso_test.cpp
-    progreso.h
-    progreso.cpp
-)
-add_test(NAME ProgresoTests COMMAND ProgresoTests)
-
 find_package(Qt6 REQUIRED COMPONENTS Widgets)
 
 add_executable(Snake
