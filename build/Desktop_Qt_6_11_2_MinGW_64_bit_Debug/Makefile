@@ -64,16 +64,6 @@ CMAKE_BINARY_DIR = C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake\bui
 #=============================================================================
 # Targets provided globally by CMake.
 
-# Special rule for the target test
-test:
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Running tests..."
-	C:\Qt\Tools\CMake_64\bin\ctest.exe --force-new-ctest-process $(ARGS)
-.PHONY : test
-
-# Special rule for the target test
-test/fast: test
-.PHONY : test/fast
-
 # Special rule for the target edit_cache
 edit_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Running CMake cache editor..."
@@ -171,19 +161,6 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named ProgresoTests
-
-# Build rule for target.
-ProgresoTests: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 ProgresoTests
-.PHONY : ProgresoTests
-
-# fast build rule for target.
-ProgresoTests/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\ProgresoTests.dir\build.make CMakeFiles/ProgresoTests.dir/build
-.PHONY : ProgresoTests/fast
-
-#=============================================================================
 # Target rules for targets named Snake
 
 # Build rule for target.
@@ -249,7 +226,6 @@ progreso.obj: progreso.cpp.obj
 
 # target to build an object file
 progreso.cpp.obj:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\ProgresoTests.dir\build.make CMakeFiles/ProgresoTests.dir/progreso.cpp.obj
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Snake.dir\build.make CMakeFiles/Snake.dir/progreso.cpp.obj
 .PHONY : progreso.cpp.obj
 
@@ -258,7 +234,6 @@ progreso.i: progreso.cpp.i
 
 # target to preprocess a source file
 progreso.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\ProgresoTests.dir\build.make CMakeFiles/ProgresoTests.dir/progreso.cpp.i
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Snake.dir\build.make CMakeFiles/Snake.dir/progreso.cpp.i
 .PHONY : progreso.cpp.i
 
@@ -267,33 +242,8 @@ progreso.s: progreso.cpp.s
 
 # target to generate assembly for a file
 progreso.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\ProgresoTests.dir\build.make CMakeFiles/ProgresoTests.dir/progreso.cpp.s
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Snake.dir\build.make CMakeFiles/Snake.dir/progreso.cpp.s
 .PHONY : progreso.cpp.s
-
-progreso_test.obj: progreso_test.cpp.obj
-.PHONY : progreso_test.obj
-
-# target to build an object file
-progreso_test.cpp.obj:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\ProgresoTests.dir\build.make CMakeFiles/ProgresoTests.dir/progreso_test.cpp.obj
-.PHONY : progreso_test.cpp.obj
-
-progreso_test.i: progreso_test.cpp.i
-.PHONY : progreso_test.i
-
-# target to preprocess a source file
-progreso_test.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\ProgresoTests.dir\build.make CMakeFiles/ProgresoTests.dir/progreso_test.cpp.i
-.PHONY : progreso_test.cpp.i
-
-progreso_test.s: progreso_test.cpp.s
-.PHONY : progreso_test.s
-
-# target to generate assembly for a file
-progreso_test.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\ProgresoTests.dir\build.make CMakeFiles/ProgresoTests.dir/progreso_test.cpp.s
-.PHONY : progreso_test.cpp.s
 
 reglasmovimiento.obj: reglasmovimiento.cpp.obj
 .PHONY : reglasmovimiento.obj
@@ -379,8 +329,6 @@ help:
 	@echo ... install/strip
 	@echo ... list_install_components
 	@echo ... rebuild_cache
-	@echo ... test
-	@echo ... ProgresoTests
 	@echo ... Snake
 	@echo ... juegoview.obj
 	@echo ... juegoview.i
@@ -391,9 +339,6 @@ help:
 	@echo ... progreso.obj
 	@echo ... progreso.i
 	@echo ... progreso.s
-	@echo ... progreso_test.obj
-	@echo ... progreso_test.i
-	@echo ... progreso_test.s
 	@echo ... reglasmovimiento.obj
 	@echo ... reglasmovimiento.i
 	@echo ... reglasmovimiento.s

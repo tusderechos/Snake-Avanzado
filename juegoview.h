@@ -12,8 +12,7 @@ class ProgresoNivel;
 class Snake;
 class Tablero;
 
-class JuegoView : public QGraphicsView
-{
+class JuegoView : public QGraphicsView {
 public:
     JuegoView();
     ~JuegoView() override;

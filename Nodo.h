@@ -1,8 +1,7 @@
 #ifndef NODO_H
 #define NODO_H
 
-struct Nodo
-{
+struct Nodo {
     int x;
     int y;
     Nodo *siguiente;

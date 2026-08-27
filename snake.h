@@ -3,11 +3,12 @@
 
 #include "Nodo.h"
 
-class Snake
-{
+class Snake {
 public:
     Snake();
     ~Snake();
+    Snake(const Snake &otro) = delete;
+    Snake &operator=(const Snake &otro) = delete;
 
     void insertarCabeza(int x, int y);
     void avanzar(int x, int y, bool crecer);
@@ -17,7 +18,8 @@ public:
     int cabezaY() const;
     int longitud() const;
     bool ocupa(int x, int y) const;
-    Nodo *cabeza() const;
+    bool ocupaCola(int x, int y) const;
+    const Nodo *cabeza() const;
 
 private:
     Nodo *m_cabeza;

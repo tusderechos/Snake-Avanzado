@@ -5,21 +5,18 @@ Snake::Snake()
 {
 }
 
-Snake::~Snake()
-{
+Snake::~Snake() {
     limpiar();
 }
 
-void Snake::insertarCabeza(int x, int y)
-{
+void Snake::insertarCabeza(int x, int y) {
     Nodo *nuevoNodo = new Nodo(x, y);
     nuevoNodo->siguiente = m_cabeza;
     m_cabeza = nuevoNodo;
-    ++m_longitud;
+    m_longitud++;
 }
 
-void Snake::avanzar(int x, int y, bool crecer)
-{
+void Snake::avanzar(int x, int y, bool crecer) {
     if (m_cabeza == nullptr || crecer) {
         insertarCabeza(x, y);
         return;
@@ -32,6 +29,7 @@ void Snake::avanzar(int x, int y, bool crecer)
     }
 
     Nodo *antesDeCola = m_cabeza;
+
     while (antesDeCola->siguiente->siguiente != nullptr) {
         antesDeCola = antesDeCola->siguiente;
     }
@@ -44,8 +42,7 @@ void Snake::avanzar(int x, int y, bool crecer)
     m_cabeza = cola;
 }
 
-void Snake::limpiar()
-{
+void Snake::limpiar() {
     while (m_cabeza != nullptr) {
         Nodo *nodoAEliminar = m_cabeza;
         m_cabeza = m_cabeza->siguiente;
@@ -55,24 +52,20 @@ void Snake::limpiar()
     m_longitud = 0;
 }
 
-int Snake::cabezaX() const
-{
+int Snake::cabezaX() const {
     return m_cabeza == nullptr ? -1 : m_cabeza->x;
 }
 
-int Snake::cabezaY() const
-{
+int Snake::cabezaY() const {
     return m_cabeza == nullptr ? -1 : m_cabeza->y;
 }
 
-int Snake::longitud() const
-{
+int Snake::longitud() const {
     return m_longitud;
 }
 
-bool Snake::ocupa(int x, int y) const
-{
-    Nodo *actual = m_cabeza;
+bool Snake::ocupa(int x, int y) const {
+    const Nodo *actual = m_cabeza;
     while (actual != nullptr) {
         if (actual->x == x && actual->y == y) {
             return true;
@@ -83,7 +76,19 @@ bool Snake::ocupa(int x, int y) const
     return false;
 }
 
-Nodo *Snake::cabeza() const
-{
+bool Snake::ocupaCola(int x, int y) const {
+    if (m_cabeza == nullptr) {
+        return false;
+    }
+
+    const Nodo *actual = m_cabeza;
+    while (actual->siguiente != nullptr) {
+        actual = actual->siguiente;
+    }
+
+    return actual->x == x && actual->y == y;
+}
+
+const Nodo *Snake::cabeza() const {
     return m_cabeza;
 }

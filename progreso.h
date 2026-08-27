@@ -1,8 +1,7 @@
 #ifndef PROGRESO_H
 #define PROGRESO_H
 
-class ProgresoNivel
-{
+class ProgresoNivel {
 public:
     ProgresoNivel(int metaFrutas, int metaPuntos, int metaLongitud);
 
