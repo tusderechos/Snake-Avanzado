@@ -1,6 +1,6 @@
 CMakeFiles/Snake.dir/main.cpp.obj: \
- C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake\main.cpp \
- C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake\juegoview.h \
+ C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\main.cpp \
+ C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\juegoview.h \
  C:/Qt/6.11.2/mingw_64/include/QtWidgets/QGraphicsView \
  C:/Qt/6.11.2/mingw_64/include/QtWidgets/qgraphicsview.h \
  C:/Qt/6.11.2/mingw_64/include/QtWidgets/qtwidgetsglobal.h \

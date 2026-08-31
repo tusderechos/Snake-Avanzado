@@ -23,6 +23,7 @@ public:
 
 private:
     Nodo *m_cabeza;
+    Nodo *m_cola;
     int m_longitud;
 };
 

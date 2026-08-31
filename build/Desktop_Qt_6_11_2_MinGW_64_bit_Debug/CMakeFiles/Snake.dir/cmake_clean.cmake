@@ -1,4 +1,7 @@
 file(REMOVE_RECURSE
+  "Snake_autogen"
+  "CMakeFiles/Snake.dir/Snake_autogen/EWIEGA46WW/qrc_recursos.cpp.obj"
+  "CMakeFiles/Snake.dir/Snake_autogen/EWIEGA46WW/qrc_recursos.cpp.obj.d"
   "CMakeFiles/Snake.dir/juegoview.cpp.obj"
   "CMakeFiles/Snake.dir/juegoview.cpp.obj.d"
   "CMakeFiles/Snake.dir/main.cpp.obj"
@@ -14,6 +17,7 @@ file(REMOVE_RECURSE
   "Snake.exe"
   "Snake.exe.manifest"
   "Snake.pdb"
+  "Snake_autogen/EWIEGA46WW/qrc_recursos.cpp"
   "libSnake.dll.a"
 )
 

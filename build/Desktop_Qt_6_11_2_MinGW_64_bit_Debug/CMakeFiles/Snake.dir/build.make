@@ -52,10 +52,10 @@ RM = C:\Qt\Tools\CMake_64\bin\cmake.exe -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake
+CMAKE_SOURCE_DIR = C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug
+CMAKE_BINARY_DIR = C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug
 
 # Include any dependencies generated for this target.
 include CMakeFiles/Snake.dir/depend.make
@@ -68,95 +68,119 @@ include CMakeFiles/Snake.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/Snake.dir/flags.make
 
+Snake_autogen/EWIEGA46WW/qrc_recursos.cpp: C:/Users/USUARIO/Documents/Qt/Proyecto_Programacion3_C++/Snake/recursos.qrc
+Snake_autogen/EWIEGA46WW/qrc_recursos.cpp: CMakeFiles/Snake_autogen.dir/AutoRcc_recursos_EWIEGA46WW_Info.json
+Snake_autogen/EWIEGA46WW/qrc_recursos.cpp: C:/Users/USUARIO/Documents/Qt/Proyecto_Programacion3_C++/Snake/assets/cabeza_snake.png
+Snake_autogen/EWIEGA46WW/qrc_recursos.cpp: C:/Users/USUARIO/Documents/Qt/Proyecto_Programacion3_C++/Snake/assets/snake_sheet.png
+Snake_autogen/EWIEGA46WW/qrc_recursos.cpp: C:/Qt/6.11.2/mingw_64/bin/rcc.exe
+Snake_autogen/EWIEGA46WW/qrc_recursos.cpp: C:/Qt/6.11.2/mingw_64/bin/rcc.exe
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug\CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Automatic RCC for recursos.qrc"
+	C:\Qt\Tools\CMake_64\bin\cmake.exe -E cmake_autorcc C:/Users/USUARIO/Documents/Qt/Proyecto_Programacion3_C++/Snake/build/Desktop_Qt_6_11_2_MinGW_64_bit_Debug/CMakeFiles/Snake_autogen.dir/AutoRcc_recursos_EWIEGA46WW_Info.json Debug
+
 CMakeFiles/Snake.dir/main.cpp.obj: CMakeFiles/Snake.dir/flags.make
 CMakeFiles/Snake.dir/main.cpp.obj: CMakeFiles/Snake.dir/includes_CXX.rsp
-CMakeFiles/Snake.dir/main.cpp.obj: C:/Users/Hp/Documents/Qt/Proyecto_Programacion3_C++/Snake/main.cpp
+CMakeFiles/Snake.dir/main.cpp.obj: C:/Users/USUARIO/Documents/Qt/Proyecto_Programacion3_C++/Snake/main.cpp
 CMakeFiles/Snake.dir/main.cpp.obj: CMakeFiles/Snake.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug\CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/Snake.dir/main.cpp.obj"
-	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Snake.dir/main.cpp.obj -MF CMakeFiles\Snake.dir\main.cpp.obj.d -o CMakeFiles\Snake.dir\main.cpp.obj -c C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake\main.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug\CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/Snake.dir/main.cpp.obj"
+	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Snake.dir/main.cpp.obj -MF CMakeFiles\Snake.dir\main.cpp.obj.d -o CMakeFiles\Snake.dir\main.cpp.obj -c C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\main.cpp
 
 CMakeFiles/Snake.dir/main.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/Snake.dir/main.cpp.i"
-	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake\main.cpp > CMakeFiles\Snake.dir\main.cpp.i
+	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\main.cpp > CMakeFiles\Snake.dir\main.cpp.i
 
 CMakeFiles/Snake.dir/main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/Snake.dir/main.cpp.s"
-	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake\main.cpp -o CMakeFiles\Snake.dir\main.cpp.s
+	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\main.cpp -o CMakeFiles\Snake.dir\main.cpp.s
 
 CMakeFiles/Snake.dir/progreso.cpp.obj: CMakeFiles/Snake.dir/flags.make
 CMakeFiles/Snake.dir/progreso.cpp.obj: CMakeFiles/Snake.dir/includes_CXX.rsp
-CMakeFiles/Snake.dir/progreso.cpp.obj: C:/Users/Hp/Documents/Qt/Proyecto_Programacion3_C++/Snake/progreso.cpp
+CMakeFiles/Snake.dir/progreso.cpp.obj: C:/Users/USUARIO/Documents/Qt/Proyecto_Programacion3_C++/Snake/progreso.cpp
 CMakeFiles/Snake.dir/progreso.cpp.obj: CMakeFiles/Snake.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug\CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/Snake.dir/progreso.cpp.obj"
-	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Snake.dir/progreso.cpp.obj -MF CMakeFiles\Snake.dir\progreso.cpp.obj.d -o CMakeFiles\Snake.dir\progreso.cpp.obj -c C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake\progreso.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug\CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/Snake.dir/progreso.cpp.obj"
+	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Snake.dir/progreso.cpp.obj -MF CMakeFiles\Snake.dir\progreso.cpp.obj.d -o CMakeFiles\Snake.dir\progreso.cpp.obj -c C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\progreso.cpp
 
 CMakeFiles/Snake.dir/progreso.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/Snake.dir/progreso.cpp.i"
-	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake\progreso.cpp > CMakeFiles\Snake.dir\progreso.cpp.i
+	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\progreso.cpp > CMakeFiles\Snake.dir\progreso.cpp.i
 
 CMakeFiles/Snake.dir/progreso.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/Snake.dir/progreso.cpp.s"
-	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake\progreso.cpp -o CMakeFiles\Snake.dir\progreso.cpp.s
+	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\progreso.cpp -o CMakeFiles\Snake.dir\progreso.cpp.s
 
 CMakeFiles/Snake.dir/reglasmovimiento.cpp.obj: CMakeFiles/Snake.dir/flags.make
 CMakeFiles/Snake.dir/reglasmovimiento.cpp.obj: CMakeFiles/Snake.dir/includes_CXX.rsp
-CMakeFiles/Snake.dir/reglasmovimiento.cpp.obj: C:/Users/Hp/Documents/Qt/Proyecto_Programacion3_C++/Snake/reglasmovimiento.cpp
+CMakeFiles/Snake.dir/reglasmovimiento.cpp.obj: C:/Users/USUARIO/Documents/Qt/Proyecto_Programacion3_C++/Snake/reglasmovimiento.cpp
 CMakeFiles/Snake.dir/reglasmovimiento.cpp.obj: CMakeFiles/Snake.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug\CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/Snake.dir/reglasmovimiento.cpp.obj"
-	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Snake.dir/reglasmovimiento.cpp.obj -MF CMakeFiles\Snake.dir\reglasmovimiento.cpp.obj.d -o CMakeFiles\Snake.dir\reglasmovimiento.cpp.obj -c C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake\reglasmovimiento.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug\CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/Snake.dir/reglasmovimiento.cpp.obj"
+	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Snake.dir/reglasmovimiento.cpp.obj -MF CMakeFiles\Snake.dir\reglasmovimiento.cpp.obj.d -o CMakeFiles\Snake.dir\reglasmovimiento.cpp.obj -c C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\reglasmovimiento.cpp
 
 CMakeFiles/Snake.dir/reglasmovimiento.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/Snake.dir/reglasmovimiento.cpp.i"
-	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake\reglasmovimiento.cpp > CMakeFiles\Snake.dir\reglasmovimiento.cpp.i
+	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\reglasmovimiento.cpp > CMakeFiles\Snake.dir\reglasmovimiento.cpp.i
 
 CMakeFiles/Snake.dir/reglasmovimiento.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/Snake.dir/reglasmovimiento.cpp.s"
-	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake\reglasmovimiento.cpp -o CMakeFiles\Snake.dir\reglasmovimiento.cpp.s
+	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\reglasmovimiento.cpp -o CMakeFiles\Snake.dir\reglasmovimiento.cpp.s
 
 CMakeFiles/Snake.dir/snake.cpp.obj: CMakeFiles/Snake.dir/flags.make
 CMakeFiles/Snake.dir/snake.cpp.obj: CMakeFiles/Snake.dir/includes_CXX.rsp
-CMakeFiles/Snake.dir/snake.cpp.obj: C:/Users/Hp/Documents/Qt/Proyecto_Programacion3_C++/Snake/snake.cpp
+CMakeFiles/Snake.dir/snake.cpp.obj: C:/Users/USUARIO/Documents/Qt/Proyecto_Programacion3_C++/Snake/snake.cpp
 CMakeFiles/Snake.dir/snake.cpp.obj: CMakeFiles/Snake.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug\CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/Snake.dir/snake.cpp.obj"
-	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Snake.dir/snake.cpp.obj -MF CMakeFiles\Snake.dir\snake.cpp.obj.d -o CMakeFiles\Snake.dir\snake.cpp.obj -c C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake\snake.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug\CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/Snake.dir/snake.cpp.obj"
+	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Snake.dir/snake.cpp.obj -MF CMakeFiles\Snake.dir\snake.cpp.obj.d -o CMakeFiles\Snake.dir\snake.cpp.obj -c C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\snake.cpp
 
 CMakeFiles/Snake.dir/snake.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/Snake.dir/snake.cpp.i"
-	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake\snake.cpp > CMakeFiles\Snake.dir\snake.cpp.i
+	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\snake.cpp > CMakeFiles\Snake.dir\snake.cpp.i
 
 CMakeFiles/Snake.dir/snake.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/Snake.dir/snake.cpp.s"
-	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake\snake.cpp -o CMakeFiles\Snake.dir\snake.cpp.s
+	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\snake.cpp -o CMakeFiles\Snake.dir\snake.cpp.s
 
 CMakeFiles/Snake.dir/tablero.cpp.obj: CMakeFiles/Snake.dir/flags.make
 CMakeFiles/Snake.dir/tablero.cpp.obj: CMakeFiles/Snake.dir/includes_CXX.rsp
-CMakeFiles/Snake.dir/tablero.cpp.obj: C:/Users/Hp/Documents/Qt/Proyecto_Programacion3_C++/Snake/tablero.cpp
+CMakeFiles/Snake.dir/tablero.cpp.obj: C:/Users/USUARIO/Documents/Qt/Proyecto_Programacion3_C++/Snake/tablero.cpp
 CMakeFiles/Snake.dir/tablero.cpp.obj: CMakeFiles/Snake.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug\CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/Snake.dir/tablero.cpp.obj"
-	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Snake.dir/tablero.cpp.obj -MF CMakeFiles\Snake.dir\tablero.cpp.obj.d -o CMakeFiles\Snake.dir\tablero.cpp.obj -c C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake\tablero.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug\CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/Snake.dir/tablero.cpp.obj"
+	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Snake.dir/tablero.cpp.obj -MF CMakeFiles\Snake.dir\tablero.cpp.obj.d -o CMakeFiles\Snake.dir\tablero.cpp.obj -c C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\tablero.cpp
 
 CMakeFiles/Snake.dir/tablero.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/Snake.dir/tablero.cpp.i"
-	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake\tablero.cpp > CMakeFiles\Snake.dir\tablero.cpp.i
+	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\tablero.cpp > CMakeFiles\Snake.dir\tablero.cpp.i
 
 CMakeFiles/Snake.dir/tablero.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/Snake.dir/tablero.cpp.s"
-	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake\tablero.cpp -o CMakeFiles\Snake.dir\tablero.cpp.s
+	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\tablero.cpp -o CMakeFiles\Snake.dir\tablero.cpp.s
 
 CMakeFiles/Snake.dir/juegoview.cpp.obj: CMakeFiles/Snake.dir/flags.make
 CMakeFiles/Snake.dir/juegoview.cpp.obj: CMakeFiles/Snake.dir/includes_CXX.rsp
-CMakeFiles/Snake.dir/juegoview.cpp.obj: C:/Users/Hp/Documents/Qt/Proyecto_Programacion3_C++/Snake/juegoview.cpp
+CMakeFiles/Snake.dir/juegoview.cpp.obj: C:/Users/USUARIO/Documents/Qt/Proyecto_Programacion3_C++/Snake/juegoview.cpp
 CMakeFiles/Snake.dir/juegoview.cpp.obj: CMakeFiles/Snake.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug\CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/Snake.dir/juegoview.cpp.obj"
-	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Snake.dir/juegoview.cpp.obj -MF CMakeFiles\Snake.dir\juegoview.cpp.obj.d -o CMakeFiles\Snake.dir\juegoview.cpp.obj -c C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake\juegoview.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug\CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/Snake.dir/juegoview.cpp.obj"
+	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Snake.dir/juegoview.cpp.obj -MF CMakeFiles\Snake.dir\juegoview.cpp.obj.d -o CMakeFiles\Snake.dir\juegoview.cpp.obj -c C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\juegoview.cpp
 
 CMakeFiles/Snake.dir/juegoview.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/Snake.dir/juegoview.cpp.i"
-	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake\juegoview.cpp > CMakeFiles\Snake.dir\juegoview.cpp.i
+	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\juegoview.cpp > CMakeFiles\Snake.dir\juegoview.cpp.i
 
 CMakeFiles/Snake.dir/juegoview.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/Snake.dir/juegoview.cpp.s"
-	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake\juegoview.cpp -o CMakeFiles\Snake.dir\juegoview.cpp.s
+	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\juegoview.cpp -o CMakeFiles\Snake.dir\juegoview.cpp.s
+
+CMakeFiles/Snake.dir/Snake_autogen/EWIEGA46WW/qrc_recursos.cpp.obj: CMakeFiles/Snake.dir/flags.make
+CMakeFiles/Snake.dir/Snake_autogen/EWIEGA46WW/qrc_recursos.cpp.obj: CMakeFiles/Snake.dir/includes_CXX.rsp
+CMakeFiles/Snake.dir/Snake_autogen/EWIEGA46WW/qrc_recursos.cpp.obj: Snake_autogen/EWIEGA46WW/qrc_recursos.cpp
+CMakeFiles/Snake.dir/Snake_autogen/EWIEGA46WW/qrc_recursos.cpp.obj: CMakeFiles/Snake.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug\CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/Snake.dir/Snake_autogen/EWIEGA46WW/qrc_recursos.cpp.obj"
+	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/Snake.dir/Snake_autogen/EWIEGA46WW/qrc_recursos.cpp.obj -MF CMakeFiles\Snake.dir\Snake_autogen\EWIEGA46WW\qrc_recursos.cpp.obj.d -o CMakeFiles\Snake.dir\Snake_autogen\EWIEGA46WW\qrc_recursos.cpp.obj -c C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug\Snake_autogen\EWIEGA46WW\qrc_recursos.cpp
+
+CMakeFiles/Snake.dir/Snake_autogen/EWIEGA46WW/qrc_recursos.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/Snake.dir/Snake_autogen/EWIEGA46WW/qrc_recursos.cpp.i"
+	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug\Snake_autogen\EWIEGA46WW\qrc_recursos.cpp > CMakeFiles\Snake.dir\Snake_autogen\EWIEGA46WW\qrc_recursos.cpp.i
+
+CMakeFiles/Snake.dir/Snake_autogen/EWIEGA46WW/qrc_recursos.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/Snake.dir/Snake_autogen/EWIEGA46WW/qrc_recursos.cpp.s"
+	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug\Snake_autogen\EWIEGA46WW\qrc_recursos.cpp -o CMakeFiles\Snake.dir\Snake_autogen\EWIEGA46WW\qrc_recursos.cpp.s
 
 # Object files for target Snake
 Snake_OBJECTS = \
@@ -165,7 +189,8 @@ Snake_OBJECTS = \
 "CMakeFiles/Snake.dir/reglasmovimiento.cpp.obj" \
 "CMakeFiles/Snake.dir/snake.cpp.obj" \
 "CMakeFiles/Snake.dir/tablero.cpp.obj" \
-"CMakeFiles/Snake.dir/juegoview.cpp.obj"
+"CMakeFiles/Snake.dir/juegoview.cpp.obj" \
+"CMakeFiles/Snake.dir/Snake_autogen/EWIEGA46WW/qrc_recursos.cpp.obj"
 
 # External object files for target Snake
 Snake_EXTERNAL_OBJECTS =
@@ -176,6 +201,7 @@ Snake.exe: CMakeFiles/Snake.dir/reglasmovimiento.cpp.obj
 Snake.exe: CMakeFiles/Snake.dir/snake.cpp.obj
 Snake.exe: CMakeFiles/Snake.dir/tablero.cpp.obj
 Snake.exe: CMakeFiles/Snake.dir/juegoview.cpp.obj
+Snake.exe: CMakeFiles/Snake.dir/Snake_autogen/EWIEGA46WW/qrc_recursos.cpp.obj
 Snake.exe: CMakeFiles/Snake.dir/build.make
 Snake.exe: C:/Qt/6.11.2/mingw_64/lib/libQt6Widgets.a
 Snake.exe: C:/Qt/6.11.2/mingw_64/lib/libQt6Gui.a
@@ -183,7 +209,7 @@ Snake.exe: C:/Qt/6.11.2/mingw_64/lib/libQt6Core.a
 Snake.exe: CMakeFiles/Snake.dir/linkLibs.rsp
 Snake.exe: CMakeFiles/Snake.dir/objects1.rsp
 Snake.exe: CMakeFiles/Snake.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug\CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Linking CXX executable Snake.exe"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug\CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Linking CXX executable Snake.exe"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles\Snake.dir\link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
@@ -194,7 +220,7 @@ CMakeFiles/Snake.dir/clean:
 	$(CMAKE_COMMAND) -P CMakeFiles\Snake.dir\cmake_clean.cmake
 .PHONY : CMakeFiles/Snake.dir/clean
 
-CMakeFiles/Snake.dir/depend:
-	$(CMAKE_COMMAND) -E cmake_depends "MinGW Makefiles" C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug\CMakeFiles\Snake.dir\DependInfo.cmake "--color=$(COLOR)"
+CMakeFiles/Snake.dir/depend: Snake_autogen/EWIEGA46WW/qrc_recursos.cpp
+	$(CMAKE_COMMAND) -E cmake_depends "MinGW Makefiles" C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug\CMakeFiles\Snake.dir\DependInfo.cmake "--color=$(COLOR)"
 .PHONY : CMakeFiles/Snake.dir/depend
 

@@ -55,7 +55,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "c:/Users/Hp/Documents/Qt/Proyecto_Programacion3_C++/Snake/build/Desktop_Qt_6_11_2_MinGW_64_bit_Debug"
+			"value" : "c:/Users/USUARIO/Documents/Qt/Proyecto_Programacion3_C++/Snake/build/Desktop_Qt_6_11_2_MinGW_64_bit_Debug"
 		},
 		{
 			"name" : "CMAKE_CACHE_MAJOR_VERSION",
@@ -94,18 +94,6 @@
 			"value" : "5"
 		},
 		{
-			"name" : "CMAKE_COLOR_DIAGNOSTICS",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : "No help, variable specified on the command line."
-				}
-			],
-			"type" : "BOOL",
-			"value" : "ON"
-		},
-		{
 			"name" : "CMAKE_COLOR_MAKEFILE",
 			"properties" : 
 			[
@@ -115,11 +103,11 @@
 				},
 				{
 					"name" : "HELPSTRING",
-					"value" : ""
+					"value" : "Enable/Disable color output during build."
 				}
 			],
-			"type" : "UNINITIALIZED",
-			"value" : ""
+			"type" : "BOOL",
+			"value" : "ON"
 		},
 		{
 			"name" : "CMAKE_COMMAND",
@@ -235,7 +223,7 @@
 				}
 			],
 			"type" : "STRING",
-			"value" : "-g"
+			"value" : ""
 		},
 		{
 			"name" : "CMAKE_CXX_FLAGS_MINSIZEREL",
@@ -251,7 +239,7 @@
 				}
 			],
 			"type" : "STRING",
-			"value" : "-Os -DNDEBUG"
+			"value" : ""
 		},
 		{
 			"name" : "CMAKE_CXX_FLAGS_RELEASE",
@@ -267,7 +255,7 @@
 				}
 			],
 			"type" : "STRING",
-			"value" : "-O3 -DNDEBUG"
+			"value" : ""
 		},
 		{
 			"name" : "CMAKE_CXX_FLAGS_RELWITHDEBINFO",
@@ -283,19 +271,7 @@
 				}
 			],
 			"type" : "STRING",
-			"value" : "-O2 -g -DNDEBUG"
-		},
-		{
-			"name" : "CMAKE_CXX_OUTPUT_EXTENSION",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : ""
-				}
-			],
-			"type" : "STRING",
-			"value" : ".obj"
+			"value" : ""
 		},
 		{
 			"name" : "CMAKE_CXX_STANDARD_LIBRARIES",
@@ -312,30 +288,6 @@
 			],
 			"type" : "STRING",
 			"value" : "-lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32"
-		},
-		{
-			"name" : "CMAKE_C_COMPILER",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : "No help, variable specified on the command line."
-				}
-			],
-			"type" : "FILEPATH",
-			"value" : "C:/Qt/Tools/mingw1310_64/bin/gcc.exe"
-		},
-		{
-			"name" : "CMAKE_C_OUTPUT_EXTENSION",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : ""
-				}
-			],
-			"type" : "STRING",
-			"value" : ""
 		},
 		{
 			"name" : "CMAKE_DLLTOOL",
@@ -458,6 +410,18 @@
 			"value" : ""
 		},
 		{
+			"name" : "CMAKE_EXTRA_GENERATOR",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "Name of external makefile project generator."
+				}
+			],
+			"type" : "INTERNAL",
+			"value" : ""
+		},
+		{
 			"name" : "CMAKE_FIND_PACKAGE_REDIRECTS_DIR",
 			"properties" : 
 			[
@@ -467,7 +431,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "C:/Users/Hp/Documents/Qt/Proyecto_Programacion3_C++/Snake/build/Desktop_Qt_6_11_2_MinGW_64_bit_Debug/CMakeFiles/pkgRedirects"
+			"value" : "C:/Users/USUARIO/Documents/Qt/Proyecto_Programacion3_C++/Snake/build/Desktop_Qt_6_11_2_MinGW_64_bit_Debug/CMakeFiles/pkgRedirects"
 		},
 		{
 			"name" : "CMAKE_GENERATOR",
@@ -475,10 +439,10 @@
 			[
 				{
 					"name" : "HELPSTRING",
-					"value" : "No help, variable specified on the command line."
+					"value" : "Name of generator."
 				}
 			],
-			"type" : "STRING",
+			"type" : "INTERNAL",
 			"value" : "MinGW Makefiles"
 		},
 		{
@@ -539,31 +503,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : ""
-		},
-		{
-			"name" : "CMAKE_HAVE_PTHREADS_CREATE",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : "Have library pthreads"
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : ""
-		},
-		{
-			"name" : "CMAKE_HAVE_PTHREAD_CREATE",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : "Have library pthread"
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : ""
+			"value" : "1"
 		},
 		{
 			"name" : "CMAKE_HOME_DIRECTORY",
@@ -575,7 +515,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "C:/Users/Hp/Documents/Qt/Proyecto_Programacion3_C++/Snake"
+			"value" : "C:/Users/USUARIO/Documents/Qt/Proyecto_Programacion3_C++/Snake"
 		},
 		{
 			"name" : "CMAKE_INSTALL_BINDIR",
@@ -871,11 +811,11 @@
 				},
 				{
 					"name" : "HELPSTRING",
-					"value" : "Path to a program."
+					"value" : "No help, variable specified on the command line."
 				}
 			],
-			"type" : "FILEPATH",
-			"value" : "C:/Qt/Tools/mingw1310_64/bin/mingw32-make.exe"
+			"type" : "UNINITIALIZED",
+			"value" : "C:\\Qt\\Tools\\mingw1310_64\\bin\\mingw32-make.exe"
 		},
 		{
 			"name" : "CMAKE_MODULE_LINKER_FLAGS",
@@ -1030,18 +970,6 @@
 			"value" : "1"
 		},
 		{
-			"name" : "CMAKE_PREFIX_PATH",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : "No help, variable specified on the command line."
-				}
-			],
-			"type" : "UNINITIALIZED",
-			"value" : "C:\\Qt\\6.11.2\\mingw_64"
-		},
-		{
 			"name" : "CMAKE_PROJECT_DESCRIPTION",
 			"properties" : 
 			[
@@ -1064,18 +992,6 @@
 			],
 			"type" : "STATIC",
 			"value" : ""
-		},
-		{
-			"name" : "CMAKE_PROJECT_INCLUDE_BEFORE",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : "No help, variable specified on the command line."
-				}
-			],
-			"type" : "FILEPATH",
-			"value" : "C:/Users/Hp/Documents/Qt/Proyecto_Programacion3_C++/Snake/build/Desktop_Qt_6_11_2_MinGW_64_bit_Debug/.qtcreator/cmake-helper/qtcreator-project.cmake"
 		},
 		{
 			"name" : "CMAKE_PROJECT_NAME",
@@ -1482,6 +1398,30 @@
 			"value" : "FALSE"
 		},
 		{
+			"name" : "FIND_PACKAGE_MESSAGE_DETAILS_Threads",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "Details about finding Threads"
+				}
+			],
+			"type" : "INTERNAL",
+			"value" : "[TRUE][v()]"
+		},
+		{
+			"name" : "FIND_PACKAGE_MESSAGE_DETAILS_WrapAtomic",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "Details about finding WrapAtomic"
+				}
+			],
+			"type" : "INTERNAL",
+			"value" : "[1][v()]"
+		},
+		{
 			"name" : "HAVE_STDATOMIC",
 			"properties" : 
 			[
@@ -1491,31 +1431,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : ""
-		},
-		{
-			"name" : "HAVE_STDATOMIC_WITH_LIB",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : "Test HAVE_STDATOMIC_WITH_LIB"
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : ""
-		},
-		{
-			"name" : "QTCREATOR_CMAKE_HELPER_DIRECTORY",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : ""
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : "C:/Users/Hp/Documents/Qt/Proyecto_Programacion3_C++/Snake/build/Desktop_Qt_6_11_2_MinGW_64_bit_Debug/.qtcreator/cmake-helper"
+			"value" : "1"
 		},
 		{
 			"name" : "QT_ADDITIONAL_HOST_PACKAGES_PREFIX_PATH",
@@ -1540,54 +1456,6 @@
 			],
 			"type" : "STRING",
 			"value" : ""
-		},
-		{
-			"name" : "QT_CREATOR_ENABLE_MAINTENANCE_TOOL_PROVIDER",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : "No help, variable specified on the command line."
-				}
-			],
-			"type" : "BOOL",
-			"value" : "ON"
-		},
-		{
-			"name" : "QT_CREATOR_ENABLE_PACKAGE_MANAGER_SETUP",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : "No help, variable specified on the command line."
-				}
-			],
-			"type" : "BOOL",
-			"value" : "ON"
-		},
-		{
-			"name" : "QT_CREATOR_SOURCE_GROUPS",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : "Qt Creator source groups extensions"
-				}
-			],
-			"type" : "BOOL",
-			"value" : "ON"
-		},
-		{
-			"name" : "QT_ENABLE_QML_DEBUG",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : "No help, variable specified on the command line."
-				}
-			],
-			"type" : "BOOL",
-			"value" : "ON"
 		},
 		{
 			"name" : "QT_FEATURE_abstractbutton",
@@ -6606,18 +6474,6 @@
 			"value" : "OFF"
 		},
 		{
-			"name" : "QT_QMAKE_EXECUTABLE",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : "No help, variable specified on the command line."
-				}
-			],
-			"type" : "FILEPATH",
-			"value" : "C:/Qt/6.11.2/mingw_64/bin/qmake.exe"
-		},
-		{
 			"name" : "Qt6CoreTools_DIR",
 			"properties" : 
 			[
@@ -6707,11 +6563,11 @@
 			[
 				{
 					"name" : "HELPSTRING",
-					"value" : "The directory containing a CMake configuration file for Qt6."
+					"value" : "No help, variable specified on the command line."
 				}
 			],
-			"type" : "PATH",
-			"value" : "C:/Qt/6.11.2/mingw_64/lib/cmake/Qt6"
+			"type" : "UNINITIALIZED",
+			"value" : "C:\\Qt\\6.11.2\\mingw_64\\lib\\cmake\\Qt6"
 		},
 		{
 			"name" : "Snake_BINARY_DIR",
@@ -6723,7 +6579,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "C:/Users/Hp/Documents/Qt/Proyecto_Programacion3_C++/Snake/build/Desktop_Qt_6_11_2_MinGW_64_bit_Debug"
+			"value" : "C:/Users/USUARIO/Documents/Qt/Proyecto_Programacion3_C++/Snake/build/Desktop_Qt_6_11_2_MinGW_64_bit_Debug"
 		},
 		{
 			"name" : "Snake_IS_TOP_LEVEL",
@@ -6747,19 +6603,7 @@
 				}
 			],
 			"type" : "STATIC",
-			"value" : "C:/Users/Hp/Documents/Qt/Proyecto_Programacion3_C++/Snake"
-		},
-		{
-			"name" : "THREADS_HAVE_PTHREAD_ARG",
-			"properties" : 
-			[
-				{
-					"name" : "HELPSTRING",
-					"value" : "Result of TRY_COMPILE"
-				}
-			],
-			"type" : "INTERNAL",
-			"value" : "FALSE"
+			"value" : "C:/Users/USUARIO/Documents/Qt/Proyecto_Programacion3_C++/Snake"
 		},
 		{
 			"name" : "Vulkan_GLSLANG_VALIDATOR_EXECUTABLE",

@@ -1,27 +1,83 @@
 #include "tablero.h"
 
+#include <new>
+
 Tablero::Tablero(int columnas, int filas)
     : m_mapa(nullptr),
       m_columnas(columnas > 0 ? columnas : 1),
       m_filas(filas > 0 ? filas : 1)
 {
-    m_mapa = new int *[m_filas];
-    for (int y = 0; y < m_filas; ++y) {
-        m_mapa[y] = new int[m_columnas];
-    }
+    reservar(m_columnas, m_filas);
     limpiar();
 }
 
 Tablero::~Tablero() {
-    if (m_mapa != nullptr) {
-        for (int y = 0; y < m_filas; ++y) {
-            delete[] m_mapa[y];
-            m_mapa[y] = nullptr;
+    liberar();
+}
+
+void Tablero::reservar(int columnas, int filas) {
+    int **nuevoMapa = new int *[filas]();
+
+    try {
+        for (int y = 0; y < filas; ++y) {
+            nuevoMapa[y] = new int[columnas]();
         }
+    } catch (...) {
+        for (int y = 0; y < filas; ++y) {
+            delete[] nuevoMapa[y];
+        }
+        delete[] nuevoMapa;
+        throw;
+    }
+
+    m_mapa = nuevoMapa;
+}
+
+void Tablero::liberar() {
+    if (m_mapa == nullptr) {
+        return;
+    }
+
+    for (int y = 0; y < m_filas; ++y) {
+        delete[] m_mapa[y];
+        m_mapa[y] = nullptr;
     }
 
     delete[] m_mapa;
     m_mapa = nullptr;
+}
+
+void Tablero::redimensionar(int columnas, int filas) {
+    const int nuevasColumnas = columnas > 0 ? columnas : 1;
+    const int nuevasFilas = filas > 0 ? filas : 1;
+
+    if (nuevasColumnas == m_columnas && nuevasFilas == m_filas) {
+        limpiar();
+        return;
+    }
+
+    int **mapaAnterior = m_mapa;
+    const int columnasAnteriores = m_columnas;
+    const int filasAnteriores = m_filas;
+
+    m_mapa = nullptr;
+    m_columnas = nuevasColumnas;
+    m_filas = nuevasFilas;
+
+    try {
+        reservar(m_columnas, m_filas);
+    } catch (...) {
+        m_mapa = mapaAnterior;
+        m_columnas = columnasAnteriores;
+        m_filas = filasAnteriores;
+        throw;
+    }
+
+    for (int y = 0; y < filasAnteriores; ++y) {
+        delete[] mapaAnterior[y];
+    }
+    delete[] mapaAnterior;
+    limpiar();
 }
 
 void Tablero::limpiar() {

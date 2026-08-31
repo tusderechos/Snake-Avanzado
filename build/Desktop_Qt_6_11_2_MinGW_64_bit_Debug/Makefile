@@ -56,10 +56,10 @@ RM = C:\Qt\Tools\CMake_64\bin\cmake.exe -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake
+CMAKE_SOURCE_DIR = C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug
+CMAKE_BINARY_DIR = C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -131,9 +131,9 @@ install/strip/fast: preinstall/fast
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug\CMakeFiles C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug\\CMakeFiles\progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug\CMakeFiles C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug\\CMakeFiles\progress.marks
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug\CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug\CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -172,6 +172,30 @@ Snake: cmake_check_build_system
 Snake/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Snake.dir\build.make CMakeFiles/Snake.dir/build
 .PHONY : Snake/fast
+
+Snake_autogen/EWIEGA46WW/qrc_recursos.obj: Snake_autogen/EWIEGA46WW/qrc_recursos.cpp.obj
+.PHONY : Snake_autogen/EWIEGA46WW/qrc_recursos.obj
+
+# target to build an object file
+Snake_autogen/EWIEGA46WW/qrc_recursos.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Snake.dir\build.make CMakeFiles/Snake.dir/Snake_autogen/EWIEGA46WW/qrc_recursos.cpp.obj
+.PHONY : Snake_autogen/EWIEGA46WW/qrc_recursos.cpp.obj
+
+Snake_autogen/EWIEGA46WW/qrc_recursos.i: Snake_autogen/EWIEGA46WW/qrc_recursos.cpp.i
+.PHONY : Snake_autogen/EWIEGA46WW/qrc_recursos.i
+
+# target to preprocess a source file
+Snake_autogen/EWIEGA46WW/qrc_recursos.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Snake.dir\build.make CMakeFiles/Snake.dir/Snake_autogen/EWIEGA46WW/qrc_recursos.cpp.i
+.PHONY : Snake_autogen/EWIEGA46WW/qrc_recursos.cpp.i
+
+Snake_autogen/EWIEGA46WW/qrc_recursos.s: Snake_autogen/EWIEGA46WW/qrc_recursos.cpp.s
+.PHONY : Snake_autogen/EWIEGA46WW/qrc_recursos.s
+
+# target to generate assembly for a file
+Snake_autogen/EWIEGA46WW/qrc_recursos.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Snake.dir\build.make CMakeFiles/Snake.dir/Snake_autogen/EWIEGA46WW/qrc_recursos.cpp.s
+.PHONY : Snake_autogen/EWIEGA46WW/qrc_recursos.cpp.s
 
 juegoview.obj: juegoview.cpp.obj
 .PHONY : juegoview.obj
@@ -330,6 +354,9 @@ help:
 	@echo ... list_install_components
 	@echo ... rebuild_cache
 	@echo ... Snake
+	@echo ... Snake_autogen/EWIEGA46WW/qrc_recursos.obj
+	@echo ... Snake_autogen/EWIEGA46WW/qrc_recursos.i
+	@echo ... Snake_autogen/EWIEGA46WW/qrc_recursos.s
 	@echo ... juegoview.obj
 	@echo ... juegoview.i
 	@echo ... juegoview.s

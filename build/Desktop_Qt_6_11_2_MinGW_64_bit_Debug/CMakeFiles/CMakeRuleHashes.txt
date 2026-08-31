@@ -1,0 +1,2 @@
+# Hashes of file build rules.
+c8f0c146b341c95a4a5fdb4dca321c27 Snake_autogen/EWIEGA46WW/qrc_recursos.cpp

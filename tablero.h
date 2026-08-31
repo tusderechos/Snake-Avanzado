@@ -9,6 +9,7 @@ public:
     Tablero &operator=(const Tablero &otro) = delete;
 
     void limpiar();
+    void redimensionar(int columnas, int filas);
     bool coordenadaValida(int x, int y) const;
     int valor(int x, int y) const;
     void poner(int x, int y, int valor);
@@ -16,6 +17,9 @@ public:
     int filas() const;
 
 private:
+    void liberar();
+    void reservar(int columnas, int filas);
+
     int **m_mapa;
     int m_columnas;
     int m_filas;

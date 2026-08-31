@@ -1,6 +1,6 @@
 CMakeFiles/Snake.dir/juegoview.cpp.obj: \
- C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake\juegoview.cpp \
- C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake\juegoview.h \
+ C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\juegoview.cpp \
+ C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\juegoview.h \
  C:/Qt/6.11.2/mingw_64/include/QtWidgets/QGraphicsView \
  C:/Qt/6.11.2/mingw_64/include/QtWidgets/qgraphicsview.h \
  C:/Qt/6.11.2/mingw_64/include/QtWidgets/qtwidgetsglobal.h \
@@ -392,24 +392,33 @@ CMakeFiles/Snake.dir/juegoview.cpp.obj: \
  C:/Qt/6.11.2/mingw_64/include/QtGui/qcursor.h \
  C:/Qt/6.11.2/mingw_64/include/QtGui/qbitmap.h \
  C:/Qt/6.11.2/mingw_64/include/QtWidgets/qgraphicsscene.h \
- C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake\progreso.h \
- C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake\reglasmovimiento.h \
- C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake\snake.h \
- C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake\Nodo.h \
- C:\Users\Hp\Documents\Qt\Proyecto_Programacion3_C++\Snake\tablero.h \
+ C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\progreso.h \
+ C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\reglasmovimiento.h \
+ C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\snake.h \
+ C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\Nodo.h \
+ C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\tablero.h \
  C:/Qt/6.11.2/mingw_64/include/QtGui/QBrush \
- C:/Qt/6.11.2/mingw_64/include/QtWidgets/QGraphicsRectItem \
- C:/Qt/6.11.2/mingw_64/include/QtWidgets/qgraphicsitem.h \
- C:/Qt/6.11.2/mingw_64/include/QtGui/qpainterpath.h \
- C:/Qt/6.11.2/mingw_64/include/QtWidgets/QGraphicsScene \
- C:/Qt/6.11.2/mingw_64/include/QtWidgets/QGraphicsTextItem \
- C:/Qt/6.11.2/mingw_64/include/QtGui/QKeyEvent \
- C:/Qt/6.11.2/mingw_64/include/QtGui/qevent.h \
+ C:/Qt/6.11.2/mingw_64/include/QtGui/QGuiApplication \
+ C:/Qt/6.11.2/mingw_64/include/QtGui/qguiapplication.h \
+ C:/Qt/6.11.2/mingw_64/include/QtCore/qcoreapplication.h \
  C:/Qt/6.11.2/mingw_64/include/QtCore/qcoreevent.h \
  C:/Qt/6.11.2/mingw_64/include/QtCore/qbasictimer.h \
  C:/Qt/6.11.2/mingw_64/include/QtCore/qabstracteventdispatcher.h \
  C:/Qt/6.11.2/mingw_64/include/QtCore/qeventloop.h \
  C:/Qt/6.11.2/mingw_64/include/QtCore/qdeadlinetimer.h \
+ C:/Qt/6.11.2/mingw_64/include/QtCore/qnativeinterface.h \
+ C:/Qt/6.11.2/mingw_64/include/QtCore/qcoreapplication_platform.h \
+ C:/Qt/6.11.2/mingw_64/include/QtGui/qinputmethod.h \
+ C:/Qt/6.11.2/mingw_64/include/QtCore/qlocale.h \
+ C:/Qt/6.11.2/mingw_64/include/QtGui/qguiapplication_platform.h \
+ C:/Qt/6.11.2/mingw_64/include/QtWidgets/QGraphicsRectItem \
+ C:/Qt/6.11.2/mingw_64/include/QtWidgets/qgraphicsitem.h \
+ C:/Qt/6.11.2/mingw_64/include/QtGui/qpainterpath.h \
+ C:/Qt/6.11.2/mingw_64/include/QtWidgets/QGraphicsPixmapItem \
+ C:/Qt/6.11.2/mingw_64/include/QtWidgets/QGraphicsScene \
+ C:/Qt/6.11.2/mingw_64/include/QtWidgets/QGraphicsTextItem \
+ C:/Qt/6.11.2/mingw_64/include/QtGui/QKeyEvent \
+ C:/Qt/6.11.2/mingw_64/include/QtGui/qevent.h \
  C:/Qt/6.11.2/mingw_64/include/QtCore/qiodevice.h \
  C:/Qt/6.11.2/mingw_64/include/QtCore/qurl.h \
  C:/Qt/6.11.2/mingw_64/include/QtGui/qeventpoint.h \
@@ -424,14 +433,7 @@ CMakeFiles/Snake.dir/juegoview.cpp.obj: \
  C:/Qt/6.11.2/mingw_64/include/QtCore/QSize \
  C:/Qt/6.11.2/mingw_64/include/QtCore/QSizeF \
  C:/Qt/6.11.2/mingw_64/include/QtGui/QTransform \
- C:/Qt/6.11.2/mingw_64/include/QtCore/qnativeinterface.h \
  C:/Qt/6.11.2/mingw_64/include/QtGui/qscreen_platform.h \
- C:/Qt/6.11.2/mingw_64/include/QtGui/qguiapplication.h \
- C:/Qt/6.11.2/mingw_64/include/QtCore/qcoreapplication.h \
- C:/Qt/6.11.2/mingw_64/include/QtCore/qcoreapplication_platform.h \
- C:/Qt/6.11.2/mingw_64/include/QtGui/qinputmethod.h \
- C:/Qt/6.11.2/mingw_64/include/QtCore/qlocale.h \
- C:/Qt/6.11.2/mingw_64/include/QtGui/qguiapplication_platform.h \
  C:/Qt/6.11.2/mingw_64/include/QtWidgets/QMessageBox \
  C:/Qt/6.11.2/mingw_64/include/QtWidgets/qmessagebox.h \
  C:/Qt/6.11.2/mingw_64/include/QtWidgets/qdialog.h \
@@ -448,6 +450,11 @@ CMakeFiles/Snake.dir/juegoview.cpp.obj: \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/mmintrin.h \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/mwaitintrin.h \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/random.tcc \
+ C:/Qt/6.11.2/mingw_64/include/QtGui/QScreen \
  C:/Qt/6.11.2/mingw_64/include/QtCore/QTimer \
  C:/Qt/6.11.2/mingw_64/include/QtCore/qtimer.h \
- C:/Qt/6.11.2/mingw_64/include/QtGui/QFont
+ C:/Qt/6.11.2/mingw_64/include/QtGui/QFont \
+ C:/Qt/6.11.2/mingw_64/include/QtGui/QImage \
+ C:/Qt/6.11.2/mingw_64/include/QtGui/QPainter \
+ C:/Qt/6.11.2/mingw_64/include/QtGui/QPixmap \
+ C:/Qt/6.11.2/mingw_64/include/QtGui/QTransform

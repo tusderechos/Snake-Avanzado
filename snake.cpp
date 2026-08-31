@@ -1,7 +1,7 @@
 #include "snake.h"
 
 Snake::Snake()
-    : m_cabeza(nullptr), m_longitud(0)
+    : m_cabeza(nullptr), m_cola(nullptr), m_longitud(0)
 {
 }
 
@@ -13,6 +13,11 @@ void Snake::insertarCabeza(int x, int y) {
     Nodo *nuevoNodo = new Nodo(x, y);
     nuevoNodo->siguiente = m_cabeza;
     m_cabeza = nuevoNodo;
+
+    if (m_cola == nullptr) {
+        m_cola = nuevoNodo;
+    }
+
     m_longitud++;
 }
 
@@ -25,6 +30,7 @@ void Snake::avanzar(int x, int y, bool crecer) {
     if (m_cabeza->siguiente == nullptr) {
         m_cabeza->x = x;
         m_cabeza->y = y;
+        m_cola = m_cabeza;
         return;
     }
 
@@ -36,6 +42,7 @@ void Snake::avanzar(int x, int y, bool crecer) {
 
     Nodo *cola = antesDeCola->siguiente;
     antesDeCola->siguiente = nullptr;
+    m_cola = antesDeCola;
     cola->x = x;
     cola->y = y;
     cola->siguiente = m_cabeza;
@@ -49,6 +56,7 @@ void Snake::limpiar() {
         delete nodoAEliminar;
     }
 
+    m_cola = nullptr;
     m_longitud = 0;
 }
 
@@ -77,16 +85,7 @@ bool Snake::ocupa(int x, int y) const {
 }
 
 bool Snake::ocupaCola(int x, int y) const {
-    if (m_cabeza == nullptr) {
-        return false;
-    }
-
-    const Nodo *actual = m_cabeza;
-    while (actual->siguiente != nullptr) {
-        actual = actual->siguiente;
-    }
-
-    return actual->x == x && actual->y == y;
+    return m_cola != nullptr && m_cola->x == x && m_cola->y == y;
 }
 
 const Nodo *Snake::cabeza() const {
