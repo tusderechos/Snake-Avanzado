@@ -392,6 +392,14 @@ CMakeFiles/Snake.dir/juegoview.cpp.obj: \
  C:/Qt/6.11.2/mingw_64/include/QtGui/qcursor.h \
  C:/Qt/6.11.2/mingw_64/include/QtGui/qbitmap.h \
  C:/Qt/6.11.2/mingw_64/include/QtWidgets/qgraphicsscene.h \
+ C:/Qt/6.11.2/mingw_64/include/QtCore/QString \
+ C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\fruta.h \
+ C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\gestorpartida.h \
+ C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\obstaculo.h \
+ C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\item.h \
+ C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\modojuego.h \
+ C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\controles.h \
+ C:/Qt/6.11.2/mingw_64/include/QtCore/Qt \
  C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\progreso.h \
  C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\reglasmovimiento.h \
  C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\snake.h \
@@ -454,7 +462,28 @@ CMakeFiles/Snake.dir/juegoview.cpp.obj: \
  C:/Qt/6.11.2/mingw_64/include/QtCore/QTimer \
  C:/Qt/6.11.2/mingw_64/include/QtCore/qtimer.h \
  C:/Qt/6.11.2/mingw_64/include/QtGui/QFont \
+ C:/Qt/6.11.2/mingw_64/include/QtGui/QFontDatabase \
+ C:/Qt/6.11.2/mingw_64/include/QtGui/qfontdatabase.h \
  C:/Qt/6.11.2/mingw_64/include/QtGui/QImage \
+ C:/Qt/6.11.2/mingw_64/include/QtMultimedia/QMediaPlayer \
+ C:/Qt/6.11.2/mingw_64/include/QtMultimedia/qmediaplayer.h \
+ C:/Qt/6.11.2/mingw_64/include/QtMultimedia/qtmultimediaglobal.h \
+ C:/Qt/6.11.2/mingw_64/include/QtMultimedia/qtmultimedia-config.h \
+ C:/Qt/6.11.2/mingw_64/include/QtMultimedia/qtmultimediaexports.h \
+ C:/Qt/6.11.2/mingw_64/include/QtMultimedia/qtaudio.h \
+ C:/Qt/6.11.2/mingw_64/include/QtMultimedia/qaudio.h \
+ C:/Qt/6.11.2/mingw_64/include/QtMultimedia/QAudioOutput \
+ C:/Qt/6.11.2/mingw_64/include/QtMultimedia/qaudiooutput.h \
+ C:/Qt/6.11.2/mingw_64/include/QtWidgets/QAbstractButton \
+ C:/Qt/6.11.2/mingw_64/include/QtWidgets/qabstractbutton.h \
+ C:/Qt/6.11.2/mingw_64/include/QtWidgets/QPushButton \
+ C:/Qt/6.11.2/mingw_64/include/QtWidgets/qpushbutton.h \
+ C:/Qt/6.11.2/mingw_64/include/QtMultimedia/QVideoSink \
+ C:/Qt/6.11.2/mingw_64/include/QtMultimedia/qvideosink.h \
+ C:/Qt/6.11.2/mingw_64/include/QtMultimedia/QVideoFrame \
+ C:/Qt/6.11.2/mingw_64/include/QtMultimedia/qvideoframe.h \
+ C:/Qt/6.11.2/mingw_64/include/QtMultimedia/qtvideo.h \
+ C:/Qt/6.11.2/mingw_64/include/QtMultimedia/qvideoframeformat.h \
  C:/Qt/6.11.2/mingw_64/include/QtGui/QPainter \
  C:/Qt/6.11.2/mingw_64/include/QtGui/QPixmap \
  C:/Qt/6.11.2/mingw_64/include/QtGui/QTransform

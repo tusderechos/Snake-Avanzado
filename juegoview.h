@@ -2,7 +2,14 @@
 #define JUEGOVIEW_H
 
 #include <QGraphicsView>
+#include <QString>
 
+#include "fruta.h"
+#include "gestorpartida.h"
+#include "obstaculo.h"
+#include "item.h"
+#include "modojuego.h"
+#include "controles.h"
 #include <memory>
 
 class QGraphicsRectItem;
@@ -12,13 +19,17 @@ class QGraphicsPixmapItem;
 class QKeyEvent;
 class QTimer;
 class QPixmap;
+class QMediaPlayer;
+class QAudioOutput;
+class QVideoSink;
 class ProgresoNivel;
 class Snake;
 class Tablero;
 
 class JuegoView : public QGraphicsView {
 public:
-    JuegoView();
+    explicit JuegoView(int nivelInicial = 1,
+                       ConfiguracionJuego configuracion = {});
     ~JuegoView() override;
 
 protected:
@@ -32,6 +43,10 @@ private:
     static constexpr int INTERVALO_NIVEL_1 = 150;
     static constexpr int INTERVALO_NIVEL_2 = 100;
     static constexpr int INTERVALO_NIVEL_3 = 50;
+    static constexpr int TIEMPO_INICIAL_SEGUNDOS = 300;
+    static constexpr int COOLDOWN_CAJA_TURNOS = 5;
+    static constexpr int GARANTIA_CAJA_TURNOS = 20;
+    static constexpr int GARANTIA_CAJA_FRUTAS = 4;
     static constexpr int NIVEL_1 = 1;
     static constexpr int NIVEL_2 = 2;
     static constexpr int NIVEL_3 = 3;
@@ -49,6 +64,10 @@ private:
     static constexpr int SERPIENTE = 1;
     static constexpr int MANZANA = 2;
     static constexpr int OBSTACULO = 3;
+    static constexpr int MANZANA_DORADA = 4;
+    static constexpr int CAJA_MISTERIOSA = 5;
+    static constexpr int FRUTA_GRANDE = 6;
+    static constexpr int FRUTA_ENERGETICA = 7;
 
     void crearGrid();
     void cargarSprites();
@@ -61,9 +80,12 @@ private:
     void actualizarMapa();
     void redibujar();
     void generarManzana();
+    void aplicarItem();
     void actualizarInformacion();
     void avanzarJuego();
     void terminarJuego();
+    void reproducirExplosion();
+    void mostrarTarjetaDerrota();
     void ganarNivel();
     int intervaloActual() const;
     bool esNivelConBordesMortales() const;
@@ -80,22 +102,41 @@ private:
     int m_direccionY;
     int m_manzanaX;
     int m_manzanaY;
+    int m_tipoObjeto;
+    Fruta m_frutaActual;
     int m_nivel;
     int m_columnas;
     int m_filas;
     int m_metaFrutas;
     int m_metaPuntos;
     int m_metaLongitud;
-    int m_obstaculoX[MAX_OBSTACULOS_MOVILES];
-    int m_obstaculoY[MAX_OBSTACULOS_MOVILES];
-    int m_obstaculoDireccionX[MAX_OBSTACULOS_MOVILES];
-    int m_obstaculoDireccionY[MAX_OBSTACULOS_MOVILES];
+    Obstaculo m_obstaculos[MAX_OBSTACULOS_MOVILES];
     int m_turnoObstaculos;
+    int m_turnosObstaculosCongelados;
+    int m_turnosHielo;
+    int m_turnosEnergia;
+    int m_tiempoExtraSegundos;
+    int m_tiempoRestanteSegundos;
+    int m_milisegundosTiempo;
+    int m_turnosTrampa;
+    int m_trampaX;
+    int m_trampaY;
+    int m_turnosDesdeCaja;
+    int m_frutasDesdeCaja;
+    QString m_ultimoEfecto;
     bool m_cambioDireccionPendiente;
+    EsquemaControles m_esquemaControles;
     bool m_terminado;
+    ConfiguracionJuego m_configuracion;
+    GestorPartida m_gestorPartida;
     QPixmap *m_spriteCabeza;
     QPixmap *m_spriteCuerpo;
     QPixmap *m_spriteCola;
+    QMediaPlayer *m_explosionPlayer;
+    QAudioOutput *m_explosionAudio;
+    QVideoSink *m_explosionSink;
+    QGraphicsPixmapItem *m_explosionItem;
+    bool m_tarjetaDerrotaMostrada;
 };
 
 #endif // JUEGOVIEW_H

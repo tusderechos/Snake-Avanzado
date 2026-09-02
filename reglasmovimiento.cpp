@@ -17,3 +17,15 @@ int ReglasMovimiento::envolverCoordenada(int valor, int limite) {
     }
     return valor;
 }
+
+bool ReglasMovimiento::colisionaConSerpiente(bool destinoEsSerpiente,
+                                             bool destinoEsCola,
+                                             bool crecimientoPendiente) {
+    if (!destinoEsSerpiente) {
+        return false;
+    }
+
+    // La cola puede abandonarse en este turno, excepto si el crecimiento
+    // pendiente obliga a conservarla.
+    return !destinoEsCola || crecimientoPendiente;
+}

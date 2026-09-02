@@ -18,12 +18,19 @@
 #include <QScreen>
 #include <QTimer>
 #include <QFont>
+#include <QFontDatabase>
 #include <QImage>
+#include <QMediaPlayer>
+#include <QAudioOutput>
+#include <QAbstractButton>
+#include <QPushButton>
+#include <QVideoSink>
+#include <QVideoFrame>
 #include <QPainter>
 #include <QPixmap>
 #include <QTransform>
 
-JuegoView::JuegoView()
+JuegoView::JuegoView(int nivelInicial, ConfiguracionJuego configuracion)
     : m_escena(new QGraphicsScene(this)),
       m_informacion(nullptr),
       m_temporizador(new QTimer(this)),
@@ -36,31 +43,94 @@ JuegoView::JuegoView()
       m_direccionY(0),
       m_manzanaX(0),
       m_manzanaY(0),
+      m_tipoObjeto(MANZANA),
       m_nivel(NIVEL_1),
       m_columnas(10),
       m_filas(10),
       m_metaFrutas(META_FRUTAS_NIVEL_1),
       m_metaPuntos(META_PUNTOS_NIVEL_1),
       m_metaLongitud(META_LONGITUD_NIVEL_1),
-      m_obstaculoX{},
-      m_obstaculoY{},
-      m_obstaculoDireccionX{},
-      m_obstaculoDireccionY{},
       m_turnoObstaculos(0),
+      m_turnosObstaculosCongelados(0),
+      m_turnosHielo(0),
+      m_turnosEnergia(0),
+      m_tiempoExtraSegundos(0),
+      m_tiempoRestanteSegundos(TIEMPO_INICIAL_SEGUNDOS),
+      m_milisegundosTiempo(0),
+      m_turnosTrampa(0),
+      m_trampaX(-1),
+      m_trampaY(-1),
+      m_turnosDesdeCaja(0),
+      m_frutasDesdeCaja(0),
+      m_ultimoEfecto(),
       m_cambioDireccionPendiente(false),
+      m_esquemaControles(EsquemaControles::Flechas),
       m_terminado(false),
+      m_configuracion(configuracion),
       m_spriteCabeza(new QPixmap()),
       m_spriteCuerpo(new QPixmap()),
-      m_spriteCola(new QPixmap())
+      m_spriteCola(new QPixmap()),
+      m_explosionPlayer(new QMediaPlayer(this)),
+      m_explosionAudio(new QAudioOutput(this)),
+      m_explosionSink(new QVideoSink(this)),
+      m_explosionItem(nullptr),
+      m_tarjetaDerrotaMostrada(false)
 {
     setScene(m_escena);
     m_escena->setBackgroundBrush(QColor(13, 18, 26));
     setFocusPolicy(Qt::StrongFocus);
+    QFontDatabase::addApplicationFont(":/assets/Fredoka-Variable.ttf");
 
-    configurarNivel(NIVEL_1);
+    configurarNivel(nivelInicial);
     crearGrid();
     cargarSprites();
     reiniciar();
+
+    m_explosionPlayer->setAudioOutput(m_explosionAudio);
+    m_explosionAudio->setVolume(0.35);
+    m_explosionPlayer->setVideoSink(m_explosionSink);
+    m_explosionPlayer->setSource(QUrl("qrc:/assets/deltarune_explosion.mp4"));
+    connect(m_explosionSink, &QVideoSink::videoFrameChanged, this,
+            [this](const QVideoFrame &videoFrame) {
+                if (m_explosionItem == nullptr) return;
+                QImage imagen = videoFrame.toImage().convertToFormat(QImage::Format_ARGB32);
+                for (int y = 0; y < imagen.height(); ++y) {
+                    for (int x = 0; x < imagen.width(); ++x) {
+                        QColor pixel = imagen.pixelColor(x, y);
+                        const bool verde = pixel.green() > 80
+                            && pixel.green() > pixel.red() * 1.18
+                            && pixel.green() > pixel.blue() * 1.18;
+                        if (verde) {
+                            pixel.setAlpha(0);
+                        } else if (pixel.green() > pixel.red() * 1.08) {
+                            pixel.setAlpha(qMax(0, pixel.alpha() - 100));
+                        }
+                        imagen.setPixelColor(x, y, pixel);
+                    }
+                }
+                m_explosionItem->setPixmap(QPixmap::fromImage(
+                    imagen.scaled(170, 170, Qt::KeepAspectRatio,
+                                  Qt::SmoothTransformation)));
+            });
+    connect(m_explosionPlayer, &QMediaPlayer::mediaStatusChanged, this,
+            [this](QMediaPlayer::MediaStatus estado) {
+                if (estado == QMediaPlayer::EndOfMedia) {
+                    if (m_explosionItem != nullptr) {
+                        delete m_explosionItem;
+                        m_explosionItem = nullptr;
+                    }
+                    mostrarTarjetaDerrota();
+                }
+            });
+    connect(m_explosionPlayer, &QMediaPlayer::errorOccurred, this,
+            [this](QMediaPlayer::Error) {
+                if (!m_terminado) return;
+                if (m_explosionItem != nullptr) {
+                    delete m_explosionItem;
+                    m_explosionItem = nullptr;
+                }
+                mostrarTarjetaDerrota();
+            });
 
     connect(m_temporizador, &QTimer::timeout, this, [this]() { avanzarJuego(); });
     m_temporizador->start(intervaloActual());
@@ -84,19 +154,27 @@ void JuegoView::keyPressEvent(QKeyEvent *evento) {
         return;
     }
 
-    if (evento->key() == Qt::Key_Left && !m_cambioDireccionPendiente && m_direccionX != 1) {
+    if (Controles::esMovimiento(evento->key())) {
+        m_esquemaControles = Controles::detectar(evento->key());
+    }
+
+    if ((evento->key() == Qt::Key_Left || evento->key() == Qt::Key_A)
+        && !m_cambioDireccionPendiente && m_direccionX != 1) {
         m_direccionX = -1;
         m_direccionY = 0;
         m_cambioDireccionPendiente = true;
-    } else if (evento->key() == Qt::Key_Right && !m_cambioDireccionPendiente && m_direccionX != -1) {
+    } else if ((evento->key() == Qt::Key_Right || evento->key() == Qt::Key_D)
+               && !m_cambioDireccionPendiente && m_direccionX != -1) {
         m_direccionX = 1;
         m_direccionY = 0;
         m_cambioDireccionPendiente = true;
-    } else if (evento->key() == Qt::Key_Up && !m_cambioDireccionPendiente && m_direccionY != 1) {
+    } else if ((evento->key() == Qt::Key_Up || evento->key() == Qt::Key_W)
+               && !m_cambioDireccionPendiente && m_direccionY != 1) {
         m_direccionX = 0;
         m_direccionY = -1;
         m_cambioDireccionPendiente = true;
-    } else if (evento->key() == Qt::Key_Down && !m_cambioDireccionPendiente && m_direccionY != -1) {
+    } else if ((evento->key() == Qt::Key_Down || evento->key() == Qt::Key_S)
+               && !m_cambioDireccionPendiente && m_direccionY != -1) {
         m_direccionX = 0;
         m_direccionY = 1;
         m_cambioDireccionPendiente = true;
@@ -131,7 +209,7 @@ void JuegoView::crearGrid() {
 
     m_informacion = m_escena->addText("");
     m_informacion->setDefaultTextColor(QColor(235, 240, 245));
-    m_informacion->setFont(QFont("Arial", 12));
+    m_informacion->setFont(QFont("Fredoka", 12));
     m_informacion->setTextWidth(190);
     m_informacion->setPos(m_columnas * TAMANO_CELDA + 18, 24);
 
@@ -224,6 +302,18 @@ void JuegoView::configurarNivel(int nivel) {
     m_progreso = std::make_unique<ProgresoNivel>(m_metaFrutas,
                                                   m_metaPuntos,
                                                   m_metaLongitud);
+    m_turnosObstaculosCongelados = 0;
+    m_turnosHielo = 0;
+    m_turnosEnergia = 0;
+    m_tiempoExtraSegundos = 0;
+    m_tiempoRestanteSegundos = TIEMPO_INICIAL_SEGUNDOS;
+    m_milisegundosTiempo = 0;
+    m_turnosTrampa = 0;
+    m_trampaX = -1;
+    m_trampaY = -1;
+    m_turnosDesdeCaja = 0;
+    m_frutasDesdeCaja = 0;
+    m_ultimoEfecto.clear();
     inicializarObstaculosMoviles();
     m_temporizador->stop();
     setWindowTitle(QString("Snake - Nivel %1").arg(m_nivel));
@@ -240,21 +330,19 @@ void JuegoView::inicializarObstaculosMoviles() {
     };
 
     for (int i = 0; i < MAX_OBSTACULOS_MOVILES; ++i) {
-        m_obstaculoX[i] = posicionesIniciales[i][0];
-        m_obstaculoY[i] = posicionesIniciales[i][1];
-        m_obstaculoDireccionX[i] = posicionesIniciales[i][2];
-        m_obstaculoDireccionY[i] = posicionesIniciales[i][3];
+        m_obstaculos[i].configurar(posicionesIniciales[i][0], posicionesIniciales[i][1],
+                                   posicionesIniciales[i][2], posicionesIniciales[i][3], i < 4);
     }
 }
 
 void JuegoView::construirObstaculos() {
-    if (m_nivel == NIVEL_1) {
+    if (m_nivel == NIVEL_1 || !m_configuracion.obstaculos) {
         return;
     }
 
     if (m_nivel == NIVEL_3) {
         for (int i = 0; i < MAX_OBSTACULOS_MOVILES; ++i) {
-            m_tablero->poner(m_obstaculoX[i], m_obstaculoY[i], OBSTACULO);
+            m_tablero->poner(m_obstaculos[i].x(), m_obstaculos[i].y(), OBSTACULO);
         }
         return;
     }
@@ -272,31 +360,34 @@ void JuegoView::construirObstaculos() {
 }
 
 void JuegoView::moverObstaculos() {
-    if (m_nivel != NIVEL_3 || (++m_turnoObstaculos % 4) != 0) {
+    if (m_nivel != NIVEL_3 || !m_configuracion.obstaculosMoviles
+        || (++m_turnoObstaculos % 4) != 0) {
+        return;
+    }
+
+    if (m_turnosObstaculosCongelados > 0) {
+        --m_turnosObstaculosCongelados;
         return;
     }
 
     for (int i = 0; i < 4; ++i) {
-        int nuevaX = m_obstaculoX[i] + m_obstaculoDireccionX[i];
-        int nuevaY = m_obstaculoY[i] + m_obstaculoDireccionY[i];
+        int nuevaX = m_obstaculos[i].x() + m_obstaculos[i].direccionX();
+        int nuevaY = m_obstaculos[i].y() + m_obstaculos[i].direccionY();
 
         const bool fueraDelRecorrido = nuevaX < 2 || nuevaX > m_columnas - 3
                                      || nuevaY < 2 || nuevaY > m_filas - 3;
         if (fueraDelRecorrido) {
-            m_obstaculoDireccionX[i] *= -1;
-            m_obstaculoDireccionY[i] *= -1;
-            nuevaX = m_obstaculoX[i] + m_obstaculoDireccionX[i];
-            nuevaY = m_obstaculoY[i] + m_obstaculoDireccionY[i];
+            m_obstaculos[i].invertirDireccion();
+            nuevaX = m_obstaculos[i].x() + m_obstaculos[i].direccionX();
+            nuevaY = m_obstaculos[i].y() + m_obstaculos[i].direccionY();
         }
 
         if (posicionObstaculoDisponible(nuevaX, nuevaY, i)) {
-            m_obstaculoX[i] = nuevaX;
-            m_obstaculoY[i] = nuevaY;
+            m_obstaculos[i].moverA(nuevaX, nuevaY);
         } else {
             // Si la serpiente u otro obstáculo ocupa el destino, espera
             // un turno y cambia el sentido para evitar apariciones injustas.
-            m_obstaculoDireccionX[i] *= -1;
-            m_obstaculoDireccionY[i] *= -1;
+            m_obstaculos[i].invertirDireccion();
         }
     }
 }
@@ -308,7 +399,7 @@ bool JuegoView::posicionObstaculoDisponible(int x, int y, int ignorar) const {
     }
 
     for (int i = 0; i < MAX_OBSTACULOS_MOVILES; ++i) {
-        if (i != ignorar && m_obstaculoX[i] == x && m_obstaculoY[i] == y) {
+        if (i != ignorar && m_obstaculos[i].x() == x && m_obstaculos[i].y() == y) {
             return false;
         }
     }
@@ -328,6 +419,18 @@ void JuegoView::reiniciar() {
     m_cambioDireccionPendiente = false;
     m_terminado = false;
     m_progreso->reiniciar();
+    m_turnosObstaculosCongelados = 0;
+    m_turnosHielo = 0;
+    m_turnosEnergia = 0;
+    m_tiempoExtraSegundos = 0;
+    m_tiempoRestanteSegundos = TIEMPO_INICIAL_SEGUNDOS;
+    m_milisegundosTiempo = 0;
+    m_turnosTrampa = 0;
+    m_trampaX = -1;
+    m_trampaY = -1;
+    m_turnosDesdeCaja = 0;
+    m_frutasDesdeCaja = 0;
+    m_ultimoEfecto.clear();
     inicializarObstaculosMoviles();
 
     actualizarMapa();
@@ -362,6 +465,14 @@ void JuegoView::redibujar() {
                 color = QColor(21, 28, 38);
             } else if (casilla == MANZANA) {
                 color = QColor(231, 76, 60);
+            } else if (casilla == MANZANA_DORADA) {
+                color = QColor(241, 196, 15);
+            } else if (casilla == FRUTA_GRANDE) {
+                color = QColor(239, 139, 61);
+            } else if (casilla == FRUTA_ENERGETICA) {
+                color = QColor(174, 91, 214);
+            } else if (casilla == CAJA_MISTERIOSA) {
+                color = QColor(92, 180, 230);
             } else if (casilla == OBSTACULO) {
                 color = QColor(116, 82, 58);
             }
@@ -405,22 +516,112 @@ void JuegoView::generarManzana() {
         if (m_tablero->valor(x, y) == VACIO) {
             m_manzanaX = x;
             m_manzanaY = y;
-            m_tablero->poner(x, y, MANZANA);
+            m_tipoObjeto = MANZANA;
+            m_frutaActual.configurar(TipoFruta::Normal);
+            if (m_nivel == NIVEL_3) {
+                const bool cajaGarantizada = m_turnosDesdeCaja >= GARANTIA_CAJA_TURNOS
+                                           || m_frutasDesdeCaja >= GARANTIA_CAJA_FRUTAS;
+                const bool cooldownCumplido = m_turnosDesdeCaja >= COOLDOWN_CAJA_TURNOS;
+                const int azarCaja = QRandomGenerator::global()->bounded(100);
+                if (m_configuracion.items && m_configuracion.aparicionAleatoria
+                    && (cajaGarantizada || (cooldownCumplido && azarCaja < 15))) {
+                    m_tipoObjeto = CAJA_MISTERIOSA;
+                    m_turnosDesdeCaja = 0;
+                    m_frutasDesdeCaja = 0;
+                } else {
+                    // Entre las frutas (sin contar cajas), la normal ocupa
+                    // el 75%; el 25% restante se reparte entre especiales.
+                    const int azarFruta = QRandomGenerator::global()->bounded(100);
+                    if (m_configuracion.frutasEspeciales
+                        && azarFruta >= 75 && azarFruta < 85) {
+                        m_tipoObjeto = MANZANA_DORADA;
+                        m_frutaActual.configurar(TipoFruta::Dorada);
+                    } else if (m_configuracion.frutasEspeciales
+                               && azarFruta >= 85 && azarFruta < 95) {
+                        m_tipoObjeto = FRUTA_GRANDE;
+                        m_frutaActual.configurar(TipoFruta::Grande);
+                    } else if (m_configuracion.frutasEspeciales && azarFruta >= 95) {
+                        m_tipoObjeto = FRUTA_ENERGETICA;
+                        m_frutaActual.configurar(TipoFruta::Energetica);
+                    }
+                }
+            }
+            m_tablero->poner(x, y, m_tipoObjeto);
             return;
         }
     }
 }
 
 void JuegoView::actualizarInformacion() {
-    m_informacion->setPlainText(
-        QString("NIVEL %1\n\nPUNTAJE\n%2\n\nFRUTAS\n%3 / %4\n\nLONGITUD\n%5 / %6\n\nVELOCIDAD\n%7 ms\n\nMETA\nCompleta las 3 metas")
+    QString texto =
+        QString("NIVEL %1\n\nPUNTAJE\n%2 / %3\n\nFRUTAS\n%4 / %5\n\nLONGITUD\n%6 / %7\n\nVELOCIDAD\n%8 ms\n\nMETA\nCompleta las 3 metas")
             .arg(m_nivel)
             .arg(m_progreso->puntaje())
+            .arg(m_metaPuntos)
             .arg(m_progreso->frutasComidas())
             .arg(m_metaFrutas)
             .arg(m_serpiente->longitud())
             .arg(m_metaLongitud)
-            .arg(intervaloActual()));
+            .arg(intervaloActual());
+    if (m_tiempoExtraSegundos > 0) {
+        texto += QString("\n\nTIEMPO\n%1 s (+%2 s acumulados)")
+                     .arg(m_tiempoRestanteSegundos)
+                     .arg(m_tiempoExtraSegundos);
+    } else {
+        texto += QString("\n\nTIEMPO\n%1 s").arg(m_tiempoRestanteSegundos);
+    }
+    if (!m_ultimoEfecto.isEmpty()) {
+        texto += QString("\n\n%1").arg(m_ultimoEfecto);
+    }
+    m_informacion->setPlainText(texto);
+}
+
+void JuegoView::aplicarItem() {
+    const TipoItem tipo = static_cast<TipoItem>(
+        QRandomGenerator::global()->bounded(6));
+    const Item item(tipo);
+    m_ultimoEfecto.clear();
+
+    switch (tipo) {
+    case TipoItem::Reloj:
+        m_tiempoExtraSegundos += item.tiempoExtraSegundos();
+        m_tiempoRestanteSegundos += item.tiempoExtraSegundos();
+        m_ultimoEfecto = "Reloj: +10 s";
+        break;
+    case TipoItem::Hielo:
+        m_turnosHielo = item.duracionTurnos();
+        m_turnosObstaculosCongelados = item.duracionTurnos();
+        m_ultimoEfecto = "Hielo: ralentiza y congela 10 turnos";
+        break;
+    case TipoItem::Rayo:
+        m_progreso->registrarItem(item.puntos(), m_serpiente->longitud());
+        m_turnosEnergia = 100;
+        m_ultimoEfecto = "Rayo: +30 puntos";
+        break;
+    case TipoItem::Tijeras:
+        m_serpiente->reducirSegmentos(-item.segmentosDelta());
+        m_progreso->registrarItem(item.puntos(), m_serpiente->longitud());
+        m_ultimoEfecto = "Tijeras: -2 segmentos";
+        break;
+    case TipoItem::Bomba:
+        m_serpiente->reducirSegmentos(-item.segmentosDelta());
+        m_progreso->registrarItem(item.puntos(), m_serpiente->longitud());
+        m_ultimoEfecto = "Bomba: -20 puntos, -1 segmento";
+        break;
+    case TipoItem::Trampa:
+        for (int intento = 0; intento < m_columnas * m_filas; ++intento) {
+            const int x = QRandomGenerator::global()->bounded(m_columnas);
+            const int y = QRandomGenerator::global()->bounded(m_filas);
+            if (m_tablero->valor(x, y) == VACIO) {
+                m_trampaX = x;
+                m_trampaY = y;
+                m_turnosTrampa = item.duracionTurnos();
+                m_ultimoEfecto = "Trampa: obstáculo temporal";
+                break;
+            }
+        }
+        break;
+    }
 }
 
 void JuegoView::avanzarJuego() {
@@ -428,16 +629,46 @@ void JuegoView::avanzarJuego() {
         return;
     }
 
+    m_milisegundosTiempo += intervaloActual();
+    while (m_milisegundosTiempo >= 1000) {
+        m_milisegundosTiempo -= 1000;
+        --m_tiempoRestanteSegundos;
+    }
+    if (m_tiempoRestanteSegundos <= 0) {
+        terminarJuego();
+        return;
+    }
+    if (m_nivel == NIVEL_3) {
+        ++m_turnosDesdeCaja;
+    }
+
     // Solo se permite un giro entre dos actualizaciones del QTimer.
     m_cambioDireccionPendiente = false;
+    if (m_turnosHielo > 0) {
+        --m_turnosHielo;
+    }
+    if (m_turnosEnergia > 0) {
+        --m_turnosEnergia;
+    }
+    if (m_turnosTrampa > 0) {
+        --m_turnosTrampa;
+        if (m_turnosTrampa == 0) {
+            m_trampaX = -1;
+            m_trampaY = -1;
+        }
+    }
+    m_temporizador->setInterval(intervaloActual());
     moverObstaculos();
 
     // El tablero debe representar las posiciones nuevas antes de revisar
     // la siguiente casilla de la serpiente.
     actualizarMapa();
     construirObstaculos();
+    if (m_turnosTrampa > 0 && m_trampaX >= 0) {
+        m_tablero->poner(m_trampaX, m_trampaY, OBSTACULO);
+    }
     if (m_tablero->valor(m_manzanaX, m_manzanaY) == VACIO) {
-        m_tablero->poner(m_manzanaX, m_manzanaY, MANZANA);
+        m_tablero->poner(m_manzanaX, m_manzanaY, m_tipoObjeto);
     } else {
         generarManzana();
     }
@@ -463,18 +694,38 @@ void JuegoView::avanzarJuego() {
         return;
     }
 
-    if (destino == SERPIENTE && !m_serpiente->ocupaCola(nuevaX, nuevaY)) {
+    if (ReglasMovimiento::colisionaConSerpiente(
+            destino == SERPIENTE,
+            m_serpiente->ocupaCola(nuevaX, nuevaY),
+            m_serpiente->tieneCrecimientoPendiente())) {
         terminarJuego();
         return;
     }
 
-    const bool comioManzana = destino == MANZANA;
-    m_serpiente->avanzar(nuevaX, nuevaY, comioManzana);
+    const bool comioFruta = destino == MANZANA || destino == MANZANA_DORADA
+                          || destino == FRUTA_GRANDE || destino == FRUTA_ENERGETICA;
+    const bool tomoCaja = destino == CAJA_MISTERIOSA;
+    const int crecimiento = comioFruta
+                                ? m_frutaActual.crecimiento(m_nivel == NIVEL_3)
+                                : 0;
+    m_serpiente->avanzar(nuevaX, nuevaY, crecimiento);
     actualizarMapa();
     construirObstaculos();
+    if (m_turnosTrampa > 0 && m_trampaX >= 0) {
+        m_tablero->poner(m_trampaX, m_trampaY, OBSTACULO);
+    }
 
-    if (comioManzana) {
-        m_progreso->registrarFruta(PUNTOS_MANZANA, m_serpiente->longitud());
+    if (comioFruta) {
+        m_progreso->registrarFruta(m_frutaActual.puntos(),
+                                   m_serpiente->longitud(),
+                                   m_frutaActual.frutasContadas());
+        if (m_nivel == NIVEL_3) {
+            m_frutasDesdeCaja += m_frutaActual.frutasContadas();
+        }
+        if (m_frutaActual.tipo() == TipoFruta::Energetica) {
+            m_turnosEnergia = 100;
+            m_ultimoEfecto = "Fruta energética: acelera 5 segundos";
+        }
         m_temporizador->setInterval(intervaloActual());
         if (m_progreso->gano()) {
             redibujar();
@@ -484,8 +735,11 @@ void JuegoView::avanzarJuego() {
         }
 
         generarManzana();
+    } else if (tomoCaja) {
+        aplicarItem();
+        generarManzana();
     } else {
-        m_tablero->poner(m_manzanaX, m_manzanaY, MANZANA);
+        m_tablero->poner(m_manzanaX, m_manzanaY, m_tipoObjeto);
     }
 
     redibujar();
@@ -496,12 +750,68 @@ void JuegoView::avanzarJuego() {
 void JuegoView::terminarJuego() {
     m_terminado = true;
     m_temporizador->stop();
-    QMessageBox::information(this, "Fin de la partida",
-                             esNivelConBordesMortales()
-                                 ? "La serpiente choco con un borde, obstaculo o su cuerpo."
-                                 : "La serpiente choco con su cuerpo.");
-    reiniciar();
-    m_temporizador->start(intervaloActual());
+    m_ultimoEfecto = m_tiempoRestanteSegundos <= 0
+        ? "Se agotó el tiempo de la partida."
+        : "La serpiente chocó con un borde, obstáculo o su propio cuerpo.";
+    reproducirExplosion();
+}
+
+void JuegoView::reproducirExplosion() {
+    m_tarjetaDerrotaMostrada = false;
+    if (m_explosionItem != nullptr) {
+        delete m_explosionItem;
+    }
+    m_explosionItem = m_escena->addPixmap(QPixmap());
+    m_explosionItem->setZValue(30);
+    m_explosionItem->setPos(m_serpiente->cabezaX() * TAMANO_CELDA - 65,
+                            m_serpiente->cabezaY() * TAMANO_CELDA - 65);
+    m_explosionPlayer->stop();
+    m_explosionPlayer->setPosition(0);
+    QTimer::singleShot(220, this, [this]() {
+        if (m_terminado) m_explosionPlayer->play();
+    });
+    QTimer::singleShot(2600, this, [this]() {
+        if (m_terminado && m_explosionPlayer->mediaStatus() != QMediaPlayer::EndOfMedia) {
+            if (m_explosionItem != nullptr) {
+                delete m_explosionItem;
+                m_explosionItem = nullptr;
+            }
+            mostrarTarjetaDerrota();
+        }
+    });
+}
+
+void JuegoView::mostrarTarjetaDerrota() {
+    if (!m_terminado || m_tarjetaDerrotaMostrada) return;
+    m_tarjetaDerrotaMostrada = true;
+    m_explosionPlayer->stop();
+    QMessageBox tarjeta(this);
+    tarjeta.setWindowTitle("Fin de la partida");
+    tarjeta.setIcon(QMessageBox::Critical);
+    tarjeta.setText(m_tiempoRestanteSegundos <= 0
+                        ? "<h2>¡SE ACABÓ EL TIEMPO!</h2>"
+                        : "<h2>¡CHOCASTE!</h2>");
+    tarjeta.setInformativeText(QString(
+        "%1<br><br>"
+        "<b>Nivel:</b> %2 &nbsp;&nbsp; <b>Puntaje:</b> %3<br>"
+        "<b>Frutas:</b> %4 &nbsp;&nbsp; <b>Longitud:</b> %5")
+        .arg(m_ultimoEfecto).arg(m_nivel).arg(m_progreso->puntaje())
+        .arg(m_progreso->frutasComidas()).arg(m_serpiente->longitud()));
+    QAbstractButton *reintentar = tarjeta.addButton("Reintentar nivel", QMessageBox::AcceptRole);
+    tarjeta.addButton("Cerrar", QMessageBox::RejectRole);
+    tarjeta.setStyleSheet(
+        "QMessageBox { background:#0d121a; color:#ebf0f5; }"
+        "QLabel { color:#ebf0f5; font-family:'Fredoka'; font-size:14px; }"
+        "QPushButton { background:#26384a; color:#ffffff; border:1px solid #5cb6e6;"
+        " border-radius:8px; padding:8px 16px; min-width:120px; }"
+        "QPushButton:hover { background:#34536a; }");
+    tarjeta.exec();
+    if (tarjeta.clickedButton() == reintentar) {
+        reiniciar();
+        m_temporizador->start(intervaloActual());
+    } else {
+        close();
+    }
 }
 
 void JuegoView::ganarNivel() {
@@ -509,6 +819,7 @@ void JuegoView::ganarNivel() {
     m_temporizador->stop();
 
     if (m_nivel == NIVEL_3) {
+        m_gestorPartida.marcarCompletada();
         QMessageBox::information(this, "Juego completado",
                                  "Completaste todos los niveles de Snake.");
         setWindowTitle("Snake - Juego completado");
@@ -518,6 +829,12 @@ void JuegoView::ganarNivel() {
 
     QMessageBox::information(this, "Nivel completado",
                              QString("Cumpliste las metas del nivel %1.").arg(m_nivel));
+
+    if (!m_configuracion.progresionAutomatica) {
+        setWindowTitle(QString("Snake - Nivel %1 completado").arg(m_nivel));
+        actualizarInformacion();
+        return;
+    }
 
     if (m_nivel == NIVEL_1) {
         configurarNivel(NIVEL_2);
@@ -532,12 +849,19 @@ void JuegoView::ganarNivel() {
 }
 
 int JuegoView::intervaloActual() const {
+    int intervalo = m_nivel == NIVEL_3 ? INTERVALO_NIVEL_3 : INTERVALO_NIVEL_1;
     if (m_nivel == NIVEL_2) {
         const int aceleraciones = m_progreso->frutasComidas() / 2;
-        return qMax(50, INTERVALO_NIVEL_2 - aceleraciones * 10);
+        intervalo = qMax(50, INTERVALO_NIVEL_2 - aceleraciones * 10);
     }
 
-    return m_nivel == NIVEL_3 ? INTERVALO_NIVEL_3 : INTERVALO_NIVEL_1;
+    if (m_turnosHielo > 0) {
+        intervalo += 50;
+    }
+    if (m_turnosEnergia > 0) {
+        intervalo = qMax(30, intervalo - 20);
+    }
+    return intervalo;
 }
 
 bool JuegoView::esNivelConBordesMortales() const {

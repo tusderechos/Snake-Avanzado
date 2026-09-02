@@ -392,6 +392,18 @@ CMakeFiles/Snake.dir/main.cpp.obj: \
  C:/Qt/6.11.2/mingw_64/include/QtGui/qcursor.h \
  C:/Qt/6.11.2/mingw_64/include/QtGui/qbitmap.h \
  C:/Qt/6.11.2/mingw_64/include/QtWidgets/qgraphicsscene.h \
+ C:/Qt/6.11.2/mingw_64/include/QtCore/QString \
+ C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\fruta.h \
+ C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\gestorpartida.h \
+ C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\obstaculo.h \
+ C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\item.h \
+ C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\modojuego.h \
+ C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\controles.h \
+ C:/Qt/6.11.2/mingw_64/include/QtCore/Qt \
+ C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\menujuego.h \
+ C:/Qt/6.11.2/mingw_64/include/QtWidgets/QWidget \
+ C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\tutorial.h \
+ C:/Qt/6.11.2/mingw_64/include/QtCore/QPoint \
  C:/Qt/6.11.2/mingw_64/include/QtWidgets/QApplication \
  C:/Qt/6.11.2/mingw_64/include/QtWidgets/qapplication.h \
  C:/Qt/6.11.2/mingw_64/include/QtCore/qcoreapplication.h \
@@ -405,4 +417,32 @@ CMakeFiles/Snake.dir/main.cpp.obj: \
  C:/Qt/6.11.2/mingw_64/include/QtGui/qguiapplication.h \
  C:/Qt/6.11.2/mingw_64/include/QtGui/qinputmethod.h \
  C:/Qt/6.11.2/mingw_64/include/QtCore/qlocale.h \
- C:/Qt/6.11.2/mingw_64/include/QtGui/qguiapplication_platform.h
+ C:/Qt/6.11.2/mingw_64/include/QtGui/qguiapplication_platform.h \
+ C:/Qt/6.11.2/mingw_64/include/QtWidgets/QMessageBox \
+ C:/Qt/6.11.2/mingw_64/include/QtWidgets/qmessagebox.h \
+ C:/Qt/6.11.2/mingw_64/include/QtWidgets/qdialog.h \
+ C:/Qt/6.11.2/mingw_64/include/QtWidgets/qdialogbuttonbox.h \
+ C:/Qt/6.11.2/mingw_64/include/QtWidgets/QInputDialog \
+ C:/Qt/6.11.2/mingw_64/include/QtWidgets/qinputdialog.h \
+ C:/Qt/6.11.2/mingw_64/include/QtWidgets/qlineedit.h \
+ C:/Qt/6.11.2/mingw_64/include/QtGui/qtextcursor.h \
+ C:/Qt/6.11.2/mingw_64/include/QtGui/qtextdocument.h \
+ C:/Qt/6.11.2/mingw_64/include/QtCore/qurl.h \
+ C:/Qt/6.11.2/mingw_64/include/QtGui/qtextformat.h \
+ C:/Qt/6.11.2/mingw_64/include/QtWidgets/QCheckBox \
+ C:/Qt/6.11.2/mingw_64/include/QtWidgets/qcheckbox.h \
+ C:/Qt/6.11.2/mingw_64/include/QtWidgets/qabstractbutton.h \
+ C:/Qt/6.11.2/mingw_64/include/QtWidgets/QDialog \
+ C:/Qt/6.11.2/mingw_64/include/QtWidgets/QDialogButtonBox \
+ C:/Qt/6.11.2/mingw_64/include/QtWidgets/QFormLayout \
+ C:/Qt/6.11.2/mingw_64/include/QtWidgets/qformlayout.h \
+ C:/Qt/6.11.2/mingw_64/include/QtWidgets/QLayout \
+ C:/Qt/6.11.2/mingw_64/include/QtWidgets/qlayout.h \
+ C:/Qt/6.11.2/mingw_64/include/QtWidgets/qlayoutitem.h \
+ C:/Qt/6.11.2/mingw_64/include/QtWidgets/qboxlayout.h \
+ C:/Qt/6.11.2/mingw_64/include/QtWidgets/qgridlayout.h \
+ C:/Qt/6.11.2/mingw_64/include/QtWidgets/QSpinBox \
+ C:/Qt/6.11.2/mingw_64/include/QtWidgets/qspinbox.h \
+ C:/Qt/6.11.2/mingw_64/include/QtWidgets/qabstractspinbox.h \
+ C:/Qt/6.11.2/mingw_64/include/QtGui/qvalidator.h \
+ C:/Qt/6.11.2/mingw_64/include/QtCore/qregularexpression.h

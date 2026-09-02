@@ -6,7 +6,8 @@ public:
     ProgresoNivel(int metaFrutas, int metaPuntos, int metaLongitud);
 
     void reiniciar();
-    void registrarFruta(int puntosObtenidos, int longitudActual);
+    void registrarFruta(int puntosObtenidos, int longitudActual, int frutasContadas = 1);
+    void registrarItem(int puntosObtenidos, int longitudActual);
     bool gano() const;
     int frutasComidas() const;
     int puntaje() const;

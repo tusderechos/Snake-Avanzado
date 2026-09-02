@@ -9,8 +9,10 @@
 	"INCLUDE_DIR" : "C:/Users/USUARIO/Documents/Qt/Proyecto_Programacion3_C++/Snake/build/Desktop_Qt_6_11_2_MinGW_64_bit_Debug/Snake_autogen/include",
 	"INPUTS" : 
 	[
+		"C:/Users/USUARIO/Documents/Qt/Proyecto_Programacion3_C++/Snake/assets/deltarune_explosion.mp4",
 		"C:/Users/USUARIO/Documents/Qt/Proyecto_Programacion3_C++/Snake/assets/cabeza_snake.png",
-		"C:/Users/USUARIO/Documents/Qt/Proyecto_Programacion3_C++/Snake/assets/snake_sheet.png"
+		"C:/Users/USUARIO/Documents/Qt/Proyecto_Programacion3_C++/Snake/assets/snake_sheet.png",
+		"C:/Users/USUARIO/Documents/Qt/Proyecto_Programacion3_C++/Snake/assets/Fredoka-Variable.ttf"
 	],
 	"LOCK_FILE" : "C:/Users/USUARIO/Documents/Qt/Proyecto_Programacion3_C++/Snake/build/Desktop_Qt_6_11_2_MinGW_64_bit_Debug/CMakeFiles/Snake_autogen.dir/AutoRcc_recursos_EWIEGA46WW_Lock.lock",
 	"MULTI_CONFIG" : false,

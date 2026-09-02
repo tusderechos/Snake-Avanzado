@@ -2,5 +2,7 @@
     <qresource prefix="/assets">
         <file alias="snake_sheet.png">assets/snake_sheet.png</file>
         <file alias="cabeza_snake.png">assets/cabeza_snake.png</file>
+        <file alias="Fredoka-Variable.ttf">assets/Fredoka-Variable.ttf</file>
+        <file alias="deltarune_explosion.mp4">assets/deltarune_explosion.mp4</file>
     </qresource>
 </RCC>

@@ -63,6 +63,8 @@ CMAKE_BINARY_DIR = C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snak
 
 # The main recursive "all" target.
 all: CMakeFiles/Snake.dir/all
+all: CMakeFiles/SnakeModosTests.dir/all
+all: CMakeFiles/SnakeObjetosTests.dir/all
 .PHONY : all
 
 # The main recursive "preinstall" target.
@@ -71,6 +73,8 @@ preinstall:
 
 # The main recursive "clean" target.
 clean: CMakeFiles/Snake.dir/clean
+clean: CMakeFiles/SnakeModosTests.dir/clean
+clean: CMakeFiles/SnakeObjetosTests.dir/clean
 .PHONY : clean
 
 #=============================================================================
@@ -80,12 +84,12 @@ clean: CMakeFiles/Snake.dir/clean
 CMakeFiles/Snake.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Snake.dir\build.make CMakeFiles/Snake.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Snake.dir\build.make CMakeFiles/Snake.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug\CMakeFiles --progress-num=1,2,3,4,5,6,7,8,9 "Built target Snake"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug\CMakeFiles --progress-num=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16 "Built target Snake"
 .PHONY : CMakeFiles/Snake.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/Snake.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug\CMakeFiles 9
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug\CMakeFiles 16
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 CMakeFiles/Snake.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug\CMakeFiles 0
 .PHONY : CMakeFiles/Snake.dir/rule
@@ -98,6 +102,58 @@ Snake: CMakeFiles/Snake.dir/rule
 CMakeFiles/Snake.dir/clean:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Snake.dir\build.make CMakeFiles/Snake.dir/clean
 .PHONY : CMakeFiles/Snake.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/SnakeModosTests.dir
+
+# All Build rule for target.
+CMakeFiles/SnakeModosTests.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\SnakeModosTests.dir\build.make CMakeFiles/SnakeModosTests.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\SnakeModosTests.dir\build.make CMakeFiles/SnakeModosTests.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug\CMakeFiles --progress-num=17,18,19 "Built target SnakeModosTests"
+.PHONY : CMakeFiles/SnakeModosTests.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/SnakeModosTests.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug\CMakeFiles 3
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 CMakeFiles/SnakeModosTests.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug\CMakeFiles 0
+.PHONY : CMakeFiles/SnakeModosTests.dir/rule
+
+# Convenience name for target.
+SnakeModosTests: CMakeFiles/SnakeModosTests.dir/rule
+.PHONY : SnakeModosTests
+
+# clean rule for target.
+CMakeFiles/SnakeModosTests.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\SnakeModosTests.dir\build.make CMakeFiles/SnakeModosTests.dir/clean
+.PHONY : CMakeFiles/SnakeModosTests.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/SnakeObjetosTests.dir
+
+# All Build rule for target.
+CMakeFiles/SnakeObjetosTests.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\SnakeObjetosTests.dir\build.make CMakeFiles/SnakeObjetosTests.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\SnakeObjetosTests.dir\build.make CMakeFiles/SnakeObjetosTests.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug\CMakeFiles --progress-num=20,21,22,23,24,25,26 "Built target SnakeObjetosTests"
+.PHONY : CMakeFiles/SnakeObjetosTests.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/SnakeObjetosTests.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug\CMakeFiles 7
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 CMakeFiles/SnakeObjetosTests.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snake\build\Desktop_Qt_6_11_2_MinGW_64_bit_Debug\CMakeFiles 0
+.PHONY : CMakeFiles/SnakeObjetosTests.dir/rule
+
+# Convenience name for target.
+SnakeObjetosTests: CMakeFiles/SnakeObjetosTests.dir/rule
+.PHONY : SnakeObjetosTests
+
+# clean rule for target.
+CMakeFiles/SnakeObjetosTests.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\SnakeObjetosTests.dir\build.make CMakeFiles/SnakeObjetosTests.dir/clean
+.PHONY : CMakeFiles/SnakeObjetosTests.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.
