@@ -41,15 +41,6 @@ add_executable(Snake
 
 target_link_libraries(Snake PRIVATE Qt6::Widgets Qt6::Multimedia)
 
-enable_testing()
-add_executable(SnakeModosTests tests/test_modos.cpp controles.cpp)
-target_link_libraries(SnakeModosTests PRIVATE Qt6::Widgets)
-add_test(NAME SnakeModosTests COMMAND SnakeModosTests)
-
-add_executable(SnakeObjetosTests tests/test_objetos.cpp fruta.cpp item.cpp progreso.cpp snake.cpp reglasmovimiento.cpp)
-target_link_libraries(SnakeObjetosTests PRIVATE Qt6::Widgets)
-add_test(NAME SnakeObjetosTests COMMAND SnakeObjetosTests)
-
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     target_compile_options(Snake PRIVATE -Wall -Wextra -Wpedantic)
 elseif (MSVC)

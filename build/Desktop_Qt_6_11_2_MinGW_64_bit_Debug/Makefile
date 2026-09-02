@@ -64,16 +64,6 @@ CMAKE_BINARY_DIR = C:\Users\USUARIO\Documents\Qt\Proyecto_Programacion3_C++\Snak
 #=============================================================================
 # Targets provided globally by CMake.
 
-# Special rule for the target test
-test:
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Running tests..."
-	C:\Qt\Tools\CMake_64\bin\ctest.exe --force-new-ctest-process $(ARGS)
-.PHONY : test
-
-# Special rule for the target test
-test/fast: test
-.PHONY : test/fast
-
 # Special rule for the target edit_cache
 edit_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Running CMake cache editor..."
@@ -183,32 +173,6 @@ Snake/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Snake.dir\build.make CMakeFiles/Snake.dir/build
 .PHONY : Snake/fast
 
-#=============================================================================
-# Target rules for targets named SnakeModosTests
-
-# Build rule for target.
-SnakeModosTests: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 SnakeModosTests
-.PHONY : SnakeModosTests
-
-# fast build rule for target.
-SnakeModosTests/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\SnakeModosTests.dir\build.make CMakeFiles/SnakeModosTests.dir/build
-.PHONY : SnakeModosTests/fast
-
-#=============================================================================
-# Target rules for targets named SnakeObjetosTests
-
-# Build rule for target.
-SnakeObjetosTests: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 SnakeObjetosTests
-.PHONY : SnakeObjetosTests
-
-# fast build rule for target.
-SnakeObjetosTests/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\SnakeObjetosTests.dir\build.make CMakeFiles/SnakeObjetosTests.dir/build
-.PHONY : SnakeObjetosTests/fast
-
 Snake_autogen/EWIEGA46WW/qrc_recursos.obj: Snake_autogen/EWIEGA46WW/qrc_recursos.cpp.obj
 .PHONY : Snake_autogen/EWIEGA46WW/qrc_recursos.obj
 
@@ -239,7 +203,6 @@ controles.obj: controles.cpp.obj
 # target to build an object file
 controles.cpp.obj:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Snake.dir\build.make CMakeFiles/Snake.dir/controles.cpp.obj
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\SnakeModosTests.dir\build.make CMakeFiles/SnakeModosTests.dir/controles.cpp.obj
 .PHONY : controles.cpp.obj
 
 controles.i: controles.cpp.i
@@ -248,7 +211,6 @@ controles.i: controles.cpp.i
 # target to preprocess a source file
 controles.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Snake.dir\build.make CMakeFiles/Snake.dir/controles.cpp.i
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\SnakeModosTests.dir\build.make CMakeFiles/SnakeModosTests.dir/controles.cpp.i
 .PHONY : controles.cpp.i
 
 controles.s: controles.cpp.s
@@ -257,7 +219,6 @@ controles.s: controles.cpp.s
 # target to generate assembly for a file
 controles.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Snake.dir\build.make CMakeFiles/Snake.dir/controles.cpp.s
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\SnakeModosTests.dir\build.make CMakeFiles/SnakeModosTests.dir/controles.cpp.s
 .PHONY : controles.cpp.s
 
 fruta.obj: fruta.cpp.obj
@@ -266,7 +227,6 @@ fruta.obj: fruta.cpp.obj
 # target to build an object file
 fruta.cpp.obj:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Snake.dir\build.make CMakeFiles/Snake.dir/fruta.cpp.obj
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\SnakeObjetosTests.dir\build.make CMakeFiles/SnakeObjetosTests.dir/fruta.cpp.obj
 .PHONY : fruta.cpp.obj
 
 fruta.i: fruta.cpp.i
@@ -275,7 +235,6 @@ fruta.i: fruta.cpp.i
 # target to preprocess a source file
 fruta.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Snake.dir\build.make CMakeFiles/Snake.dir/fruta.cpp.i
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\SnakeObjetosTests.dir\build.make CMakeFiles/SnakeObjetosTests.dir/fruta.cpp.i
 .PHONY : fruta.cpp.i
 
 fruta.s: fruta.cpp.s
@@ -284,7 +243,6 @@ fruta.s: fruta.cpp.s
 # target to generate assembly for a file
 fruta.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Snake.dir\build.make CMakeFiles/Snake.dir/fruta.cpp.s
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\SnakeObjetosTests.dir\build.make CMakeFiles/SnakeObjetosTests.dir/fruta.cpp.s
 .PHONY : fruta.cpp.s
 
 gestorpartida.obj: gestorpartida.cpp.obj
@@ -317,7 +275,6 @@ item.obj: item.cpp.obj
 # target to build an object file
 item.cpp.obj:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Snake.dir\build.make CMakeFiles/Snake.dir/item.cpp.obj
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\SnakeObjetosTests.dir\build.make CMakeFiles/SnakeObjetosTests.dir/item.cpp.obj
 .PHONY : item.cpp.obj
 
 item.i: item.cpp.i
@@ -326,7 +283,6 @@ item.i: item.cpp.i
 # target to preprocess a source file
 item.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Snake.dir\build.make CMakeFiles/Snake.dir/item.cpp.i
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\SnakeObjetosTests.dir\build.make CMakeFiles/SnakeObjetosTests.dir/item.cpp.i
 .PHONY : item.cpp.i
 
 item.s: item.cpp.s
@@ -335,7 +291,6 @@ item.s: item.cpp.s
 # target to generate assembly for a file
 item.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Snake.dir\build.make CMakeFiles/Snake.dir/item.cpp.s
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\SnakeObjetosTests.dir\build.make CMakeFiles/SnakeObjetosTests.dir/item.cpp.s
 .PHONY : item.cpp.s
 
 juegoview.obj: juegoview.cpp.obj
@@ -440,7 +395,6 @@ progreso.obj: progreso.cpp.obj
 # target to build an object file
 progreso.cpp.obj:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Snake.dir\build.make CMakeFiles/Snake.dir/progreso.cpp.obj
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\SnakeObjetosTests.dir\build.make CMakeFiles/SnakeObjetosTests.dir/progreso.cpp.obj
 .PHONY : progreso.cpp.obj
 
 progreso.i: progreso.cpp.i
@@ -449,7 +403,6 @@ progreso.i: progreso.cpp.i
 # target to preprocess a source file
 progreso.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Snake.dir\build.make CMakeFiles/Snake.dir/progreso.cpp.i
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\SnakeObjetosTests.dir\build.make CMakeFiles/SnakeObjetosTests.dir/progreso.cpp.i
 .PHONY : progreso.cpp.i
 
 progreso.s: progreso.cpp.s
@@ -458,7 +411,6 @@ progreso.s: progreso.cpp.s
 # target to generate assembly for a file
 progreso.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Snake.dir\build.make CMakeFiles/Snake.dir/progreso.cpp.s
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\SnakeObjetosTests.dir\build.make CMakeFiles/SnakeObjetosTests.dir/progreso.cpp.s
 .PHONY : progreso.cpp.s
 
 reglasmovimiento.obj: reglasmovimiento.cpp.obj
@@ -467,7 +419,6 @@ reglasmovimiento.obj: reglasmovimiento.cpp.obj
 # target to build an object file
 reglasmovimiento.cpp.obj:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Snake.dir\build.make CMakeFiles/Snake.dir/reglasmovimiento.cpp.obj
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\SnakeObjetosTests.dir\build.make CMakeFiles/SnakeObjetosTests.dir/reglasmovimiento.cpp.obj
 .PHONY : reglasmovimiento.cpp.obj
 
 reglasmovimiento.i: reglasmovimiento.cpp.i
@@ -476,7 +427,6 @@ reglasmovimiento.i: reglasmovimiento.cpp.i
 # target to preprocess a source file
 reglasmovimiento.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Snake.dir\build.make CMakeFiles/Snake.dir/reglasmovimiento.cpp.i
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\SnakeObjetosTests.dir\build.make CMakeFiles/SnakeObjetosTests.dir/reglasmovimiento.cpp.i
 .PHONY : reglasmovimiento.cpp.i
 
 reglasmovimiento.s: reglasmovimiento.cpp.s
@@ -485,7 +435,6 @@ reglasmovimiento.s: reglasmovimiento.cpp.s
 # target to generate assembly for a file
 reglasmovimiento.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Snake.dir\build.make CMakeFiles/Snake.dir/reglasmovimiento.cpp.s
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\SnakeObjetosTests.dir\build.make CMakeFiles/SnakeObjetosTests.dir/reglasmovimiento.cpp.s
 .PHONY : reglasmovimiento.cpp.s
 
 snake.obj: snake.cpp.obj
@@ -494,7 +443,6 @@ snake.obj: snake.cpp.obj
 # target to build an object file
 snake.cpp.obj:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Snake.dir\build.make CMakeFiles/Snake.dir/snake.cpp.obj
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\SnakeObjetosTests.dir\build.make CMakeFiles/SnakeObjetosTests.dir/snake.cpp.obj
 .PHONY : snake.cpp.obj
 
 snake.i: snake.cpp.i
@@ -503,7 +451,6 @@ snake.i: snake.cpp.i
 # target to preprocess a source file
 snake.cpp.i:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Snake.dir\build.make CMakeFiles/Snake.dir/snake.cpp.i
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\SnakeObjetosTests.dir\build.make CMakeFiles/SnakeObjetosTests.dir/snake.cpp.i
 .PHONY : snake.cpp.i
 
 snake.s: snake.cpp.s
@@ -512,7 +459,6 @@ snake.s: snake.cpp.s
 # target to generate assembly for a file
 snake.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Snake.dir\build.make CMakeFiles/Snake.dir/snake.cpp.s
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\SnakeObjetosTests.dir\build.make CMakeFiles/SnakeObjetosTests.dir/snake.cpp.s
 .PHONY : snake.cpp.s
 
 tablero.obj: tablero.cpp.obj
@@ -538,54 +484,6 @@ tablero.s: tablero.cpp.s
 tablero.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Snake.dir\build.make CMakeFiles/Snake.dir/tablero.cpp.s
 .PHONY : tablero.cpp.s
-
-tests/test_modos.obj: tests/test_modos.cpp.obj
-.PHONY : tests/test_modos.obj
-
-# target to build an object file
-tests/test_modos.cpp.obj:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\SnakeModosTests.dir\build.make CMakeFiles/SnakeModosTests.dir/tests/test_modos.cpp.obj
-.PHONY : tests/test_modos.cpp.obj
-
-tests/test_modos.i: tests/test_modos.cpp.i
-.PHONY : tests/test_modos.i
-
-# target to preprocess a source file
-tests/test_modos.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\SnakeModosTests.dir\build.make CMakeFiles/SnakeModosTests.dir/tests/test_modos.cpp.i
-.PHONY : tests/test_modos.cpp.i
-
-tests/test_modos.s: tests/test_modos.cpp.s
-.PHONY : tests/test_modos.s
-
-# target to generate assembly for a file
-tests/test_modos.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\SnakeModosTests.dir\build.make CMakeFiles/SnakeModosTests.dir/tests/test_modos.cpp.s
-.PHONY : tests/test_modos.cpp.s
-
-tests/test_objetos.obj: tests/test_objetos.cpp.obj
-.PHONY : tests/test_objetos.obj
-
-# target to build an object file
-tests/test_objetos.cpp.obj:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\SnakeObjetosTests.dir\build.make CMakeFiles/SnakeObjetosTests.dir/tests/test_objetos.cpp.obj
-.PHONY : tests/test_objetos.cpp.obj
-
-tests/test_objetos.i: tests/test_objetos.cpp.i
-.PHONY : tests/test_objetos.i
-
-# target to preprocess a source file
-tests/test_objetos.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\SnakeObjetosTests.dir\build.make CMakeFiles/SnakeObjetosTests.dir/tests/test_objetos.cpp.i
-.PHONY : tests/test_objetos.cpp.i
-
-tests/test_objetos.s: tests/test_objetos.cpp.s
-.PHONY : tests/test_objetos.s
-
-# target to generate assembly for a file
-tests/test_objetos.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\SnakeObjetosTests.dir\build.make CMakeFiles/SnakeObjetosTests.dir/tests/test_objetos.cpp.s
-.PHONY : tests/test_objetos.cpp.s
 
 tutorial.obj: tutorial.cpp.obj
 .PHONY : tutorial.obj
@@ -623,10 +521,7 @@ help:
 	@echo ... install/strip
 	@echo ... list_install_components
 	@echo ... rebuild_cache
-	@echo ... test
 	@echo ... Snake
-	@echo ... SnakeModosTests
-	@echo ... SnakeObjetosTests
 	@echo ... Snake_autogen/EWIEGA46WW/qrc_recursos.obj
 	@echo ... Snake_autogen/EWIEGA46WW/qrc_recursos.i
 	@echo ... Snake_autogen/EWIEGA46WW/qrc_recursos.s
@@ -666,12 +561,6 @@ help:
 	@echo ... tablero.obj
 	@echo ... tablero.i
 	@echo ... tablero.s
-	@echo ... tests/test_modos.obj
-	@echo ... tests/test_modos.i
-	@echo ... tests/test_modos.s
-	@echo ... tests/test_objetos.obj
-	@echo ... tests/test_objetos.i
-	@echo ... tests/test_objetos.s
 	@echo ... tutorial.obj
 	@echo ... tutorial.i
 	@echo ... tutorial.s
