@@ -20,6 +20,7 @@ class QGraphicsScene;
 class QGraphicsTextItem;
 class QGraphicsPixmapItem;
 class QKeyEvent;
+class QCloseEvent;
 class QTimer;
 class QPixmap;
 class QMediaPlayer;
@@ -33,11 +34,13 @@ class QVariantAnimation;
 class JuegoView : public QGraphicsView {
 public:
     explicit JuegoView(int nivelInicial = 1,
-                       ConfiguracionJuego configuracion = {});
+                       ConfiguracionJuego configuracion = {},
+                       const QString &usuario = {});
     ~JuegoView() override;
 
 protected:
     void keyPressEvent(QKeyEvent *evento) override;
+    void closeEvent(QCloseEvent *evento) override;
 
 private:
     static constexpr int MAX_COLUMNAS = 20;
@@ -99,6 +102,7 @@ private:
     void ganarNivel();
     int intervaloActual() const;
     bool esNivelConBordesMortales() const;
+    void guardarPuntajePartida();
 
     QGraphicsScene *m_escena;
     QGraphicsTextItem *m_informacion;
@@ -144,6 +148,8 @@ private:
     int m_turnosDesdeCaja;
     int m_frutasDesdeCaja;
     QString m_ultimoEfecto;
+    QString m_usuario;
+    int m_puntajePartida;
     int m_puntajeVisual;
     bool m_cambioDireccionPendiente;
     EsquemaControles m_esquemaControles;

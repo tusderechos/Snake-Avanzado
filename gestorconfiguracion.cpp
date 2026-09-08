@@ -1,6 +1,8 @@
 #include "gestorconfiguracion.h"
 
 #include <QCoreApplication>
+#include <QSaveFile>
+#include <QTextStream>
 #include <QVector>
 
 #include <fstream>
@@ -160,24 +162,20 @@ bool GestorConfiguracion::guardarVolumen(
         lineas.append(nuevaLinea);
     }
 
-    std::ofstream archivoEscritura(
-        obtenerRutaArchivo().toStdString(),
-        std::ios::trunc
-        );
-
-    if (!archivoEscritura.is_open())
+    QSaveFile archivoEscritura(obtenerRutaArchivo());
+    if (!archivoEscritura.open(QIODevice::WriteOnly | QIODevice::Text))
     {
         return false;
     }
 
+    QTextStream salida(&archivoEscritura);
     for (const QString &linea : lineas)
     {
-        archivoEscritura
-            << linea.toStdString()
-            << '\n';
+        salida << linea << '\n';
     }
 
-    return archivoEscritura.good();
+    salida.flush();
+    return archivoEscritura.commit();
 }
 
 QString GestorConfiguracion::cargarControl(
@@ -295,20 +293,18 @@ bool GestorConfiguracion::guardarControl(
         lineas.append(nuevaLinea);
     }
 
-    std::ofstream archivoEscritura(
-        obtenerRutaArchivo().toStdString(),
-        std::ios::trunc
-        );
-
-    if (!archivoEscritura.is_open())
+    QSaveFile archivoEscritura(obtenerRutaArchivo());
+    if (!archivoEscritura.open(QIODevice::WriteOnly | QIODevice::Text))
     {
         return false;
     }
 
+    QTextStream salida(&archivoEscritura);
     for (const QString &linea : lineas)
     {
-        archivoEscritura << linea.toStdString() << '\n';
+        salida << linea << '\n';
     }
 
-    return archivoEscritura.good();
+    salida.flush();
+    return archivoEscritura.commit();
 }

@@ -1,9 +1,24 @@
 #include "gestorusuarios.h"
 
 #include <QCoreApplication>
+#include <QCryptographicHash>
+#include <QSaveFile>
+#include <QTextStream>
 
 #include <fstream>
 #include <string>
+
+namespace {
+QString hashPassword(const QString &password) {
+    return "sha256$" + QString::fromLatin1(
+        QCryptographicHash::hash(password.toUtf8(), QCryptographicHash::Sha256).toHex());
+}
+
+bool passwordMatches(const QString &stored, const QString &provided) {
+    // Se aceptan registros antiguos una sola vez para no invalidar cuentas existentes.
+    return stored == provided || stored == hashPassword(provided);
+}
+}
 
 
 QString GestorUsuarios::obtenerRutaArchivo()
@@ -115,7 +130,7 @@ bool GestorUsuarios::credencialesValidas(
 
         if (usuarioGuardado == usuario)
         {
-            return contrasenaGuardada == contrasena;
+            return passwordMatches(contrasenaGuardada, contrasena);
         }
     }
 
@@ -230,24 +245,20 @@ bool GestorUsuarios::sumarPuntos(
         return false;
     }
 
-    std::ofstream archivoSalida(
-        ruta.toStdString(),
-        std::ios::trunc
-        );
-
-    if (!archivoSalida.is_open())
+    QSaveFile archivoSalida(ruta);
+    if (!archivoSalida.open(QIODevice::WriteOnly | QIODevice::Text))
     {
         return false;
     }
 
+    QTextStream salida(&archivoSalida);
     for (const QString &lineaActualizada : lineas)
     {
-        archivoSalida
-            << lineaActualizada.toStdString()
-            << "\n";
+        salida << lineaActualizada << '\n';
     }
 
-    return archivoSalida.good();
+    salida.flush();
+    return archivoSalida.commit();
 }
 
 int GestorUsuarios::obtenerPuntosUsuario(
@@ -374,7 +385,7 @@ bool GestorUsuarios::cambiarContrasena(
         QString lineaActualizada =
             usuarioGuardado
             + "|"
-            + contrasenaNueva
+            + hashPassword(contrasenaNueva)
             + "|"
             + puntosGuardados;
 
@@ -389,24 +400,20 @@ bool GestorUsuarios::cambiarContrasena(
         return false;
     }
 
-    std::ofstream archivoSalida(
-        ruta.toStdString(),
-        std::ios::trunc
-        );
-
-    if (!archivoSalida.is_open())
+    QSaveFile archivoSalida(ruta);
+    if (!archivoSalida.open(QIODevice::WriteOnly | QIODevice::Text))
     {
         return false;
     }
 
+    QTextStream salida(&archivoSalida);
     for (const QString &lineaActualizada : lineas)
     {
-        archivoSalida
-            << lineaActualizada.toStdString()
-            << "\n";
+        salida << lineaActualizada << '\n';
     }
 
-    return archivoSalida.good();
+    salida.flush();
+    return archivoSalida.commit();
 }
 
 QVector<GestorUsuarios::DatoRanking>
@@ -532,7 +539,7 @@ GestorUsuarios::registrarUsuario(
     archivo
         << usuario.toStdString()
         << "|"
-        << contrasena.toStdString()
+        << hashPassword(contrasena).toStdString()
         << "|"
         << 0
         << "\n";

@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.16)
 
 project(Snake LANGUAGES CXX)
 
+include(CTest)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
@@ -95,3 +97,24 @@ install(TARGETS Snake
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
+
+if(BUILD_TESTING)
+    add_executable(SnakeModosTests
+        tests/test_modos.cpp
+        controles.cpp
+        reglasmovimiento.cpp
+    )
+    target_include_directories(SnakeModosTests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(SnakeModosTests PRIVATE Qt6::Core)
+    add_test(NAME SnakeModosTests COMMAND SnakeModosTests)
+
+    add_executable(SnakeObjetosTests
+        tests/test_objetos.cpp
+        fruta.cpp
+        item.cpp
+        snake.cpp
+        progreso.cpp
+    )
+    target_include_directories(SnakeObjetosTests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+    add_test(NAME SnakeObjetosTests COMMAND SnakeObjetosTests)
+endif()

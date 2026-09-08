@@ -1,4 +1,6 @@
 #include "juegoview.h"
+#include "gestorconfiguracion.h"
+#include "gestorusuarios.h"
 
 #include "progreso.h"
 #include "reglasmovimiento.h"
@@ -12,6 +14,7 @@
 #include <QGraphicsScene>
 #include <QGraphicsTextItem>
 #include <QKeyEvent>
+#include <QCloseEvent>
 #include <QMessageBox>
 #include <QPen>
 #include <QRandomGenerator>
@@ -32,7 +35,8 @@
 #include <QTransform>
 #include <utility>
 
-JuegoView::JuegoView(int nivelInicial, ConfiguracionJuego configuracion)
+JuegoView::JuegoView(int nivelInicial, ConfiguracionJuego configuracion,
+                     const QString &usuario)
     : m_escena(new QGraphicsScene(this)),
       m_informacion(nullptr),
       m_temporizador(new QTimer(this)),
@@ -67,6 +71,8 @@ JuegoView::JuegoView(int nivelInicial, ConfiguracionJuego configuracion)
       m_turnosDesdeCaja(0),
       m_frutasDesdeCaja(0),
       m_ultimoEfecto(),
+      m_usuario(usuario),
+      m_puntajePartida(0),
       m_puntajeVisual(0),
       m_cambioDireccionPendiente(false),
       m_esquemaControles(EsquemaControles::Flechas),
@@ -87,6 +93,8 @@ JuegoView::JuegoView(int nivelInicial, ConfiguracionJuego configuracion)
       m_explosionItem(nullptr),
       m_tarjetaDerrotaMostrada(false)
 {
+    m_esquemaControles = GestorConfiguracion::cargarControl(m_usuario) == "WASD"
+        ? EsquemaControles::WASD : EsquemaControles::Flechas;
     setScene(m_escena);
     m_escena->setBackgroundBrush(QColor(13, 18, 26));
     setFocusPolicy(Qt::StrongFocus);
@@ -188,8 +196,9 @@ void JuegoView::keyPressEvent(QKeyEvent *evento) {
         return;
     }
 
-    if (Controles::esMovimiento(evento->key())) {
-        m_esquemaControles = Controles::detectar(evento->key());
+    if (Controles::esMovimiento(evento->key())
+        && !Controles::esTeclaPermitida(evento->key(), m_esquemaControles)) {
+        return;
     }
 
     if ((evento->key() == Qt::Key_Left || evento->key() == Qt::Key_A)
@@ -214,6 +223,22 @@ void JuegoView::keyPressEvent(QKeyEvent *evento) {
         m_cambioDireccionPendiente = true;
     } else {
         QGraphicsView::keyPressEvent(evento);
+    }
+}
+
+void JuegoView::closeEvent(QCloseEvent *evento) {
+    guardarPuntajePartida();
+    evento->accept();
+}
+
+void JuegoView::guardarPuntajePartida() {
+    if (m_usuario.isEmpty() || m_progreso == nullptr) {
+        return;
+    }
+
+    const int puntajeTotal = m_puntajePartida + m_progreso->puntaje();
+    if (puntajeTotal > 0) {
+        GestorUsuarios::sumarPuntos(m_usuario, puntajeTotal);
     }
 }
 
@@ -1126,6 +1151,8 @@ void JuegoView::ganarNivel() {
 
     QMessageBox::information(this, "Nivel completado",
                              QString("Cumpliste las metas del nivel %1.").arg(m_nivel));
+
+    m_puntajePartida += m_progreso->puntaje();
 
     if (m_nivel == NIVEL_1) {
         configurarNivel(NIVEL_2);

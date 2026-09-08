@@ -3,6 +3,7 @@
 
 #include <QGraphicsView>
 #include <QPoint>
+#include <QString>
 
 #include "fruta.h"
 #include "item.h"
@@ -20,7 +21,7 @@ class QTimer;
 
 class TutorialView : public QGraphicsView {
 public:
-    TutorialView();
+    explicit TutorialView(const QString &usuario = {});
     ~TutorialView() override;
 
 protected:
@@ -60,6 +61,7 @@ private:
     int m_puntaje;
     Fruta m_frutaActual;
     EsquemaControles m_esquemaControles;
+    QString m_usuario;
     QPixmap *m_spriteCabeza;
     QPixmap *m_spriteCuerpo;
     QPixmap *m_spriteCola;

@@ -1,4 +1,5 @@
 #include "tutorial.h"
+#include "gestorconfiguracion.h"
 
 #include <QBrush>
 #include <QGraphicsRectItem>
@@ -21,7 +22,7 @@
 #include <QPainterPath>
 #include <QTimer>
 
-TutorialView::TutorialView()
+TutorialView::TutorialView(const QString &usuario)
     : m_escena(new QGraphicsScene(this)),
       m_overlay(nullptr),
       m_timer(new QTimer(this)),
@@ -39,6 +40,7 @@ TutorialView::TutorialView()
       m_puntaje(0),
       m_frutaActual(),
       m_esquemaControles(EsquemaControles::Flechas),
+      m_usuario(usuario),
       m_spriteCabeza(new QPixmap()),
       m_spriteCuerpo(new QPixmap()),
       m_spriteCola(new QPixmap()),
@@ -55,6 +57,8 @@ TutorialView::TutorialView()
       m_overlayFrutasIniciales(false),
       m_overlayFrutasEspeciales(false),
       m_overlayCaja(false) {
+    m_esquemaControles = GestorConfiguracion::cargarControl(m_usuario) == "WASD"
+        ? EsquemaControles::WASD : EsquemaControles::Flechas;
     QFontDatabase::addApplicationFont(":/assets/Fredoka-Variable.ttf");
     const QPixmap cabeza(":/assets/cabeza_snake.png");
     if (!cabeza.isNull()) {
@@ -204,7 +208,9 @@ void TutorialView::keyPressEvent(QKeyEvent *evento) {
     if (evento->key() == Qt::Key_Up || evento->key() == Qt::Key_W) y = -1;
     if (evento->key() == Qt::Key_Down || evento->key() == Qt::Key_S) y = 1;
     if (x == 0 && y == 0) return;
-    m_esquemaControles = Controles::detectar(evento->key());
+    if (!Controles::esTeclaPermitida(evento->key(), m_esquemaControles)) {
+        return;
+    }
 
     if (m_fase == 0) {
         m_fase = 1;

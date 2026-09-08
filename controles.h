@@ -9,6 +9,7 @@ class Controles {
 public:
     static EsquemaControles detectar(int tecla);
     static bool esMovimiento(int tecla);
+    static bool esTeclaPermitida(int tecla, EsquemaControles esquema);
 };
 
 #endif

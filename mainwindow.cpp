@@ -675,7 +675,7 @@ void MainWindow::iniciarModoJuego(ModoJuego modo)
 
     if (modo == ModoJuego::Tutorial)
     {
-        auto *tutorial = new TutorialView;
+        auto *tutorial = new TutorialView(usuarioActual);
         tutorial->setAttribute(Qt::WA_DeleteOnClose);
         menuJuego->hide();
         connect(
@@ -777,7 +777,7 @@ void MainWindow::iniciarModoJuego(ModoJuego modo)
         configuracion.esAleatorio = true;
     }
 
-    auto *juego = new JuegoView(nivelInicial, configuracion);
+    auto *juego = new JuegoView(nivelInicial, configuracion, usuarioActual);
     juego->setAttribute(Qt::WA_DeleteOnClose);
     menuJuego->hide();
     connect(
