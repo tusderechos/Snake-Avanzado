@@ -29,11 +29,13 @@ protected:
 private:
     static constexpr int CELDA = 50;
     static constexpr int TABLERO = 10;
+    static constexpr int PANEL_ANCHO = 220;
     static constexpr int MAX_SERPIENTE = 30;
 
     void dibujar();
     void mostrarOverlay(const QString &texto);
     void quitarOverlay();
+    void actualizarInformacion();
     void avanzar();
     void siguienteDireccion(int x, int y);
     bool come(int x, int y);
@@ -61,6 +63,11 @@ private:
     QPixmap *m_spriteCabeza;
     QPixmap *m_spriteCuerpo;
     QPixmap *m_spriteCola;
+    QPixmap *m_spriteFrutaNormal;
+    QPixmap *m_spriteFrutaDorada;
+    QPixmap *m_spriteFrutaGrande;
+    QPixmap *m_spriteFrutaEnergetica;
+    QPixmap *m_spriteCaja;
     QMediaPlayer *m_explosionPlayer;
     QAudioOutput *m_explosionAudio;
     QVideoSink *m_explosionSink;

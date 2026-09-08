@@ -1,0 +1,16 @@
+# Archivos generados por Qt Creator/CMake
+build/
+.qtcreator/*.user
+.qtcreator/*.user.*
+
+# Ejecutables y archivos temporales locales
+*.exe
+*.dll
+*.obj
+*.o
+*.a
+*.log
+
+# Datos locales de ejecución
+usuarios.txt
+configuracion.txt

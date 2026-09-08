@@ -10,6 +10,7 @@ struct ConfiguracionJuego {
     bool obstaculosMoviles = true;
     bool aparicionAleatoria = true;
     bool progresionAutomatica = true;
+    bool esAleatorio = false;
 };
 
 #endif

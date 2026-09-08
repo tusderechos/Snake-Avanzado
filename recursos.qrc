@@ -4,5 +4,24 @@
         <file alias="cabeza_snake.png">assets/cabeza_snake.png</file>
         <file alias="Fredoka-Variable.ttf">assets/Fredoka-Variable.ttf</file>
         <file alias="deltarune_explosion.mp4">assets/deltarune_explosion.mp4</file>
+        <file alias="fruta_roja.png">assets/fruta_roja.png</file>
+        <file alias="fruta_dorada.png">assets/fruta_dorada.png</file>
+        <file alias="fruta_grande.png">assets/fruta_grande.png</file>
+        <file alias="fruta_energetica.png">assets/fruta_energetica.png</file>
+        <file alias="caja_misteriosa.png">assets/caja_misteriosa.png</file>
+        <file alias="tablero_arena.png">assets/tablero_arena.png</file>
+        <file alias="tablero_hielo.png">assets/tablero_hielo.png</file>
+        <file alias="tablero_madera.png">assets/tablero_madera.png</file>
+        <file alias="panel_arena.png">assets/panel_arena.png</file>
+        <file alias="panel_hielo.png">assets/panel_hielo.png</file>
+        <file alias="panel_madera.png">assets/panel_madera.png</file>
+    </qresource>
+    <qresource prefix="/imagenes">
+        <file alias="imagenes/MenuI.png">assets/menu/MenuI.png</file>
+        <file alias="imagenes/Logo2.png">assets/menu/Logo2.png</file>
+        <file alias="imagenes/MenuP.png">assets/menu/MenuP.png</file>
+        <file alias="imagenes/Ranking.png">assets/menu/Ranking.png</file>
+        <file alias="imagenes/Ajustes.png">assets/menu/Ajustes.png</file>
+        <file alias="imagenes/Tienda.png">assets/menu/Tienda.png</file>
     </qresource>
 </RCC>

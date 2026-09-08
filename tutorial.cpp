@@ -42,6 +42,11 @@ TutorialView::TutorialView()
       m_spriteCabeza(new QPixmap()),
       m_spriteCuerpo(new QPixmap()),
       m_spriteCola(new QPixmap()),
+      m_spriteFrutaNormal(new QPixmap()),
+      m_spriteFrutaDorada(new QPixmap()),
+      m_spriteFrutaGrande(new QPixmap()),
+      m_spriteFrutaEnergetica(new QPixmap()),
+      m_spriteCaja(new QPixmap()),
       m_explosionPlayer(new QMediaPlayer(this)),
       m_explosionAudio(new QAudioOutput(this)),
       m_explosionSink(new QVideoSink(this)),
@@ -78,6 +83,18 @@ TutorialView::TutorialView()
     pintorCola.drawEllipse(13, 10, 5, 5);
     pintorCola.drawEllipse(21, 20, 5, 5);
     *m_spriteCola = QPixmap::fromImage(cola);
+    auto cargarObjeto = [](QPixmap *destino, const QString &ruta) {
+        const QPixmap original(ruta);
+        if (!original.isNull()) {
+            *destino = original.scaled(42, 42, Qt::KeepAspectRatio,
+                                       Qt::SmoothTransformation);
+        }
+    };
+    cargarObjeto(m_spriteFrutaNormal, ":/assets/fruta_roja.png");
+    cargarObjeto(m_spriteFrutaDorada, ":/assets/fruta_dorada.png");
+    cargarObjeto(m_spriteFrutaGrande, ":/assets/fruta_grande.png");
+    cargarObjeto(m_spriteFrutaEnergetica, ":/assets/fruta_energetica.png");
+    cargarObjeto(m_spriteCaja, ":/assets/caja_misteriosa.png");
     m_explosionPlayer->setAudioOutput(m_explosionAudio);
     m_explosionAudio->setVolume(0.35);
     m_explosionPlayer->setVideoSink(m_explosionSink);
@@ -113,16 +130,18 @@ TutorialView::TutorialView()
                 mostrarOverlay("¡CHOCASTE!\n\nLos obstáculos y tu propio cuerpo bloquean el camino.\n\nPresioná ENTER para reintentar esta etapa.");
             });
     setScene(m_escena);
-    setFixedSize(TABLERO * CELDA + 4, TABLERO * CELDA + 4);
+    setFixedSize(TABLERO * CELDA + PANEL_ANCHO + 4, TABLERO * CELDA + 4);
     setWindowTitle("Snake - Tutorial");
     setFocusPolicy(Qt::StrongFocus);
-    m_escena->setSceneRect(0, 0, TABLERO * CELDA, TABLERO * CELDA);
+    m_escena->setSceneRect(0, 0, TABLERO * CELDA + PANEL_ANCHO,
+                            TABLERO * CELDA);
 
     m_serpiente[0] = QPoint(3, 5);
     m_serpiente[1] = QPoint(2, 5);
     m_serpiente[2] = QPoint(1, 5);
     connect(m_timer, &QTimer::timeout, this, [this]() { avanzar(); });
-    mostrarOverlay("TUTORIAL\n\nMové la serpiente con las flechas o con WASD.\nLa cabeza guía el movimiento y cada segmento la sigue.\n\nPresioná una dirección para comenzar.");
+    m_timer->setInterval(170);
+    mostrarOverlay("TUTORIAL\n\nMové la serpiente con las flechas o con WASD.\nLa cabeza guía el movimiento y cada segmento la sigue.\n\nA la derecha ves la tabla: puntaje, frutas, longitud, velocidad, meta y tiempo.\nProbalo cuando estés listo.");
     dibujar();
 }
 
@@ -132,6 +151,11 @@ TutorialView::~TutorialView() {
     delete m_spriteCabeza;
     delete m_spriteCuerpo;
     delete m_spriteCola;
+    delete m_spriteFrutaNormal;
+    delete m_spriteFrutaDorada;
+    delete m_spriteFrutaGrande;
+    delete m_spriteFrutaEnergetica;
+    delete m_spriteCaja;
 }
 
 void TutorialView::keyPressEvent(QKeyEvent *evento) {
@@ -184,10 +208,8 @@ void TutorialView::keyPressEvent(QKeyEvent *evento) {
 
     if (m_fase == 0) {
         m_fase = 1;
-        m_overlayFrutasIniciales = true;
-        mostrarOverlay("MANZANAS\n\nLa manzana roja suma puntos y hace crecer la serpiente.\nLa dorada cuenta como dos frutas y hace crecer dos segmentos.\n\nPresioná ENTER para probarlas.");
+        quitarOverlay();
         m_timer->start(170);
-        m_timer->stop();
         dibujar();
         return;
     }
@@ -270,8 +292,12 @@ void TutorialView::avanzar() {
         }
         if (!m_manzana && !m_dorada) {
             m_timer->stop();
-            m_fase = 2;
-            mostrarOverlay("SIGUIENTE ETAPA\n\nPresioná ENTER para conocer las frutas especiales.");
+            m_fase = 3;
+            m_grande = true;
+            m_energetica = true;
+            m_turnos = 0;
+            m_overlayFrutasEspeciales = true;
+            mostrarOverlay("MÁS FRUTAS\n\nTambién existen frutas especiales.\nProbá sus efectos cuando desaparezca este mensaje.\n\nPresioná ENTER para continuar.");
         }
     } else if (m_fase == 3 && ((m_grande && come(7, 2)) || (m_energetica && come(9, 2)))) {
         if (m_grande && come(7, 2)) {
@@ -288,7 +314,7 @@ void TutorialView::avanzar() {
             for (int i = 0; i < m_frutaActual.crecimiento(true)
                             && m_longitud < MAX_SERPIENTE; ++i) ++m_longitud;
             m_turnosEfecto = 30;
-            m_timer->setInterval(130);
+            m_timer->setInterval(90);
         }
         if (!m_grande && !m_energetica) {
             m_timer->stop();
@@ -373,7 +399,7 @@ void TutorialView::reiniciarEtapa() {
 void TutorialView::mostrarOverlay(const QString &texto) {
     quitarOverlay();
     QPainterPath mascara;
-    mascara.addRect(0, 0, TABLERO * CELDA, TABLERO * CELDA);
+    mascara.addRect(0, 0, TABLERO * CELDA + PANEL_ANCHO, TABLERO * CELDA);
     const bool explicarFrutasIniciales = texto.startsWith("MANZANAS");
     const bool explicarFrutasEspeciales = texto.startsWith("MÁS FRUTAS");
     const bool explicarFrutas = explicarFrutasIniciales || explicarFrutasEspeciales;
@@ -405,7 +431,7 @@ void TutorialView::mostrarOverlay(const QString &texto) {
     m_overlay = m_escena->addText(texto);
     m_overlay->setDefaultTextColor(Qt::white);
     m_overlay->setFont(QFont("Fredoka", 14));
-    m_overlay->setTextWidth(300);
+    m_overlay->setTextWidth(texto.startsWith("TUTORIAL") ? 455 : 300);
     m_overlay->setPos(30, 35);
     m_overlay->setZValue(11);
 
@@ -490,22 +516,31 @@ void TutorialView::dibujar() {
                               QPen(QColor(48, 58, 74)), QBrush(QColor(21, 28, 38)));
         }
     }
-    if (m_manzana) m_escena->addEllipse(6 * CELDA + 8, 5 * CELDA + 8, 34, 34,
-                                         QPen(Qt::NoPen), QBrush(QColor(231, 76, 60)));
-    if (m_dorada) m_escena->addEllipse(8 * CELDA + 8, 5 * CELDA + 8, 34, 34,
-                                        QPen(Qt::NoPen), QBrush(QColor(241, 196, 15)));
-    if (m_grande) m_escena->addEllipse(7 * CELDA + 8, 2 * CELDA + 8, 34, 34,
-                                       QPen(Qt::NoPen), QBrush(QColor(239, 139, 61)));
-    if (m_energetica) m_escena->addEllipse(9 * CELDA + 8, 2 * CELDA + 8, 34, 34,
-                                           QPen(Qt::NoPen), QBrush(QColor(174, 91, 214)));
+    auto *panel = m_escena->addRect(TABLERO * CELDA, 0, PANEL_ANCHO,
+                                    TABLERO * CELDA, QPen(QColor(48, 58, 74)),
+                                    QBrush(QColor(13, 18, 26)));
+    panel->setZValue(0);
+    auto *separador = m_escena->addLine(TABLERO * CELDA + 12, 18,
+                                        TABLERO * CELDA + PANEL_ANCHO - 12, 18,
+                                        QPen(QColor(123, 220, 102), 2));
+    separador->setZValue(1);
+    actualizarInformacion();
+    auto dibujarObjeto = [this](const QPixmap *sprite, int x, int y) {
+        if (sprite == nullptr || sprite->isNull()) return;
+        auto *item = m_escena->addPixmap(*sprite);
+        item->setPos(x * CELDA + 4, y * CELDA + 4);
+    };
+    if (m_manzana) dibujarObjeto(m_spriteFrutaNormal, 6, 5);
+    if (m_dorada) dibujarObjeto(m_spriteFrutaDorada, 8, 5);
+    if (m_grande) dibujarObjeto(m_spriteFrutaGrande, 7, 2);
+    if (m_energetica) dibujarObjeto(m_spriteFrutaEnergetica, 9, 2);
     if (m_fase == 4 || m_fase == 5) {
         m_escena->addRect(4 * CELDA, 3 * CELDA, CELDA, CELDA, Qt::NoPen,
                           QBrush(QColor(116, 82, 58)));
         m_escena->addRect(5 * CELDA, 3 * CELDA, CELDA, CELDA, Qt::NoPen,
                           QBrush(QColor(116, 82, 58)));
     }
-    if (m_caja) m_escena->addRect(7 * CELDA + 8, 7 * CELDA + 8, 34, 34,
-                                   QPen(Qt::NoPen), QBrush(QColor(92, 180, 230)));
+    if (m_caja) dibujarObjeto(m_spriteCaja, 7, 7);
     for (int i = m_longitud - 1; i >= 0; --i) {
         const QPixmap *sprite = i == 0 ? m_spriteCabeza
                               : i == m_longitud - 1 ? m_spriteCola : m_spriteCuerpo;
@@ -520,4 +555,19 @@ void TutorialView::dibujar() {
             else if (m_direccionY > 0) pieza->setRotation(180);
         }
     }
+}
+
+void TutorialView::actualizarInformacion() {
+    auto *informacion = m_escena->addText(
+        QString("TUTORIAL\n\nPUNTAJE\n%1 / 75\n\nFRUTAS\n%2 / 4\n\nLONGITUD\n%3 / 10\n\nVELOCIDAD\n%4 ms\n\nMETA\nProbá todas las frutas,\nobstáculos e ítems.\n\nTIEMPO\nGuiado")
+            .arg(m_puntaje)
+            .arg(4 - static_cast<int>(m_manzana) - static_cast<int>(m_dorada)
+                     - static_cast<int>(m_grande) - static_cast<int>(m_energetica))
+            .arg(m_longitud)
+            .arg(m_timer->interval()));
+    informacion->setDefaultTextColor(QColor(235, 240, 245));
+    informacion->setFont(QFont("Fredoka", 11));
+    informacion->setTextWidth(PANEL_ANCHO - 24);
+    informacion->setPos(TABLERO * CELDA + 12, 30);
+    informacion->setZValue(1);
 }

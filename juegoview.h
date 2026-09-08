@@ -2,6 +2,9 @@
 #define JUEGOVIEW_H
 
 #include <QGraphicsView>
+#include <QHash>
+#include <QList>
+#include <QPointF>
 #include <QString>
 
 #include "fruta.h"
@@ -25,6 +28,7 @@ class QVideoSink;
 class ProgresoNivel;
 class Snake;
 class Tablero;
+class QVariantAnimation;
 
 class JuegoView : public QGraphicsView {
 public:
@@ -39,7 +43,9 @@ private:
     static constexpr int MAX_COLUMNAS = 20;
     static constexpr int MAX_FILAS = 20;
     static constexpr int MAX_OBSTACULOS_MOVILES = 6;
+    static constexpr int MAX_OBJETOS_ACTIVOS = 3;
     static constexpr int TAMANO_CELDA = 40;
+    static constexpr int PANEL_ANCHO = 250;
     static constexpr int INTERVALO_NIVEL_1 = 150;
     static constexpr int INTERVALO_NIVEL_2 = 100;
     static constexpr int INTERVALO_NIVEL_3 = 50;
@@ -70,6 +76,8 @@ private:
     static constexpr int FRUTA_ENERGETICA = 7;
 
     void crearGrid();
+    void ajustarVistaAlMonitor();
+    void iniciarAnimacionPuntaje();
     void cargarSprites();
     void configurarNivel(int nivel);
     void inicializarObstaculosMoviles();
@@ -80,6 +88,8 @@ private:
     void actualizarMapa();
     void redibujar();
     void generarManzana();
+    int indiceObjetoEn(int x, int y) const;
+    TipoFruta frutaAleatoriaParaNivel() const;
     void aplicarItem();
     void actualizarInformacion();
     void avanzarJuego();
@@ -95,6 +105,7 @@ private:
     QGraphicsRectItem *m_casillas[MAX_FILAS][MAX_COLUMNAS];
     QGraphicsPixmapItem *m_sprites[MAX_FILAS][MAX_COLUMNAS];
     QTimer *m_temporizador;
+    QTimer *m_animadorPuntaje;
     std::unique_ptr<Snake> m_serpiente;
     std::unique_ptr<Tablero> m_tablero;
     std::unique_ptr<ProgresoNivel> m_progreso;
@@ -104,9 +115,18 @@ private:
     int m_manzanaY;
     int m_tipoObjeto;
     Fruta m_frutaActual;
+    struct ObjetoActivo {
+        bool activo = false;
+        int x = -1;
+        int y = -1;
+        int tipo = VACIO;
+        Fruta fruta;
+    };
+    ObjetoActivo m_objetos[MAX_OBJETOS_ACTIVOS];
     int m_nivel;
     int m_columnas;
     int m_filas;
+    int m_margenColiseo;
     int m_metaFrutas;
     int m_metaPuntos;
     int m_metaLongitud;
@@ -124,6 +144,7 @@ private:
     int m_turnosDesdeCaja;
     int m_frutasDesdeCaja;
     QString m_ultimoEfecto;
+    int m_puntajeVisual;
     bool m_cambioDireccionPendiente;
     EsquemaControles m_esquemaControles;
     bool m_terminado;
@@ -132,11 +153,19 @@ private:
     QPixmap *m_spriteCabeza;
     QPixmap *m_spriteCuerpo;
     QPixmap *m_spriteCola;
+    QPixmap *m_spriteFrutaNormal;
+    QPixmap *m_spriteFrutaDorada;
+    QPixmap *m_spriteFrutaGrande;
+    QPixmap *m_spriteFrutaEnergetica;
+    QPixmap *m_spriteCaja;
+    QPixmap *m_fondoNivel;
     QMediaPlayer *m_explosionPlayer;
     QAudioOutput *m_explosionAudio;
     QVideoSink *m_explosionSink;
     QGraphicsPixmapItem *m_explosionItem;
     bool m_tarjetaDerrotaMostrada;
+    QHash<int, QPointF> m_posicionesVisuales;
+    QList<QVariantAnimation *> m_animacionesMovimiento;
 };
 
 #endif // JUEGOVIEW_H

@@ -17,6 +17,7 @@
 #include <QRandomGenerator>
 #include <QScreen>
 #include <QTimer>
+#include <QVariantAnimation>
 #include <QFont>
 #include <QFontDatabase>
 #include <QImage>
@@ -29,11 +30,13 @@
 #include <QPainter>
 #include <QPixmap>
 #include <QTransform>
+#include <utility>
 
 JuegoView::JuegoView(int nivelInicial, ConfiguracionJuego configuracion)
     : m_escena(new QGraphicsScene(this)),
       m_informacion(nullptr),
       m_temporizador(new QTimer(this)),
+      m_animadorPuntaje(new QTimer(this)),
       m_serpiente(new Snake()),
       m_tablero(new Tablero(10, 10)),
       m_progreso(new ProgresoNivel(META_FRUTAS_NIVEL_1,
@@ -47,6 +50,7 @@ JuegoView::JuegoView(int nivelInicial, ConfiguracionJuego configuracion)
       m_nivel(NIVEL_1),
       m_columnas(10),
       m_filas(10),
+      m_margenColiseo(0),
       m_metaFrutas(META_FRUTAS_NIVEL_1),
       m_metaPuntos(META_PUNTOS_NIVEL_1),
       m_metaLongitud(META_LONGITUD_NIVEL_1),
@@ -63,6 +67,7 @@ JuegoView::JuegoView(int nivelInicial, ConfiguracionJuego configuracion)
       m_turnosDesdeCaja(0),
       m_frutasDesdeCaja(0),
       m_ultimoEfecto(),
+      m_puntajeVisual(0),
       m_cambioDireccionPendiente(false),
       m_esquemaControles(EsquemaControles::Flechas),
       m_terminado(false),
@@ -70,6 +75,12 @@ JuegoView::JuegoView(int nivelInicial, ConfiguracionJuego configuracion)
       m_spriteCabeza(new QPixmap()),
       m_spriteCuerpo(new QPixmap()),
       m_spriteCola(new QPixmap()),
+      m_spriteFrutaNormal(new QPixmap()),
+      m_spriteFrutaDorada(new QPixmap()),
+      m_spriteFrutaGrande(new QPixmap()),
+      m_spriteFrutaEnergetica(new QPixmap()),
+      m_spriteCaja(new QPixmap()),
+      m_fondoNivel(new QPixmap()),
       m_explosionPlayer(new QMediaPlayer(this)),
       m_explosionAudio(new QAudioOutput(this)),
       m_explosionSink(new QVideoSink(this)),
@@ -82,8 +93,8 @@ JuegoView::JuegoView(int nivelInicial, ConfiguracionJuego configuracion)
     QFontDatabase::addApplicationFont(":/assets/Fredoka-Variable.ttf");
 
     configurarNivel(nivelInicial);
-    crearGrid();
     cargarSprites();
+    crearGrid();
     reiniciar();
 
     m_explosionPlayer->setAudioOutput(m_explosionAudio);
@@ -133,6 +144,22 @@ JuegoView::JuegoView(int nivelInicial, ConfiguracionJuego configuracion)
             });
 
     connect(m_temporizador, &QTimer::timeout, this, [this]() { avanzarJuego(); });
+    connect(m_animadorPuntaje, &QTimer::timeout, this, [this]() {
+        if (m_progreso == nullptr) {
+            m_animadorPuntaje->stop();
+            return;
+        }
+        const int objetivo = m_progreso->puntaje();
+        if (m_puntajeVisual >= objetivo) {
+            m_puntajeVisual = objetivo;
+            m_animadorPuntaje->stop();
+            actualizarInformacion();
+            return;
+        }
+        const int incremento = objetivo - m_puntajeVisual > 40 ? 2 : 1;
+        m_puntajeVisual = qMin(objetivo, m_puntajeVisual + incremento);
+        actualizarInformacion();
+    });
     m_temporizador->start(intervaloActual());
 }
 
@@ -141,6 +168,12 @@ JuegoView::~JuegoView() {
     delete m_spriteCabeza;
     delete m_spriteCuerpo;
     delete m_spriteCola;
+    delete m_spriteFrutaNormal;
+    delete m_spriteFrutaDorada;
+    delete m_spriteFrutaGrande;
+    delete m_spriteFrutaEnergetica;
+    delete m_spriteCaja;
+    delete m_fondoNivel;
 }
 
 void JuegoView::keyPressEvent(QKeyEvent *evento) {
@@ -148,6 +181,7 @@ void JuegoView::keyPressEvent(QKeyEvent *evento) {
         const int nivel = evento->key() == Qt::Key_1 ? NIVEL_1
                           : evento->key() == Qt::Key_2 ? NIVEL_2 : NIVEL_3;
         configurarNivel(nivel);
+        cargarSprites();
         crearGrid();
         reiniciar();
         m_temporizador->start(intervaloActual());
@@ -184,6 +218,16 @@ void JuegoView::keyPressEvent(QKeyEvent *evento) {
 }
 
 void JuegoView::crearGrid() {
+    // clear() destruye los items de la escena, incluida una explosión activa.
+    // Detenemos el reproductor y anulamos el puntero antes de reconstruirla
+    // para que las señales y callbacks pendientes no accedan a memoria inválida.
+    m_explosionPlayer->stop();
+    m_explosionItem = nullptr;
+    m_posicionesVisuales.clear();
+    for (QVariantAnimation *animacion : std::as_const(m_animacionesMovimiento)) {
+        delete animacion;
+    }
+    m_animacionesMovimiento.clear();
     m_escena->clear();
     m_informacion = nullptr;
 
@@ -195,11 +239,17 @@ void JuegoView::crearGrid() {
 
     const QPen borde(QColor(48, 58, 74));
 
+    if (m_fondoNivel != nullptr && !m_fondoNivel->isNull()) {
+        auto *fondo = m_escena->addPixmap(*m_fondoNivel);
+        fondo->setZValue(-2);
+        fondo->setOpacity(0.92);
+    }
+
     for (int y = 0; y < m_filas; ++y) {
         for (int x = 0; x < m_columnas; ++x) {
             m_casillas[y][x] = m_escena->addRect(
-                x * TAMANO_CELDA,
-                y * TAMANO_CELDA,
+                m_margenColiseo + x * TAMANO_CELDA,
+                m_margenColiseo + y * TAMANO_CELDA,
                 TAMANO_CELDA,
                 TAMANO_CELDA,
                 borde,
@@ -210,17 +260,63 @@ void JuegoView::crearGrid() {
     m_informacion = m_escena->addText("");
     m_informacion->setDefaultTextColor(QColor(235, 240, 245));
     m_informacion->setFont(QFont("Fredoka", 12));
-    m_informacion->setTextWidth(190);
-    m_informacion->setPos(m_columnas * TAMANO_CELDA + 18, 24);
+    m_informacion->setTextWidth(PANEL_ANCHO - 30);
+    m_informacion->setPos(m_fondoNivel->width() + 15, 24);
 
-    m_escena->setSceneRect(0, 0, m_columnas * TAMANO_CELDA + 220, m_filas * TAMANO_CELDA);
-    setFixedSize(m_columnas * TAMANO_CELDA + 224, m_filas * TAMANO_CELDA + 4);
+    const QString panelRuta = m_nivel == NIVEL_1 ? ":/assets/panel_arena.png"
+                              : m_nivel == NIVEL_2 ? ":/assets/panel_hielo.png"
+                                                   : ":/assets/panel_madera.png";
+    const QPixmap panelOriginal(panelRuta);
+    if (!panelOriginal.isNull()) {
+        auto *panel = m_escena->addPixmap(panelOriginal.scaled(
+            PANEL_ANCHO, m_fondoNivel->height(), Qt::IgnoreAspectRatio,
+            Qt::SmoothTransformation));
+        panel->setPos(m_fondoNivel->width(), 0);
+        panel->setZValue(-1);
+        panel->setOpacity(0.78);
+    }
+    auto *panelSombra = m_escena->addRect(
+        m_fondoNivel->width(), 0, PANEL_ANCHO, m_fondoNivel->height(),
+        Qt::NoPen, QBrush(QColor(5, 8, 12, 150)));
+    panelSombra->setZValue(-1);
 
+    m_escena->setSceneRect(0, 0, m_fondoNivel->width() + PANEL_ANCHO,
+                            m_fondoNivel->height());
+    ajustarVistaAlMonitor();
+}
+
+void JuegoView::ajustarVistaAlMonitor() {
     const QRect areaDisponible = QGuiApplication::primaryScreen()->availableGeometry();
+    const int anchoEscena = m_fondoNivel->width() + PANEL_ANCHO;
+    const int altoEscena = m_fondoNivel->height();
+    const int anchoMaximo = qMax(320, areaDisponible.width() - 24);
+    const int altoMaximo = qMax(320, areaDisponible.height() - 64);
+    const bool necesitaEscala = anchoEscena + 4 > anchoMaximo
+                             || altoEscena + 4 > altoMaximo;
+
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    resetTransform();
+    if (necesitaEscala) {
+        setFixedSize(qMin(anchoEscena + 4, anchoMaximo),
+                     qMin(altoEscena + 4, altoMaximo));
+        // El viewport todavía no tiene su tamaño final durante el constructor
+        // o al cambiar de nivel. Recalcular después del resize evita que el
+        // Nivel 3 quede renderizado diminuto dentro de una ventana grande.
+        QTimer::singleShot(0, this, [this]() {
+            if (m_escena != nullptr) {
+                fitInView(m_escena->sceneRect(), Qt::KeepAspectRatio);
+            }
+        });
+    } else {
+        setFixedSize(anchoEscena + 4, altoEscena + 4);
+    }
+
     move(areaDisponible.center() - QPoint(width() / 2, height() / 2));
 }
 
 void JuegoView::cargarSprites() {
+    m_margenColiseo = m_nivel == NIVEL_1 ? 50 : m_nivel == NIVEL_2 ? 60 : 80;
     const QPixmap cabezaCanva(":/assets/cabeza_snake.png");
     if (!cabezaCanva.isNull()) {
         *m_spriteCabeza = cabezaCanva.scaled(44, 44, Qt::KeepAspectRatio,
@@ -228,26 +324,24 @@ void JuegoView::cargarSprites() {
     }
 
     QImage hoja(":/assets/snake_sheet.png");
-    if (hoja.isNull()) {
-        return;
-    }
-
-    for (int y = 0; y < hoja.height(); ++y) {
-        for (int x = 0; x < hoja.width(); ++x) {
-            const QColor color = hoja.pixelColor(x, y);
-            if (color.red() > 245 && color.green() > 245 && color.blue() > 245) {
-                hoja.setPixelColor(x, y, QColor(255, 255, 255, 0));
+    if (!hoja.isNull()) {
+        for (int y = 0; y < hoja.height(); ++y) {
+            for (int x = 0; x < hoja.width(); ++x) {
+                const QColor color = hoja.pixelColor(x, y);
+                if (color.red() > 245 && color.green() > 245 && color.blue() > 245) {
+                    hoja.setPixelColor(x, y, QColor(255, 255, 255, 0));
+                }
             }
         }
-    }
 
-    // La página 13 del diseño contiene la cabeza y el cuerpo separados.
-    // La cabeza proporcionada por el usuario es la fuente principal. El
-    // recorte de la hoja queda únicamente como respaldo si falta el asset.
-    if (m_spriteCabeza->isNull()) {
-        const QImage cabeza = hoja.copy(25, 20, 190, 190);
-        *m_spriteCabeza = QPixmap::fromImage(cabeza.scaled(36, 36, Qt::KeepAspectRatio,
-                                                           Qt::SmoothTransformation));
+        // La página 13 del diseño contiene la cabeza y el cuerpo separados.
+        // La cabeza proporcionada por el usuario es la fuente principal. El
+        // recorte de la hoja queda únicamente como respaldo si falta el asset.
+        if (m_spriteCabeza->isNull()) {
+            const QImage cabeza = hoja.copy(25, 20, 190, 190);
+            *m_spriteCabeza = QPixmap::fromImage(cabeza.scaled(36, 36, Qt::KeepAspectRatio,
+                                                               Qt::SmoothTransformation));
+        }
     }
 
     // El cuerpo se representa con piezas circulares para evitar estirar
@@ -277,6 +371,30 @@ void JuegoView::cargarSprites() {
     pintorCola.drawEllipse(21, 20, 5, 5);
     pintorCola.end();
     *m_spriteCola = QPixmap::fromImage(cola);
+
+    auto cargarObjeto = [](QPixmap *destino, const QString &ruta) {
+        const QPixmap original(ruta);
+        if (!original.isNull()) {
+            *destino = original.scaled(36, 36, Qt::KeepAspectRatio,
+                                       Qt::SmoothTransformation);
+        }
+    };
+    cargarObjeto(m_spriteFrutaNormal, ":/assets/fruta_roja.png");
+    cargarObjeto(m_spriteFrutaDorada, ":/assets/fruta_dorada.png");
+    cargarObjeto(m_spriteFrutaGrande, ":/assets/fruta_grande.png");
+    cargarObjeto(m_spriteFrutaEnergetica, ":/assets/fruta_energetica.png");
+    cargarObjeto(m_spriteCaja, ":/assets/caja_misteriosa.png");
+
+    const QString fondo = m_nivel == NIVEL_1 ? ":/assets/tablero_arena.png"
+                         : m_nivel == NIVEL_2 ? ":/assets/tablero_hielo.png"
+                                              : ":/assets/tablero_madera.png";
+    const QPixmap originalFondo(fondo);
+    if (!originalFondo.isNull()) {
+        *m_fondoNivel = originalFondo.scaled(m_columnas * TAMANO_CELDA + 2 * m_margenColiseo,
+                                             m_filas * TAMANO_CELDA + 2 * m_margenColiseo,
+                                             Qt::IgnoreAspectRatio,
+                                             Qt::SmoothTransformation);
+    }
 }
 
 void JuegoView::configurarNivel(int nivel) {
@@ -324,9 +442,10 @@ void JuegoView::inicializarObstaculosMoviles() {
     // Cuatro obstáculos móviles: dos horizontales y dos verticales.
     // Los últimos dos forman una diagonal fija y no reciben movimiento.
     const int posicionesIniciales[MAX_OBSTACULOS_MOVILES][4] = {
-        {3, 4, 1, 0},  {16, 15, -1, 0},
-        {7, 3, 0, 1},  {12, 16, 0, -1},
-        {5, 5, 0, 0},  {14, 14, 0, 0}
+        {3, 4, 1, 0},  {m_columnas - 4, m_filas - 4, -1, 0},
+        {m_columnas / 2, 2, 0, 1},  {m_columnas / 2, m_filas - 3, 0, -1},
+        {m_columnas / 3, m_filas / 2, 0, 0},
+        {m_columnas - 4, m_filas / 2, 0, 0}
     };
 
     for (int i = 0; i < MAX_OBSTACULOS_MOVILES; ++i) {
@@ -336,22 +455,35 @@ void JuegoView::inicializarObstaculosMoviles() {
 }
 
 void JuegoView::construirObstaculos() {
-    if (m_nivel == NIVEL_1 || !m_configuracion.obstaculos) {
+    if (!m_configuracion.obstaculos) {
         return;
     }
 
-    if (m_nivel == NIVEL_3) {
+    if (m_nivel == NIVEL_3 || (m_configuracion.esAleatorio
+                               && m_configuracion.obstaculosMoviles)) {
         for (int i = 0; i < MAX_OBSTACULOS_MOVILES; ++i) {
             m_tablero->poner(m_obstaculos[i].x(), m_obstaculos[i].y(), OBSTACULO);
         }
         return;
     }
 
+    if (m_nivel == NIVEL_1) {
+        if (!m_configuracion.esAleatorio) {
+            return;
+        }
+        const int centroY = m_filas / 2;
+        for (int x = 3; x <= 6; ++x) {
+            m_tablero->poner(x, centroY - 2, OBSTACULO);
+            m_tablero->poner(x, centroY + 2, OBSTACULO);
+        }
+        return;
+    }
+
     static const int obstaculos[][2] = {
-        {5, 4}, {6, 4}, {7, 4}, {9, 4}, {10, 4}, {11, 4},
-        {5, 10}, {6, 10}, {7, 10}, {9, 10}, {10, 10}, {11, 10},
-        {4, 5}, {4, 6}, {4, 8}, {4, 9},
-        {11, 5}, {11, 6}, {11, 8}, {11, 9}
+        {2, 4}, {3, 4}, {4, 4}, {10, 4}, {11, 4}, {12, 4},
+        {6, 6}, {7, 6}, {8, 6},
+        {6, 8}, {7, 8}, {8, 8},
+        {2, 10}, {3, 10}, {4, 10}, {10, 10}, {11, 10}, {12, 10}
     };
 
     for (const auto &obstaculo : obstaculos) {
@@ -360,7 +492,9 @@ void JuegoView::construirObstaculos() {
 }
 
 void JuegoView::moverObstaculos() {
-    if (m_nivel != NIVEL_3 || !m_configuracion.obstaculosMoviles
+    const bool usaMoviles = m_configuracion.obstaculosMoviles
+                         && (m_nivel == NIVEL_3 || m_configuracion.esAleatorio);
+    if (!usaMoviles
         || (++m_turnoObstaculos % 4) != 0) {
         return;
     }
@@ -398,6 +532,13 @@ bool JuegoView::posicionObstaculoDisponible(int x, int y, int ignorar) const {
         return false;
     }
 
+    // Los obstáculos móviles no deben desplazar ni sobrescribir frutas o cajas.
+    for (const ObjetoActivo &objeto : m_objetos) {
+        if (objeto.activo && objeto.x == x && objeto.y == y) {
+            return false;
+        }
+    }
+
     for (int i = 0; i < MAX_OBSTACULOS_MOVILES; ++i) {
         if (i != ignorar && m_obstaculos[i].x() == x && m_obstaculos[i].y() == y) {
             return false;
@@ -408,6 +549,9 @@ bool JuegoView::posicionObstaculoDisponible(int x, int y, int ignorar) const {
 }
 
 void JuegoView::reiniciar() {
+    m_animadorPuntaje->stop();
+    m_puntajeVisual = 0;
+    m_posicionesVisuales.clear();
     m_serpiente->limpiar();
     const int inicioY = m_filas / 2;
     m_serpiente->insertarCabeza(1, inicioY);
@@ -431,10 +575,15 @@ void JuegoView::reiniciar() {
     m_turnosDesdeCaja = 0;
     m_frutasDesdeCaja = 0;
     m_ultimoEfecto.clear();
+    for (ObjetoActivo &objeto : m_objetos) {
+        objeto.activo = false;
+        objeto.x = -1;
+        objeto.y = -1;
+        objeto.tipo = VACIO;
+    }
     inicializarObstaculosMoviles();
 
     actualizarMapa();
-    construirObstaculos();
     generarManzana();
     redibujar();
     actualizarInformacion();
@@ -448,9 +597,24 @@ void JuegoView::actualizarMapa() {
         m_tablero->poner(actual->x, actual->y, SERPIENTE);
         actual = actual->siguiente;
     }
+    construirObstaculos();
+    if (m_turnosTrampa > 0 && m_trampaX >= 0) {
+        m_tablero->poner(m_trampaX, m_trampaY, OBSTACULO);
+    }
+    for (const ObjetoActivo &objeto : m_objetos) {
+        if (objeto.activo && m_tablero->valor(objeto.x, objeto.y) == VACIO) {
+            m_tablero->poner(objeto.x, objeto.y, objeto.tipo);
+        }
+    }
 }
 
 void JuegoView::redibujar() {
+    for (QVariantAnimation *animacion : std::as_const(m_animacionesMovimiento)) {
+        delete animacion;
+    }
+    m_animacionesMovimiento.clear();
+    const QHash<int, QPointF> posicionesAnteriores = m_posicionesVisuales;
+
     for (int y = 0; y < m_filas; ++y) {
         for (int x = 0; x < m_columnas; ++x) {
             if (m_sprites[y][x] != nullptr) {
@@ -459,20 +623,20 @@ void JuegoView::redibujar() {
             }
 
             const int casilla = m_tablero->valor(x, y);
-            QColor color(21, 28, 38);
+            QColor color(Qt::transparent);
 
             if (casilla == SERPIENTE) {
-                color = QColor(21, 28, 38);
+                color = Qt::transparent;
             } else if (casilla == MANZANA) {
-                color = QColor(231, 76, 60);
+                color = Qt::transparent;
             } else if (casilla == MANZANA_DORADA) {
-                color = QColor(241, 196, 15);
+                color = Qt::transparent;
             } else if (casilla == FRUTA_GRANDE) {
-                color = QColor(239, 139, 61);
+                color = Qt::transparent;
             } else if (casilla == FRUTA_ENERGETICA) {
-                color = QColor(174, 91, 214);
+                color = Qt::transparent;
             } else if (casilla == CAJA_MISTERIOSA) {
-                color = QColor(92, 180, 230);
+                color = Qt::transparent;
             } else if (casilla == OBSTACULO) {
                 color = QColor(116, 82, 58);
             }
@@ -487,8 +651,39 @@ void JuegoView::redibujar() {
                                       : esCola ? *m_spriteCola : *m_spriteCuerpo;
                 if (!sprite.isNull()) {
                     QGraphicsPixmapItem *item = m_escena->addPixmap(sprite);
+                    int indiceSegmento = 0;
+                    const Nodo *segmento = m_serpiente->cabeza();
+                    while (segmento != nullptr
+                           && (segmento->x != x || segmento->y != y)) {
+                        ++indiceSegmento;
+                        segmento = segmento->siguiente;
+                    }
                     const int margen = esCabeza ? -2 : 2;
-                    item->setPos(x * TAMANO_CELDA + margen, y * TAMANO_CELDA + margen);
+                    const QPointF destino(m_margenColiseo + x * TAMANO_CELDA + margen,
+                                          m_margenColiseo + y * TAMANO_CELDA + margen);
+                    const QPointF inicio = posicionesAnteriores.contains(indiceSegmento)
+                        ? (indiceSegmento == 0 ? posicionesAnteriores.value(0)
+                                               : posicionesAnteriores.value(indiceSegmento - 1))
+                        : destino;
+                    item->setPos(inicio);
+                    if (inicio != destino) {
+                        auto *animacion = new QVariantAnimation(this);
+                        animacion->setStartValue(inicio);
+                        animacion->setEndValue(destino);
+                        animacion->setDuration(qBound(40, intervaloActual() * 8 / 10, 120));
+                        connect(animacion, &QVariantAnimation::valueChanged,
+                                [item](const QVariant &valor) {
+                                    item->setPos(valor.toPointF());
+                                });
+                        connect(animacion, &QVariantAnimation::finished, this,
+                                [this, animacion]() {
+                                    m_animacionesMovimiento.removeOne(animacion);
+                                    animacion->deleteLater();
+                                });
+                        m_animacionesMovimiento.append(animacion);
+                        animacion->start();
+                    }
+                    m_posicionesVisuales[indiceSegmento] = destino;
 
                     if (esCabeza) {
                         item->setTransformOriginPoint(item->boundingRect().center());
@@ -503,60 +698,130 @@ void JuegoView::redibujar() {
 
                     m_sprites[y][x] = item;
                 }
+            } else if (casilla == MANZANA || casilla == MANZANA_DORADA
+                       || casilla == FRUTA_GRANDE || casilla == FRUTA_ENERGETICA
+                       || casilla == CAJA_MISTERIOSA) {
+                const QPixmap *sprite = casilla == MANZANA ? m_spriteFrutaNormal
+                                      : casilla == MANZANA_DORADA ? m_spriteFrutaDorada
+                                      : casilla == FRUTA_GRANDE ? m_spriteFrutaGrande
+                                      : casilla == FRUTA_ENERGETICA ? m_spriteFrutaEnergetica
+                                                                    : m_spriteCaja;
+                if (sprite != nullptr && !sprite->isNull()) {
+                    auto *item = m_escena->addPixmap(*sprite);
+                    item->setPos(m_margenColiseo + x * TAMANO_CELDA + 2,
+                                 m_margenColiseo + y * TAMANO_CELDA + 2);
+                    m_sprites[y][x] = item;
+                }
             }
         }
     }
 }
 
 void JuegoView::generarManzana() {
-    for (int intento = 0; intento < m_columnas * m_filas; ++intento) {
-        const int x = QRandomGenerator::global()->bounded(m_columnas);
-        const int y = QRandomGenerator::global()->bounded(m_filas);
+    const int frutasObjetivo = (m_nivel == NIVEL_3 || m_configuracion.esAleatorio) ? 2 : 1;
+    int frutasActivas = 0;
+    for (const ObjetoActivo &objeto : m_objetos) {
+        if (objeto.activo && objeto.tipo != CAJA_MISTERIOSA) {
+            ++frutasActivas;
+        }
+    }
 
-        if (m_tablero->valor(x, y) == VACIO) {
-            m_manzanaX = x;
-            m_manzanaY = y;
-            m_tipoObjeto = MANZANA;
-            m_frutaActual.configurar(TipoFruta::Normal);
-            if (m_nivel == NIVEL_3) {
-                const bool cajaGarantizada = m_turnosDesdeCaja >= GARANTIA_CAJA_TURNOS
-                                           || m_frutasDesdeCaja >= GARANTIA_CAJA_FRUTAS;
-                const bool cooldownCumplido = m_turnosDesdeCaja >= COOLDOWN_CAJA_TURNOS;
-                const int azarCaja = QRandomGenerator::global()->bounded(100);
-                if (m_configuracion.items && m_configuracion.aparicionAleatoria
-                    && (cajaGarantizada || (cooldownCumplido && azarCaja < 15))) {
-                    m_tipoObjeto = CAJA_MISTERIOSA;
-                    m_turnosDesdeCaja = 0;
-                    m_frutasDesdeCaja = 0;
-                } else {
-                    // Entre las frutas (sin contar cajas), la normal ocupa
-                    // el 75%; el 25% restante se reparte entre especiales.
-                    const int azarFruta = QRandomGenerator::global()->bounded(100);
-                    if (m_configuracion.frutasEspeciales
-                        && azarFruta >= 75 && azarFruta < 85) {
-                        m_tipoObjeto = MANZANA_DORADA;
-                        m_frutaActual.configurar(TipoFruta::Dorada);
-                    } else if (m_configuracion.frutasEspeciales
-                               && azarFruta >= 85 && azarFruta < 95) {
-                        m_tipoObjeto = FRUTA_GRANDE;
-                        m_frutaActual.configurar(TipoFruta::Grande);
-                    } else if (m_configuracion.frutasEspeciales && azarFruta >= 95) {
-                        m_tipoObjeto = FRUTA_ENERGETICA;
-                        m_frutaActual.configurar(TipoFruta::Energetica);
+    while (frutasActivas < frutasObjetivo) {
+        int indice = -1;
+        for (int i = 0; i < MAX_OBJETOS_ACTIVOS; ++i) {
+            if (!m_objetos[i].activo) {
+                indice = i;
+                break;
+            }
+        }
+        if (indice < 0) break;
+
+        bool generada = false;
+        for (int intento = 0; intento < m_columnas * m_filas; ++intento) {
+            const int x = QRandomGenerator::global()->bounded(m_columnas);
+            const int y = QRandomGenerator::global()->bounded(m_filas);
+
+            if (m_tablero->valor(x, y) == VACIO) {
+                const TipoFruta fruta = frutaAleatoriaParaNivel();
+                m_objetos[indice].activo = true;
+                m_objetos[indice].x = x;
+                m_objetos[indice].y = y;
+                m_objetos[indice].fruta.configurar(fruta);
+                m_objetos[indice].tipo = fruta == TipoFruta::Normal ? MANZANA
+                                      : fruta == TipoFruta::Dorada ? MANZANA_DORADA
+                                      : fruta == TipoFruta::Grande ? FRUTA_GRANDE
+                                                                   : FRUTA_ENERGETICA;
+                m_tablero->poner(x, y, m_objetos[indice].tipo);
+                ++frutasActivas;
+                generada = true;
+                break;
+            }
+        }
+
+        // No hay espacio libre suficiente para completar el objetivo.
+        if (!generada) break;
+    }
+
+    // La caja se sortea por separado y puede coexistir con las frutas.
+    if ((m_nivel == NIVEL_3 || m_configuracion.esAleatorio)
+        && m_configuracion.items && m_configuracion.aparicionAleatoria) {
+        bool hayCaja = false;
+        for (const ObjetoActivo &objeto : m_objetos) {
+            hayCaja = hayCaja || (objeto.activo && objeto.tipo == CAJA_MISTERIOSA);
+        }
+        const bool garantizada = m_turnosDesdeCaja >= GARANTIA_CAJA_TURNOS
+                              || m_frutasDesdeCaja >= GARANTIA_CAJA_FRUTAS;
+        const bool cooldownCumplido = m_turnosDesdeCaja >= COOLDOWN_CAJA_TURNOS;
+        if (!hayCaja && (garantizada || (cooldownCumplido
+                                         && QRandomGenerator::global()->bounded(100) < 20))) {
+            for (int i = 0; i < MAX_OBJETOS_ACTIVOS; ++i) {
+                if (m_objetos[i].activo) continue;
+                for (int intento = 0; intento < m_columnas * m_filas; ++intento) {
+                    const int x = QRandomGenerator::global()->bounded(m_columnas);
+                    const int y = QRandomGenerator::global()->bounded(m_filas);
+                    if (m_tablero->valor(x, y) == VACIO) {
+                        m_objetos[i].activo = true;
+                        m_objetos[i].x = x;
+                        m_objetos[i].y = y;
+                        m_objetos[i].tipo = CAJA_MISTERIOSA;
+                        m_turnosDesdeCaja = 0;
+                        m_frutasDesdeCaja = 0;
+                        m_tablero->poner(x, y, CAJA_MISTERIOSA);
+                        return;
                     }
                 }
             }
-            m_tablero->poner(x, y, m_tipoObjeto);
-            return;
         }
     }
+}
+
+int JuegoView::indiceObjetoEn(int x, int y) const {
+    for (int i = 0; i < MAX_OBJETOS_ACTIVOS; ++i) {
+        if (m_objetos[i].activo && m_objetos[i].x == x && m_objetos[i].y == y) return i;
+    }
+    return -1;
+}
+
+TipoFruta JuegoView::frutaAleatoriaParaNivel() const {
+    if (!m_configuracion.frutasEspeciales) return TipoFruta::Normal;
+    const int azar = QRandomGenerator::global()->bounded(100);
+    if (m_nivel == NIVEL_1) return azar < 45 ? TipoFruta::Dorada : TipoFruta::Normal;
+    if (m_nivel == NIVEL_2) {
+        if (azar < 45) return TipoFruta::Dorada;
+        if (azar < 65) return TipoFruta::Grande;
+        return TipoFruta::Normal;
+    }
+    if (azar < 25) return TipoFruta::Dorada;
+    if (azar < 45) return TipoFruta::Grande;
+    if (azar < 60) return TipoFruta::Energetica;
+    return TipoFruta::Normal;
 }
 
 void JuegoView::actualizarInformacion() {
     QString texto =
         QString("NIVEL %1\n\nPUNTAJE\n%2 / %3\n\nFRUTAS\n%4 / %5\n\nLONGITUD\n%6 / %7\n\nVELOCIDAD\n%8 ms\n\nMETA\nCompleta las 3 metas")
             .arg(m_nivel)
-            .arg(m_progreso->puntaje())
+            .arg(m_puntajeVisual)
             .arg(m_metaPuntos)
             .arg(m_progreso->frutasComidas())
             .arg(m_metaFrutas)
@@ -574,6 +839,17 @@ void JuegoView::actualizarInformacion() {
         texto += QString("\n\n%1").arg(m_ultimoEfecto);
     }
     m_informacion->setPlainText(texto);
+}
+
+void JuegoView::iniciarAnimacionPuntaje() {
+    if (m_progreso == nullptr) return;
+    const int objetivo = m_progreso->puntaje();
+    if (m_puntajeVisual > objetivo) {
+        m_puntajeVisual = objetivo;
+    }
+    if (m_puntajeVisual < objetivo) {
+        m_animadorPuntaje->start(30);
+    }
 }
 
 void JuegoView::aplicarItem() {
@@ -595,17 +871,20 @@ void JuegoView::aplicarItem() {
         break;
     case TipoItem::Rayo:
         m_progreso->registrarItem(item.puntos(), m_serpiente->longitud());
+        iniciarAnimacionPuntaje();
         m_turnosEnergia = 100;
         m_ultimoEfecto = "Rayo: +30 puntos";
         break;
     case TipoItem::Tijeras:
         m_serpiente->reducirSegmentos(-item.segmentosDelta());
         m_progreso->registrarItem(item.puntos(), m_serpiente->longitud());
+        iniciarAnimacionPuntaje();
         m_ultimoEfecto = "Tijeras: -2 segmentos";
         break;
     case TipoItem::Bomba:
         m_serpiente->reducirSegmentos(-item.segmentosDelta());
         m_progreso->registrarItem(item.puntos(), m_serpiente->longitud());
+        iniciarAnimacionPuntaje();
         m_ultimoEfecto = "Bomba: -20 puntos, -1 segmento";
         break;
     case TipoItem::Trampa:
@@ -638,7 +917,7 @@ void JuegoView::avanzarJuego() {
         terminarJuego();
         return;
     }
-    if (m_nivel == NIVEL_3) {
+    if (m_nivel == NIVEL_3 || m_configuracion.esAleatorio) {
         ++m_turnosDesdeCaja;
     }
 
@@ -663,15 +942,6 @@ void JuegoView::avanzarJuego() {
     // El tablero debe representar las posiciones nuevas antes de revisar
     // la siguiente casilla de la serpiente.
     actualizarMapa();
-    construirObstaculos();
-    if (m_turnosTrampa > 0 && m_trampaX >= 0) {
-        m_tablero->poner(m_trampaX, m_trampaY, OBSTACULO);
-    }
-    if (m_tablero->valor(m_manzanaX, m_manzanaY) == VACIO) {
-        m_tablero->poner(m_manzanaX, m_manzanaY, m_tipoObjeto);
-    } else {
-        generarManzana();
-    }
 
     int nuevaX = m_serpiente->cabezaX() + m_direccionX;
     int nuevaY = m_serpiente->cabezaY() + m_direccionY;
@@ -702,27 +972,31 @@ void JuegoView::avanzarJuego() {
         return;
     }
 
+    const int indiceObjeto = indiceObjetoEn(nuevaX, nuevaY);
     const bool comioFruta = destino == MANZANA || destino == MANZANA_DORADA
                           || destino == FRUTA_GRANDE || destino == FRUTA_ENERGETICA;
     const bool tomoCaja = destino == CAJA_MISTERIOSA;
+    Fruta frutaComida;
+    if (indiceObjeto >= 0) {
+        frutaComida = m_objetos[indiceObjeto].fruta;
+        if (comioFruta || tomoCaja) m_objetos[indiceObjeto].activo = false;
+    }
     const int crecimiento = comioFruta
-                                ? m_frutaActual.crecimiento(m_nivel == NIVEL_3)
+                                ? frutaComida.crecimiento(m_nivel == NIVEL_3)
                                 : 0;
     m_serpiente->avanzar(nuevaX, nuevaY, crecimiento);
     actualizarMapa();
-    construirObstaculos();
-    if (m_turnosTrampa > 0 && m_trampaX >= 0) {
-        m_tablero->poner(m_trampaX, m_trampaY, OBSTACULO);
-    }
 
     if (comioFruta) {
-        m_progreso->registrarFruta(m_frutaActual.puntos(),
+        m_frutaActual = frutaComida;
+        m_progreso->registrarFruta(frutaComida.puntos(),
                                    m_serpiente->longitud(),
-                                   m_frutaActual.frutasContadas());
-        if (m_nivel == NIVEL_3) {
-            m_frutasDesdeCaja += m_frutaActual.frutasContadas();
+                                   frutaComida.frutasContadas());
+        iniciarAnimacionPuntaje();
+        if (m_nivel == NIVEL_3 || m_configuracion.esAleatorio) {
+            m_frutasDesdeCaja += frutaComida.frutasContadas();
         }
-        if (m_frutaActual.tipo() == TipoFruta::Energetica) {
+        if (frutaComida.tipo() == TipoFruta::Energetica) {
             m_turnosEnergia = 100;
             m_ultimoEfecto = "Fruta energética: acelera 5 segundos";
         }
@@ -738,8 +1012,6 @@ void JuegoView::avanzarJuego() {
     } else if (tomoCaja) {
         aplicarItem();
         generarManzana();
-    } else {
-        m_tablero->poner(m_manzanaX, m_manzanaY, m_tipoObjeto);
     }
 
     redibujar();
@@ -763,8 +1035,8 @@ void JuegoView::reproducirExplosion() {
     }
     m_explosionItem = m_escena->addPixmap(QPixmap());
     m_explosionItem->setZValue(30);
-    m_explosionItem->setPos(m_serpiente->cabezaX() * TAMANO_CELDA - 65,
-                            m_serpiente->cabezaY() * TAMANO_CELDA - 65);
+    m_explosionItem->setPos(m_margenColiseo + m_serpiente->cabezaX() * TAMANO_CELDA - 65,
+                            m_margenColiseo + m_serpiente->cabezaY() * TAMANO_CELDA - 65);
     m_explosionPlayer->stop();
     m_explosionPlayer->setPosition(0);
     QTimer::singleShot(220, this, [this]() {
@@ -818,6 +1090,31 @@ void JuegoView::ganarNivel() {
     m_terminado = true;
     m_temporizador->stop();
 
+    if (!m_configuracion.progresionAutomatica) {
+        QMessageBox tarjeta(this);
+        tarjeta.setWindowTitle("Nivel completado");
+        tarjeta.setIcon(QMessageBox::Information);
+        tarjeta.setText(QString("<h2>¡NIVEL %1 COMPLETADO!</h2>").arg(m_nivel));
+        tarjeta.setInformativeText("¿Qué querés hacer ahora?");
+        QAbstractButton *reintentar = tarjeta.addButton("Reintentar nivel",
+                                                         QMessageBox::AcceptRole);
+        tarjeta.addButton("Volver al menú", QMessageBox::RejectRole);
+        tarjeta.setStyleSheet(
+            "QMessageBox { background:#0d121a; color:#ebf0f5; }"
+            "QLabel { color:#ebf0f5; font-family:'Fredoka'; font-size:14px; }"
+            "QPushButton { background:#26384a; color:#ffffff; border:1px solid #5cb6e6;"
+            " border-radius:8px; padding:8px 16px; min-width:120px; }"
+            "QPushButton:hover { background:#34536a; }");
+        tarjeta.exec();
+        if (tarjeta.clickedButton() == reintentar) {
+            reiniciar();
+            m_temporizador->start(intervaloActual());
+        } else {
+            close();
+        }
+        return;
+    }
+
     if (m_nivel == NIVEL_3) {
         m_gestorPartida.marcarCompletada();
         QMessageBox::information(this, "Juego completado",
@@ -830,17 +1127,13 @@ void JuegoView::ganarNivel() {
     QMessageBox::information(this, "Nivel completado",
                              QString("Cumpliste las metas del nivel %1.").arg(m_nivel));
 
-    if (!m_configuracion.progresionAutomatica) {
-        setWindowTitle(QString("Snake - Nivel %1 completado").arg(m_nivel));
-        actualizarInformacion();
-        return;
-    }
-
     if (m_nivel == NIVEL_1) {
         configurarNivel(NIVEL_2);
+        cargarSprites();
         crearGrid();
     } else if (m_nivel == NIVEL_2) {
         configurarNivel(NIVEL_3);
+        cargarSprites();
         crearGrid();
     }
 
