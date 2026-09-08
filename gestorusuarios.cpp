@@ -3,6 +3,7 @@
 #include <QCoreApplication>
 #include <QCryptographicHash>
 #include <QSaveFile>
+#include <QStringList>
 #include <QTextStream>
 
 #include <fstream>
@@ -17,6 +18,60 @@ QString hashPassword(const QString &password) {
 bool passwordMatches(const QString &stored, const QString &provided) {
     // Se aceptan registros antiguos una sola vez para no invalidar cuentas existentes.
     return stored == provided || stored == hashPassword(provided);
+}
+
+struct RegistroUsuario {
+    QString usuario;
+    QString contrasena;
+    int puntos = 0;
+    int monedas = 0;
+    QStringList skins = {"clasica"};
+    QString skinEquipada = "clasica";
+};
+
+RegistroUsuario leerRegistro(const QString &linea) {
+    RegistroUsuario registro;
+    const QStringList campos = linea.split('|');
+    if (campos.size() < 2) return registro;
+
+    registro.usuario = campos[0];
+    registro.contrasena = campos[1];
+    if (campos.size() >= 3) registro.puntos = qMax(0, campos[2].toInt());
+    if (campos.size() >= 4) registro.monedas = qMax(0, campos[3].toInt());
+    if (campos.size() >= 5 && !campos[4].isEmpty()) {
+        registro.skins = campos[4].split(',', Qt::SkipEmptyParts);
+        if (!registro.skins.contains("clasica")) registro.skins.prepend("clasica");
+    }
+    if (campos.size() >= 6 && !campos[5].isEmpty()) registro.skinEquipada = campos[5];
+    if (!registro.skins.contains(registro.skinEquipada)) registro.skinEquipada = "clasica";
+    return registro;
+}
+
+QString serializarRegistro(const RegistroUsuario &registro) {
+    return registro.usuario + "|" + registro.contrasena + "|"
+           + QString::number(registro.puntos) + "|"
+           + QString::number(registro.monedas) + "|"
+           + registro.skins.join(',') + "|" + registro.skinEquipada;
+}
+
+bool cargarRegistros(const QString &ruta, QVector<RegistroUsuario> &registros) {
+    std::ifstream archivo(ruta.toStdString());
+    if (!archivo.is_open()) return false;
+    std::string linea;
+    while (std::getline(archivo, linea)) {
+        RegistroUsuario registro = leerRegistro(QString::fromStdString(linea));
+        if (!registro.usuario.isEmpty()) registros.append(registro);
+    }
+    return true;
+}
+
+bool guardarRegistros(const QString &ruta, const QVector<RegistroUsuario> &registros) {
+    QSaveFile archivo(ruta);
+    if (!archivo.open(QIODevice::WriteOnly | QIODevice::Text)) return false;
+    QTextStream salida(&archivo);
+    for (const RegistroUsuario &registro : registros) salida << serializarRegistro(registro) << '\n';
+    salida.flush();
+    return archivo.commit();
 }
 }
 
@@ -215,7 +270,7 @@ bool GestorUsuarios::sumarPuntos(
             bool conversionCorrecta = false;
 
             puntosActuales =
-                lineaQt.mid(segundoSeparador + 1)
+                lineaQt.mid(segundoSeparador + 1).section('|', 0, 0)
                     .toInt(&conversionCorrecta);
 
             if (!conversionCorrecta)
@@ -259,6 +314,94 @@ bool GestorUsuarios::sumarPuntos(
 
     salida.flush();
     return archivoSalida.commit();
+}
+
+bool GestorUsuarios::registrarPuntajePartida(
+    const QString &usuario,
+    int puntosGanados,
+    int monedasBonus
+    )
+{
+    if (usuario.isEmpty() || puntosGanados <= 0) return false;
+
+    QVector<RegistroUsuario> registros;
+    const QString ruta = obtenerRutaArchivo();
+    if (!cargarRegistros(ruta, registros)) return false;
+
+    for (RegistroUsuario &registro : registros) {
+        if (registro.usuario != usuario) continue;
+        registro.puntos += puntosGanados;
+        registro.monedas += puntosGanados / 2 + qMax(0, monedasBonus);
+        return guardarRegistros(ruta, registros);
+    }
+    return false;
+}
+
+int GestorUsuarios::obtenerMonedasUsuario(const QString &usuario)
+{
+    QVector<RegistroUsuario> registros;
+    if (!cargarRegistros(obtenerRutaArchivo(), registros)) return 0;
+    for (const RegistroUsuario &registro : registros) {
+        if (registro.usuario == usuario) return registro.monedas;
+    }
+    return 0;
+}
+
+bool GestorUsuarios::tieneSkin(const QString &usuario, const QString &skin)
+{
+    QVector<RegistroUsuario> registros;
+    if (!cargarRegistros(obtenerRutaArchivo(), registros)) return false;
+    for (const RegistroUsuario &registro : registros) {
+        if (registro.usuario == usuario) return registro.skins.contains(skin);
+    }
+    return false;
+}
+
+QString GestorUsuarios::obtenerSkinEquipada(const QString &usuario)
+{
+    QVector<RegistroUsuario> registros;
+    if (!cargarRegistros(obtenerRutaArchivo(), registros)) return "clasica";
+    for (const RegistroUsuario &registro : registros) {
+        if (registro.usuario == usuario) return registro.skinEquipada;
+    }
+    return "clasica";
+}
+
+bool GestorUsuarios::comprarSkin(
+    const QString &usuario,
+    const QString &skin,
+    int precio
+    )
+{
+    if (usuario.isEmpty() || skin.isEmpty() || precio < 0) return false;
+
+    QVector<RegistroUsuario> registros;
+    const QString ruta = obtenerRutaArchivo();
+    if (!cargarRegistros(ruta, registros)) return false;
+    for (RegistroUsuario &registro : registros) {
+        if (registro.usuario != usuario) continue;
+        if (registro.skins.contains(skin) || registro.monedas < precio) return false;
+        registro.monedas -= precio;
+        registro.skins.append(skin);
+        return guardarRegistros(ruta, registros);
+    }
+    return false;
+}
+
+bool GestorUsuarios::equiparSkin(
+    const QString &usuario,
+    const QString &skin
+    )
+{
+    QVector<RegistroUsuario> registros;
+    const QString ruta = obtenerRutaArchivo();
+    if (!cargarRegistros(ruta, registros)) return false;
+    for (RegistroUsuario &registro : registros) {
+        if (registro.usuario != usuario || !registro.skins.contains(skin)) return false;
+        registro.skinEquipada = skin;
+        return guardarRegistros(ruta, registros);
+    }
+    return false;
 }
 
 int GestorUsuarios::obtenerPuntosUsuario(
@@ -311,7 +454,7 @@ int GestorUsuarios::obtenerPuntosUsuario(
         bool conversionCorrecta = false;
 
         int puntos =
-            lineaQt.mid(segundoSeparador + 1)
+            lineaQt.mid(segundoSeparador + 1).section('|', 0, 0)
                 .toInt(&conversionCorrecta);
 
         if (conversionCorrecta)
@@ -466,7 +609,7 @@ GestorUsuarios::obtenerRanking(int limite)
             bool conversionCorrecta = false;
 
             puntos =
-                lineaQt.mid(segundoSeparador + 1)
+                lineaQt.mid(segundoSeparador + 1).section('|', 0, 0)
                     .toInt(&conversionCorrecta);
 
             if (!conversionCorrecta)

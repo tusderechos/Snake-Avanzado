@@ -37,10 +37,29 @@ public:
         int puntosGanados
         );
 
+    // Registra el resultado de una partida: puntaje para el ranking y
+    // monedas para la tienda. Las monedas se calculan a razon de 1 por
+    // cada 2 puntos.
+    static bool registrarPuntajePartida(
+        const QString &usuario,
+        int puntosGanados,
+        int monedasBonus = 0
+        );
+
     // Obtiene los puntos acumulados de un usuario.
     static int obtenerPuntosUsuario(
         const QString &usuario
         );
+
+    static int obtenerMonedasUsuario(const QString &usuario);
+    static bool comprarSkin(const QString &usuario,
+                            const QString &skin,
+                            int precio);
+    static bool equiparSkin(const QString &usuario,
+                            const QString &skin);
+    static bool tieneSkin(const QString &usuario,
+                          const QString &skin);
+    static QString obtenerSkinEquipada(const QString &usuario);
 
     // Reemplaza la contraseña y conserva los puntos.
     static bool cambiarContrasena(

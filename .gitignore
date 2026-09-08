@@ -1,5 +1,6 @@
 # Archivos generados por Qt Creator/CMake
 build/
+build-*/
 .qtcreator/*.user
 .qtcreator/*.user.*
 

@@ -151,6 +151,9 @@ private:
     QString m_usuario;
     int m_puntajePartida;
     int m_puntajeVisual;
+    int m_nivelesCompletados;
+    int m_puntajeRegistrado;
+    int m_bonusMonedasRegistrado;
     bool m_cambioDireccionPendiente;
     EsquemaControles m_esquemaControles;
     bool m_terminado;

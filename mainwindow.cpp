@@ -610,6 +610,7 @@ void MainWindow::mostrarControles()
 
 void MainWindow::mostrarTienda()
 {
+    escenaTienda->establecerUsuario(usuarioActual);
     ui->graphicsView->setScene(
         escenaTienda
         );

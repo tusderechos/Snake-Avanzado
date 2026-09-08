@@ -74,6 +74,9 @@ JuegoView::JuegoView(int nivelInicial, ConfiguracionJuego configuracion,
       m_usuario(usuario),
       m_puntajePartida(0),
       m_puntajeVisual(0),
+      m_nivelesCompletados(0),
+      m_puntajeRegistrado(0),
+      m_bonusMonedasRegistrado(0),
       m_cambioDireccionPendiente(false),
       m_esquemaControles(EsquemaControles::Flechas),
       m_terminado(false),
@@ -237,8 +240,17 @@ void JuegoView::guardarPuntajePartida() {
     }
 
     const int puntajeTotal = m_puntajePartida + m_progreso->puntaje();
-    if (puntajeTotal > 0) {
-        GestorUsuarios::sumarPuntos(m_usuario, puntajeTotal);
+    const int bonusTotal = m_nivelesCompletados * 25
+                           + (m_nivelesCompletados >= 3 ? 100 : 0);
+    const int puntosNuevos = puntajeTotal - m_puntajeRegistrado;
+    const int bonusNuevo = bonusTotal - m_bonusMonedasRegistrado;
+    if (puntosNuevos > 0 || bonusNuevo > 0) {
+        if (GestorUsuarios::registrarPuntajePartida(m_usuario,
+                                                    puntosNuevos,
+                                                    bonusNuevo)) {
+            m_puntajeRegistrado = puntajeTotal;
+            m_bonusMonedasRegistrado = bonusTotal;
+        }
     }
 }
 
@@ -342,10 +354,65 @@ void JuegoView::ajustarVistaAlMonitor() {
 
 void JuegoView::cargarSprites() {
     m_margenColiseo = m_nivel == NIVEL_1 ? 50 : m_nivel == NIVEL_2 ? 60 : 80;
-    const QPixmap cabezaCanva(":/assets/cabeza_snake.png");
+    const QString skin = GestorUsuarios::obtenerSkinEquipada(m_usuario);
+    QColor colorPrincipal("#5cbe2f");
+    QColor colorManchas("#2e7d26");
+    if (skin == "gato") {
+        colorPrincipal = QColor("#e58a32");
+        colorManchas = QColor("#71351e");
+    } else if (skin == "dragon") {
+        colorPrincipal = QColor("#d83232");
+        colorManchas = QColor("#641b24");
+    } else if (skin == "burro") {
+        colorPrincipal = QColor("#858585");
+        colorManchas = QColor("#3f4248");
+    } else if (skin == "spiderman") {
+        colorPrincipal = QColor("#e52d35");
+        colorManchas = QColor("#172e70");
+    } else if (skin == "miles") {
+        colorPrincipal = QColor("#282832");
+        colorManchas = QColor("#d42d55");
+    } else if (skin == "personaje") {
+        colorPrincipal = QColor("#d18b42");
+        colorManchas = QColor("#5b2020");
+    } else if (skin == "veneno") {
+        colorPrincipal = QColor("#9ccc65");
+        colorManchas = QColor("#4a7c2b");
+    } else if (skin == "hielo") {
+        colorPrincipal = QColor("#65d7e8");
+        colorManchas = QColor("#227caa");
+    } else if (skin == "fuego") {
+        colorPrincipal = QColor("#f06b38");
+        colorManchas = QColor("#a62d20");
+    } else if (skin == "cosmica") {
+        colorPrincipal = QColor("#a875ff");
+        colorManchas = QColor("#4d2b96");
+    } else if (skin == "thanos") {
+        colorPrincipal = QColor("#7048b8");
+        colorManchas = QColor("#33205d");
+    }
+    const QString rutaCabeza = skin == "gato" ? ":/assets/skin_gato.png"
+                              : skin == "dragon" ? ":/assets/skin_dragon.png"
+                              : skin == "burro" ? ":/assets/skin_burro.png"
+                              : skin == "thanos" ? ":/assets/skin_thanos.png"
+                              : skin == "spiderman" ? ":/assets/skin_spiderman.png"
+                              : skin == "miles" ? ":/assets/skin_miles.png"
+                              : skin == "personaje" ? ":/assets/skin_personaje.png"
+                              : ":/assets/cabeza_snake.png";
+    const QPixmap cabezaCanva(rutaCabeza);
     if (!cabezaCanva.isNull()) {
         *m_spriteCabeza = cabezaCanva.scaled(44, 44, Qt::KeepAspectRatio,
                                              Qt::SmoothTransformation);
+        if (skin == "veneno" || skin == "hielo" || skin == "fuego" || skin == "cosmica") {
+            QImage cabeza = m_spriteCabeza->toImage();
+            QPainter pintor(&cabeza);
+            pintor.setCompositionMode(QPainter::CompositionMode_SourceAtop);
+            pintor.fillRect(cabeza.rect(), QColor(colorPrincipal.red(),
+                                                  colorPrincipal.green(),
+                                                  colorPrincipal.blue(), 65));
+            pintor.end();
+            *m_spriteCabeza = QPixmap::fromImage(cabeza);
+        }
     }
 
     QImage hoja(":/assets/snake_sheet.png");
@@ -376,11 +443,20 @@ void JuegoView::cargarSprites() {
     QPainter pintorCuerpo(&cuerpo);
     pintorCuerpo.setRenderHint(QPainter::Antialiasing);
     pintorCuerpo.setPen(Qt::NoPen);
-    pintorCuerpo.setBrush(QColor(92, 190, 47));
+    pintorCuerpo.setBrush(colorPrincipal);
     pintorCuerpo.drawEllipse(2, 2, 32, 32);
-    pintorCuerpo.setBrush(QColor(46, 125, 38));
+    pintorCuerpo.setBrush(colorManchas);
     pintorCuerpo.drawEllipse(11, 8, 6, 6);
     pintorCuerpo.drawEllipse(21, 19, 6, 6);
+    if (skin == "thanos") {
+        const QColor gemas[] = {QColor("#9b59ff"), QColor("#ffd740"),
+                                QColor("#29b6f6"), QColor("#ef5350"),
+                                QColor("#66bb6a"), QColor("#ff8a65")};
+        for (int i = 0; i < 6; ++i) {
+            pintorCuerpo.setBrush(gemas[i]);
+            pintorCuerpo.drawEllipse(5 + (i % 3) * 10, 4 + (i / 3) * 17, 5, 5);
+        }
+    }
     pintorCuerpo.end();
     *m_spriteCuerpo = QPixmap::fromImage(cuerpo);
 
@@ -389,9 +465,9 @@ void JuegoView::cargarSprites() {
     QPainter pintorCola(&cola);
     pintorCola.setRenderHint(QPainter::Antialiasing);
     pintorCola.setPen(Qt::NoPen);
-    pintorCola.setBrush(QColor(76, 167, 43));
+    pintorCola.setBrush(colorPrincipal.darker(110));
     pintorCola.drawEllipse(5, 5, 26, 26);
-    pintorCola.setBrush(QColor(46, 125, 38));
+    pintorCola.setBrush(colorManchas);
     pintorCola.drawEllipse(13, 10, 5, 5);
     pintorCola.drawEllipse(21, 20, 5, 5);
     pintorCola.end();
@@ -1114,6 +1190,12 @@ void JuegoView::mostrarTarjetaDerrota() {
 void JuegoView::ganarNivel() {
     m_terminado = true;
     m_temporizador->stop();
+    ++m_nivelesCompletados;
+
+    if (m_configuracion.progresionAutomatica) {
+        m_puntajePartida += m_progreso->puntaje();
+        guardarPuntajePartida();
+    }
 
     if (!m_configuracion.progresionAutomatica) {
         QMessageBox tarjeta(this);
@@ -1151,8 +1233,6 @@ void JuegoView::ganarNivel() {
 
     QMessageBox::information(this, "Nivel completado",
                              QString("Cumpliste las metas del nivel %1.").arg(m_nivel));
-
-    m_puntajePartida += m_progreso->puntaje();
 
     if (m_nivel == NIVEL_1) {
         configurarNivel(NIVEL_2);
