@@ -86,9 +86,7 @@ bool ValidarCuenta::contieneCaracterEspecial(
 {
     for (const QChar &caracter : contrasena)
     {
-        bool esEspecial =
-            !caracter.isLetterOrNumber()
-            && !caracter.isSpace();
+        bool esEspecial = !caracter.isLetterOrNumber() && !caracter.isSpace();
 
         if (esEspecial)
         {

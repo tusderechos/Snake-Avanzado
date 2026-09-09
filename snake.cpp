@@ -31,10 +31,10 @@ void Snake::avanzar(int x, int y, int segmentosCrecimiento) {
     Nodo *nuevaCabeza = new Nodo(x, y);
     nuevaCabeza->siguiente = m_cabeza;
     m_cabeza = nuevaCabeza;
-    ++m_longitud;
+    m_longitud++;
 
     if (m_crecimientoPendiente > 0) {
-        --m_crecimientoPendiente;
+        m_crecimientoPendiente--;
         return;
     }
 
@@ -46,15 +46,21 @@ void Snake::avanzar(int x, int y, int segmentosCrecimiento) {
     delete m_cola;
     m_cola = antesDeCola;
     m_cola->siguiente = nullptr;
-    --m_longitud;
+    m_longitud--;
 }
 
 void Snake::reducirSegmentos(int cantidad) {
-    while (cantidad > 0 && m_longitud > 3) {
+    while (cantidad > 0 && m_longitud > 3
+           && m_cabeza != nullptr && m_cola != nullptr) {
         Nodo *antesDeCola = m_cabeza;
-        while (antesDeCola->siguiente != m_cola) {
+        while (antesDeCola != nullptr && antesDeCola->siguiente != m_cola) {
             antesDeCola = antesDeCola->siguiente;
         }
+
+        if (antesDeCola == nullptr) {
+            break;
+        }
+
         delete m_cola;
         m_cola = antesDeCola;
         m_cola->siguiente = nullptr;

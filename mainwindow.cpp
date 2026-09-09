@@ -12,6 +12,7 @@
 #include "perfil.h"
 #include "controlesview.h"
 #include "tienda.h"
+#include "gestorusuarios.h"
 
 #include <QCursor>
 #include <QFrame>
@@ -689,19 +690,44 @@ void MainWindow::iniciarModoJuego(ModoJuego modo)
         return;
     }
 
+    if (modo == ModoJuego::Normal
+        && !GestorUsuarios::tutorialCompletado(usuarioActual)) {
+        QMessageBox::information(
+            menuJuego,
+            "Tutorial requerido",
+            "Antes de jugar HISTORIA tenés que completar el TUTORIAL."
+            );
+        auto *tutorial = new TutorialView(usuarioActual);
+        tutorial->setAttribute(Qt::WA_DeleteOnClose);
+        menuJuego->hide();
+        connect(tutorial, &QObject::destroyed, menuJuego, &QWidget::show);
+        tutorial->show();
+        return;
+    }
+
     int nivelInicial = 1;
     ConfiguracionJuego configuracion;
 
     if (modo == ModoJuego::Libre)
     {
+        const int nivelMaximo = GestorUsuarios::obtenerNivelHistoria(usuarioActual);
+        if (nivelMaximo < 1) {
+            QMessageBox::information(
+                menuJuego,
+                "Modo Libre bloqueado",
+                "Primero completá al menos el Nivel 1 de HISTORIA."
+                );
+            return;
+        }
+
         bool aceptado = false;
         nivelInicial = QInputDialog::getInt(
             menuJuego,
             "Modo Libre",
             "Elegí el nivel inicial:",
+            nivelMaximo,
             1,
-            1,
-            3,
+            nivelMaximo,
             1,
             &aceptado
             );

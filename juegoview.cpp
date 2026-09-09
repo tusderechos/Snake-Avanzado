@@ -1193,6 +1193,7 @@ void JuegoView::ganarNivel() {
     ++m_nivelesCompletados;
 
     if (m_configuracion.progresionAutomatica) {
+        GestorUsuarios::marcarNivelHistoriaCompletado(m_usuario, m_nivel);
         m_puntajePartida += m_progreso->puntaje();
         guardarPuntajePartida();
     }

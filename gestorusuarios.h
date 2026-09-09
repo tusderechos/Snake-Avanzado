@@ -61,6 +61,12 @@ public:
                           const QString &skin);
     static QString obtenerSkinEquipada(const QString &usuario);
 
+    static bool tutorialCompletado(const QString &usuario);
+    static bool marcarTutorialCompletado(const QString &usuario);
+    static int obtenerNivelHistoria(const QString &usuario);
+    static bool marcarNivelHistoriaCompletado(const QString &usuario,
+                                              int nivel);
+
     // Reemplaza la contraseña y conserva los puntos.
     static bool cambiarContrasena(
         const QString &usuario,

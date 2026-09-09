@@ -27,6 +27,8 @@ struct RegistroUsuario {
     int monedas = 0;
     QStringList skins = {"clasica"};
     QString skinEquipada = "clasica";
+    bool tutorialTerminado = false;
+    int nivelHistoria = 0;
 };
 
 RegistroUsuario leerRegistro(const QString &linea) {
@@ -43,6 +45,14 @@ RegistroUsuario leerRegistro(const QString &linea) {
         if (!registro.skins.contains("clasica")) registro.skins.prepend("clasica");
     }
     if (campos.size() >= 6 && !campos[5].isEmpty()) registro.skinEquipada = campos[5];
+    if (campos.size() < 7) {
+        // Las cuentas creadas antes de esta progresion conservan su acceso.
+        registro.tutorialTerminado = true;
+        registro.nivelHistoria = 3;
+    } else {
+        registro.tutorialTerminado = campos[6] == "1";
+        if (campos.size() >= 8) registro.nivelHistoria = qBound(0, campos[7].toInt(), 3);
+    }
     if (!registro.skins.contains(registro.skinEquipada)) registro.skinEquipada = "clasica";
     return registro;
 }
@@ -51,7 +61,9 @@ QString serializarRegistro(const RegistroUsuario &registro) {
     return registro.usuario + "|" + registro.contrasena + "|"
            + QString::number(registro.puntos) + "|"
            + QString::number(registro.monedas) + "|"
-           + registro.skins.join(',') + "|" + registro.skinEquipada;
+           + registro.skins.join(',') + "|" + registro.skinEquipada + "|"
+           + (registro.tutorialTerminado ? "1" : "0") + "|"
+           + QString::number(registro.nivelHistoria);
 }
 
 bool cargarRegistros(const QString &ruta, QVector<RegistroUsuario> &registros) {
@@ -404,6 +416,56 @@ bool GestorUsuarios::equiparSkin(
     return false;
 }
 
+bool GestorUsuarios::tutorialCompletado(const QString &usuario)
+{
+    QVector<RegistroUsuario> registros;
+    if (!cargarRegistros(obtenerRutaArchivo(), registros)) return false;
+    for (const RegistroUsuario &registro : registros) {
+        if (registro.usuario == usuario) return registro.tutorialTerminado;
+    }
+    return false;
+}
+
+bool GestorUsuarios::marcarTutorialCompletado(const QString &usuario)
+{
+    QVector<RegistroUsuario> registros;
+    const QString ruta = obtenerRutaArchivo();
+    if (!cargarRegistros(ruta, registros)) return false;
+    for (RegistroUsuario &registro : registros) {
+        if (registro.usuario != usuario) continue;
+        registro.tutorialTerminado = true;
+        return guardarRegistros(ruta, registros);
+    }
+    return false;
+}
+
+int GestorUsuarios::obtenerNivelHistoria(const QString &usuario)
+{
+    QVector<RegistroUsuario> registros;
+    if (!cargarRegistros(obtenerRutaArchivo(), registros)) return 0;
+    for (const RegistroUsuario &registro : registros) {
+        if (registro.usuario == usuario) return registro.nivelHistoria;
+    }
+    return 0;
+}
+
+bool GestorUsuarios::marcarNivelHistoriaCompletado(
+    const QString &usuario,
+    int nivel
+    )
+{
+    if (nivel < 1 || nivel > 3) return false;
+    QVector<RegistroUsuario> registros;
+    const QString ruta = obtenerRutaArchivo();
+    if (!cargarRegistros(ruta, registros)) return false;
+    for (RegistroUsuario &registro : registros) {
+        if (registro.usuario != usuario) continue;
+        registro.nivelHistoria = qMax(registro.nivelHistoria, nivel);
+        return guardarRegistros(ruta, registros);
+    }
+    return false;
+}
+
 int GestorUsuarios::obtenerPuntosUsuario(
     const QString &usuario
     )
@@ -685,6 +747,7 @@ GestorUsuarios::registrarUsuario(
         << hashPassword(contrasena).toStdString()
         << "|"
         << 0
+        << "|0|clasica|clasica|0|0"
         << "\n";
 
     if (!archivo.good())

@@ -1,5 +1,6 @@
 #include "tutorial.h"
 #include "gestorconfiguracion.h"
+#include "gestorusuarios.h"
 
 #include <QBrush>
 #include <QGraphicsRectItem>
@@ -145,7 +146,7 @@ TutorialView::TutorialView(const QString &usuario)
     m_serpiente[2] = QPoint(1, 5);
     connect(m_timer, &QTimer::timeout, this, [this]() { avanzar(); });
     m_timer->setInterval(170);
-    mostrarOverlay("TUTORIAL\n\nMové la serpiente con las flechas o con WASD.\nLa cabeza guía el movimiento y cada segmento la sigue.\n\nA la derecha ves la tabla: puntaje, frutas, longitud, velocidad, meta y tiempo.\nProbalo cuando estés listo.");
+    mostrarOverlay("TUTORIAL\n\nMueve la serpiente con las flechas o con WASD.\nLa cabeza guía el movimiento y cada segmento la sigue.\n\nA la derecha ves la tabla: puntaje, frutas, longitud, velocidad, meta y tiempo.\nPruebalo cuando estés listo.");
     dibujar();
 }
 
@@ -182,7 +183,7 @@ void TutorialView::keyPressEvent(QKeyEvent *evento) {
             m_energetica = true;
             m_turnos = 0;
             m_overlayFrutasEspeciales = true;
-            mostrarOverlay("MÁS FRUTAS\n\nTambién existen frutas especiales.\nProbá sus efectos cuando desaparezca este mensaje.\n\nPresioná ENTER para continuar.");
+            mostrarOverlay("MÁS FRUTAS\n\nTambién existen frutas especiales.\nPrueba sus efectos cuando desaparezca este mensaje.\n\nPresioná ENTER para continuar.");
             dibujar();
         } else if (m_fase == 4) {
             ++m_fase;
@@ -196,6 +197,9 @@ void TutorialView::keyPressEvent(QKeyEvent *evento) {
             dibujar();
             m_timer->start(250);
         } else if (m_fase == 7 || m_fase == 8) {
+            if (m_fase == 8 && !m_usuario.isEmpty()) {
+                GestorUsuarios::marcarTutorialCompletado(m_usuario);
+            }
             close();
         }
         return;
@@ -293,8 +297,8 @@ void TutorialView::avanzar() {
             m_dorada = false;
             m_frutaActual.configurar(TipoFruta::Dorada);
             m_puntaje += m_frutaActual.puntos();
-            for (int i = 0; i < m_frutaActual.crecimiento(true)
-                            && m_longitud < MAX_SERPIENTE; ++i) ++m_longitud;
+            for (int i = 0; i < m_frutaActual.crecimiento(true) && m_longitud < MAX_SERPIENTE; ++i)
+                m_longitud++;
         }
         if (!m_manzana && !m_dorada) {
             m_timer->stop();
@@ -303,7 +307,7 @@ void TutorialView::avanzar() {
             m_energetica = true;
             m_turnos = 0;
             m_overlayFrutasEspeciales = true;
-            mostrarOverlay("MÁS FRUTAS\n\nTambién existen frutas especiales.\nProbá sus efectos cuando desaparezca este mensaje.\n\nPresioná ENTER para continuar.");
+            mostrarOverlay("MÁS FRUTAS\n\nTambién existen frutas especiales.\nPrueba sus efectos cuando desaparezca este mensaje.\n\nPresioná ENTER para continuar.");
         }
     } else if (m_fase == 3 && ((m_grande && come(7, 2)) || (m_energetica && come(9, 2)))) {
         if (m_grande && come(7, 2)) {
