@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/imagenes">
+        <file>imagenes/Snake.png</file>
+        <file>imagenes/MenuI.png</file>
+        <file>imagenes/Logo2.png</file>
+        <file>imagenes/MenuP.png</file>
+        <file>imagenes/Ranking.png</file>
+        <file>imagenes/Ajustes.png</file>
+        <file>imagenes/Tienda.png</file>
+    </qresource>
+    <qresource prefix="/"/>
+</RCC>
