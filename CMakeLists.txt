@@ -24,6 +24,8 @@ add_executable(Snake
     tablero.cpp
     juegoview.h
     juegoview.cpp
+    animadorserpiente.h
+    animadorserpiente.cpp
     fruta.h
     fruta.cpp
     item.h

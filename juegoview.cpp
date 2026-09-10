@@ -1,6 +1,7 @@
 #include "juegoview.h"
 #include "gestorconfiguracion.h"
 #include "gestorusuarios.h"
+#include "animadorserpiente.h"
 
 #include "progreso.h"
 #include "reglasmovimiento.h"
@@ -10,6 +11,7 @@
 #include <QBrush>
 #include <QGuiApplication>
 #include <QGraphicsRectItem>
+#include <QGraphicsEllipseItem>
 #include <QGraphicsPixmapItem>
 #include <QGraphicsScene>
 #include <QGraphicsTextItem>
@@ -20,6 +22,8 @@
 #include <QRandomGenerator>
 #include <QScreen>
 #include <QTimer>
+#include <QThread>
+#include <QMetaObject>
 #include <QVariantAnimation>
 #include <QFont>
 #include <QFontDatabase>
@@ -39,8 +43,12 @@ JuegoView::JuegoView(int nivelInicial, ConfiguracionJuego configuracion,
                      const QString &usuario)
     : m_escena(new QGraphicsScene(this)),
       m_informacion(nullptr),
-      m_temporizador(new QTimer(this)),
+      m_hiloAnimacion(new QThread(this)),
+      m_animadorSerpiente(new AnimadorSerpiente()),
+      m_temporizadorCuentaRegresiva(new QTimer(this)),
       m_animadorPuntaje(new QTimer(this)),
+      m_cuentaRegresiva(nullptr),
+      m_cuentaRegresivaValor(0),
       m_serpiente(new Snake()),
       m_tablero(new Tablero(10, 10)),
       m_progreso(new ProgresoNivel(META_FRUTAS_NIVEL_1,
@@ -154,7 +162,14 @@ JuegoView::JuegoView(int nivelInicial, ConfiguracionJuego configuracion,
                 mostrarTarjetaDerrota();
             });
 
-    connect(m_temporizador, &QTimer::timeout, this, [this]() { avanzarJuego(); });
+    m_animadorSerpiente->moveToThread(m_hiloAnimacion);
+    connect(m_hiloAnimacion, &QThread::finished,
+            m_animadorSerpiente, &QObject::deleteLater);
+    connect(m_animadorSerpiente, &AnimadorSerpiente::tick, this,
+            [this]() { avanzarJuego(); }, Qt::QueuedConnection);
+    m_hiloAnimacion->start();
+    connect(m_temporizadorCuentaRegresiva, &QTimer::timeout, this,
+            [this]() { actualizarCuentaRegresiva(); });
     connect(m_animadorPuntaje, &QTimer::timeout, this, [this]() {
         if (m_progreso == nullptr) {
             m_animadorPuntaje->stop();
@@ -171,11 +186,13 @@ JuegoView::JuegoView(int nivelInicial, ConfiguracionJuego configuracion,
         m_puntajeVisual = qMin(objetivo, m_puntajeVisual + incremento);
         actualizarInformacion();
     });
-    m_temporizador->start(intervaloActual());
+    iniciarCuentaRegresiva();
 }
 
 JuegoView::~JuegoView() {
-    m_temporizador->stop();
+    detenerAnimacionEnHilo();
+    m_hiloAnimacion->quit();
+    m_hiloAnimacion->wait();
     delete m_spriteCabeza;
     delete m_spriteCuerpo;
     delete m_spriteCola;
@@ -195,7 +212,7 @@ void JuegoView::keyPressEvent(QKeyEvent *evento) {
         cargarSprites();
         crearGrid();
         reiniciar();
-        m_temporizador->start(intervaloActual());
+        iniciarCuentaRegresiva();
         return;
     }
 
@@ -227,6 +244,71 @@ void JuegoView::keyPressEvent(QKeyEvent *evento) {
     } else {
         QGraphicsView::keyPressEvent(evento);
     }
+}
+
+void JuegoView::iniciarCuentaRegresiva() {
+    detenerAnimacionEnHilo();
+    m_temporizadorCuentaRegresiva->stop();
+    m_cuentaRegresivaValor = 3;
+
+    if (m_cuentaRegresiva == nullptr) {
+        m_cuentaRegresiva = m_escena->addText("");
+        m_cuentaRegresiva->setDefaultTextColor(Qt::white);
+        m_cuentaRegresiva->setFont(QFont("Fredoka", 72, QFont::Bold));
+        m_cuentaRegresiva->setZValue(20);
+    }
+    m_cuentaRegresiva->setVisible(true);
+    actualizarCuentaRegresiva();
+    m_temporizadorCuentaRegresiva->start(1000);
+}
+
+void JuegoView::actualizarCuentaRegresiva() {
+    if (m_cuentaRegresiva == nullptr) return;
+
+    if (m_cuentaRegresivaValor > 0) {
+        m_cuentaRegresiva->setPlainText(QString::number(m_cuentaRegresivaValor));
+        const QRectF areaJuego(m_margenColiseo, m_margenColiseo,
+                               m_columnas * TAMANO_CELDA,
+                               m_filas * TAMANO_CELDA);
+        m_cuentaRegresiva->setPos(
+            areaJuego.center().x() - m_cuentaRegresiva->boundingRect().width() / 2,
+            areaJuego.center().y() - m_cuentaRegresiva->boundingRect().height() / 2);
+        --m_cuentaRegresivaValor;
+        return;
+    }
+
+    m_cuentaRegresiva->setPlainText("¡YA!");
+    const QRectF areaJuego(m_margenColiseo, m_margenColiseo,
+                           m_columnas * TAMANO_CELDA,
+                           m_filas * TAMANO_CELDA);
+    m_cuentaRegresiva->setPos(
+        areaJuego.center().x() - m_cuentaRegresiva->boundingRect().width() / 2,
+        areaJuego.center().y() - m_cuentaRegresiva->boundingRect().height() / 2);
+    m_temporizadorCuentaRegresiva->stop();
+    QTimer::singleShot(450, this, [this]() {
+        if (m_cuentaRegresivaValor != 0 || m_terminado) return;
+        if (m_cuentaRegresiva != nullptr) m_cuentaRegresiva->setVisible(false);
+        iniciarAnimacionEnHilo();
+    });
+}
+
+void JuegoView::iniciarAnimacionEnHilo() {
+    QMetaObject::invokeMethod(m_animadorSerpiente, "iniciar",
+                              Qt::QueuedConnection,
+                              Q_ARG(int, intervaloActual()));
+}
+
+void JuegoView::detenerAnimacionEnHilo() {
+    if (m_hiloAnimacion != nullptr && m_hiloAnimacion->isRunning()) {
+        QMetaObject::invokeMethod(m_animadorSerpiente, "detener",
+                                  Qt::BlockingQueuedConnection);
+    }
+}
+
+void JuegoView::cambiarIntervaloEnHilo(int intervalo) {
+    QMetaObject::invokeMethod(m_animadorSerpiente, "cambiarIntervalo",
+                              Qt::QueuedConnection,
+                              Q_ARG(int, intervalo));
 }
 
 void JuegoView::closeEvent(QCloseEvent *evento) {
@@ -267,14 +349,16 @@ void JuegoView::crearGrid() {
     m_animacionesMovimiento.clear();
     m_escena->clear();
     m_informacion = nullptr;
+    m_cuentaRegresiva = nullptr;
 
     for (int y = 0; y < MAX_FILAS; ++y) {
         for (int x = 0; x < MAX_COLUMNAS; ++x) {
             m_sprites[y][x] = nullptr;
+            m_resaltos[y][x] = nullptr;
         }
     }
 
-    const QPen borde(QColor(48, 58, 74));
+    const QPen borde(QColor(82, 96, 116), 1);
 
     if (m_fondoNivel != nullptr && !m_fondoNivel->isNull()) {
         auto *fondo = m_escena->addPixmap(*m_fondoNivel);
@@ -293,6 +377,13 @@ void JuegoView::crearGrid() {
                 QBrush(QColor(21, 28, 38)));
         }
     }
+
+    const QRectF limites(m_margenColiseo - 3, m_margenColiseo - 3,
+                         m_columnas * TAMANO_CELDA + 6,
+                         m_filas * TAMANO_CELDA + 6);
+    auto *bordeLimite = m_escena->addRect(
+        limites, QPen(QColor("#f4d06f"), 7), Qt::NoBrush);
+    bordeLimite->setZValue(8);
 
     m_informacion = m_escena->addText("");
     m_informacion->setDefaultTextColor(QColor(235, 240, 245));
@@ -534,7 +625,7 @@ void JuegoView::configurarNivel(int nivel) {
     m_frutasDesdeCaja = 0;
     m_ultimoEfecto.clear();
     inicializarObstaculosMoviles();
-    m_temporizador->stop();
+    detenerAnimacionEnHilo();
     setWindowTitle(QString("Snake - Nivel %1").arg(m_nivel));
 }
 
@@ -722,6 +813,10 @@ void JuegoView::redibujar() {
                 delete m_sprites[y][x];
                 m_sprites[y][x] = nullptr;
             }
+            if (m_resaltos[y][x] != nullptr) {
+                delete m_resaltos[y][x];
+                m_resaltos[y][x] = nullptr;
+            }
 
             const int casilla = m_tablero->valor(x, y);
             QColor color(Qt::transparent);
@@ -808,9 +903,20 @@ void JuegoView::redibujar() {
                                       : casilla == FRUTA_ENERGETICA ? m_spriteFrutaEnergetica
                                                                     : m_spriteCaja;
                 if (sprite != nullptr && !sprite->isNull()) {
+                    if (casilla != CAJA_MISTERIOSA) {
+                        auto *resalto = m_escena->addEllipse(
+                            m_margenColiseo + x * TAMANO_CELDA + 3,
+                            m_margenColiseo + y * TAMANO_CELDA + 3,
+                            TAMANO_CELDA - 6, TAMANO_CELDA - 6,
+                            QPen(QColor("#ffe58a"), 2),
+                            QBrush(QColor(255, 224, 104, 55)));
+                        resalto->setZValue(3);
+                        m_resaltos[y][x] = resalto;
+                    }
                     auto *item = m_escena->addPixmap(*sprite);
                     item->setPos(m_margenColiseo + x * TAMANO_CELDA + 2,
                                  m_margenColiseo + y * TAMANO_CELDA + 2);
+                    item->setZValue(4);
                     m_sprites[y][x] = item;
                 }
             }
@@ -1037,7 +1143,7 @@ void JuegoView::avanzarJuego() {
             m_trampaY = -1;
         }
     }
-    m_temporizador->setInterval(intervaloActual());
+    cambiarIntervaloEnHilo(intervaloActual());
     moverObstaculos();
 
     // El tablero debe representar las posiciones nuevas antes de revisar
@@ -1101,7 +1207,7 @@ void JuegoView::avanzarJuego() {
             m_turnosEnergia = 100;
             m_ultimoEfecto = "Fruta energética: acelera 5 segundos";
         }
-        m_temporizador->setInterval(intervaloActual());
+        cambiarIntervaloEnHilo(intervaloActual());
         if (m_progreso->gano()) {
             redibujar();
             actualizarInformacion();
@@ -1122,7 +1228,7 @@ void JuegoView::avanzarJuego() {
 
 void JuegoView::terminarJuego() {
     m_terminado = true;
-    m_temporizador->stop();
+    detenerAnimacionEnHilo();
     m_ultimoEfecto = m_tiempoRestanteSegundos <= 0
         ? "Se agotó el tiempo de la partida."
         : "La serpiente chocó con un borde, obstáculo o su propio cuerpo.";
@@ -1181,7 +1287,7 @@ void JuegoView::mostrarTarjetaDerrota() {
     tarjeta.exec();
     if (tarjeta.clickedButton() == reintentar) {
         reiniciar();
-        m_temporizador->start(intervaloActual());
+        iniciarCuentaRegresiva();
     } else {
         close();
     }
@@ -1189,7 +1295,7 @@ void JuegoView::mostrarTarjetaDerrota() {
 
 void JuegoView::ganarNivel() {
     m_terminado = true;
-    m_temporizador->stop();
+    detenerAnimacionEnHilo();
     ++m_nivelesCompletados;
 
     if (m_configuracion.progresionAutomatica) {
@@ -1216,7 +1322,7 @@ void JuegoView::ganarNivel() {
         tarjeta.exec();
         if (tarjeta.clickedButton() == reintentar) {
             reiniciar();
-            m_temporizador->start(intervaloActual());
+            iniciarCuentaRegresiva();
         } else {
             close();
         }
@@ -1246,7 +1352,7 @@ void JuegoView::ganarNivel() {
     }
 
     reiniciar();
-    m_temporizador->start(intervaloActual());
+    iniciarCuentaRegresiva();
 }
 
 int JuegoView::intervaloActual() const {

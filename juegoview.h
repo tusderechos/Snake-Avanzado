@@ -19,9 +19,11 @@ class QGraphicsRectItem;
 class QGraphicsScene;
 class QGraphicsTextItem;
 class QGraphicsPixmapItem;
+class QGraphicsEllipseItem;
 class QKeyEvent;
 class QCloseEvent;
 class QTimer;
+class QThread;
 class QPixmap;
 class QMediaPlayer;
 class QAudioOutput;
@@ -30,6 +32,7 @@ class ProgresoNivel;
 class Snake;
 class Tablero;
 class QVariantAnimation;
+class AnimadorSerpiente;
 
 class JuegoView : public QGraphicsView {
 public:
@@ -81,6 +84,8 @@ private:
     void crearGrid();
     void ajustarVistaAlMonitor();
     void iniciarAnimacionPuntaje();
+    void iniciarCuentaRegresiva();
+    void actualizarCuentaRegresiva();
     void cargarSprites();
     void configurarNivel(int nivel);
     void inicializarObstaculosMoviles();
@@ -103,13 +108,21 @@ private:
     int intervaloActual() const;
     bool esNivelConBordesMortales() const;
     void guardarPuntajePartida();
+    void iniciarAnimacionEnHilo();
+    void detenerAnimacionEnHilo();
+    void cambiarIntervaloEnHilo(int intervalo);
 
     QGraphicsScene *m_escena;
     QGraphicsTextItem *m_informacion;
     QGraphicsRectItem *m_casillas[MAX_FILAS][MAX_COLUMNAS];
     QGraphicsPixmapItem *m_sprites[MAX_FILAS][MAX_COLUMNAS];
-    QTimer *m_temporizador;
+    QGraphicsEllipseItem *m_resaltos[MAX_FILAS][MAX_COLUMNAS];
+    QThread *m_hiloAnimacion;
+    AnimadorSerpiente *m_animadorSerpiente;
+    QTimer *m_temporizadorCuentaRegresiva;
     QTimer *m_animadorPuntaje;
+    QGraphicsTextItem *m_cuentaRegresiva;
+    int m_cuentaRegresivaValor;
     std::unique_ptr<Snake> m_serpiente;
     std::unique_ptr<Tablero> m_tablero;
     std::unique_ptr<ProgresoNivel> m_progreso;

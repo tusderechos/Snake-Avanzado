@@ -409,7 +409,8 @@ bool GestorUsuarios::equiparSkin(
     const QString ruta = obtenerRutaArchivo();
     if (!cargarRegistros(ruta, registros)) return false;
     for (RegistroUsuario &registro : registros) {
-        if (registro.usuario != usuario || !registro.skins.contains(skin)) return false;
+        if (registro.usuario != usuario) continue;
+        if (!registro.skins.contains(skin)) return false;
         registro.skinEquipada = skin;
         return guardarRegistros(ruta, registros);
     }
