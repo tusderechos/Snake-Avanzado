@@ -1,4 +1,5 @@
 #include "ajustes.h"
+#include "audio.h"
 #include "gestorconfiguracion.h"
 
 #include <QGraphicsPixmapItem>
@@ -74,7 +75,7 @@ QLabel *Ajustes::crearEtiqueta(
         "   color: white;"
         "   border: 2px solid rgba(99, 220, 55, 210);"
         "   border-radius: 12px;"
-        "   font-family: 'Arial';"
+        "   font-family: 'Fredoka';"
         "   font-size: " + QString::number(tamanoLetra) + "px;"
         "   font-weight: bold;"
         "}"
@@ -104,8 +105,8 @@ QPushButton *Ajustes::crearBoton(
         "   color: white;"
         "   border: 2px solid #68dd3e;"
         "   border-radius: 10px;"
-        "   font-family: 'Arial';"
-        "   font-size: 28px;"
+        "   font-family: 'Fredoka';"
+        "   font-size: 46px;"
         "   font-weight: bold;"
         "}"
         "QPushButton:hover {"
@@ -128,46 +129,39 @@ QPushButton *Ajustes::crearBoton(
 QSlider *Ajustes::crearBarraVolumen(
     qreal x,
     qreal y,
-    int valorInicial
+    int valorInicial,
+    const QString &imagenPerilla
     )
 {
     QSlider *barra = new QSlider(Qt::Horizontal);
-    barra->setFixedSize(570, 72);
+    // El área interactiva coincide con el canal oscuro central de la imagen.
+    // Los adornos laterales quedan fuera del recorrido real de la perilla.
+    barra->setFixedSize(470, 82);
     barra->setRange(0, 100);
     barra->setValue(valorInicial);
     barra->setCursor(Qt::PointingHandCursor);
+    barra->setAttribute(Qt::WA_TranslucentBackground);
+    barra->setAutoFillBackground(false);
     barra->setStyleSheet(
+        "QSlider { background: transparent; }"
         "QSlider::groove:horizontal {"
-        "   height: 20px;"
-        "   background-color: rgba(20, 25, 14, 235);"
-        "   border: 3px solid #8b6f26;"
-        "   border-radius: 13px;"
+        "   height: 72px; background: transparent; border: none;"
         "}"
-        "QSlider::sub-page:horizontal {"
-        "   background-color: #4f991d;"
-        "   border: 2px solid #d2a93b;"
-        "   border-radius: 10px;"
-        "}"
-        "QSlider::add-page:horizontal {"
-        "   background-color: rgba(15, 20, 12, 235);"
-        "   border-radius: 10px;"
+        "QSlider::sub-page:horizontal, QSlider::add-page:horizontal {"
+        "   height: 72px; background: transparent; border: none;"
         "}"
         "QSlider::handle:horizontal {"
-        "   width: 42px;"
-        "   margin: -13px 0;"
-        "   border: 4px solid #d2a93b;"
-        "   border-radius: 21px;"
-        "   background-color: #39ff14;"
+        "   width: 76px; height: 76px; margin: -2px 0; border: none;"
+        "   image: url(" + imagenPerilla + ");"
         "}"
         "QSlider::handle:horizontal:hover {"
-        "   background-color: #b6ff00;"
-        "   border-color: #fff176;"
+        "   image: url(" + imagenPerilla + ");"
         "}"
         );
 
     QGraphicsProxyWidget *proxy = addWidget(barra);
     proxy->setPos(x, y);
-    proxy->setZValue(2);
+    proxy->setZValue(3);
 
     return barra;
 }
@@ -221,44 +215,48 @@ void Ajustes::construirInterfaz()
         );
     velo->setZValue(1);
 
-    QGraphicsRectItem *panel = addRect(
-        145, 175, 964, 780,
-        QPen(QColor(181, 145, 48, 210), 3),
-        QBrush(QColor(7, 17, 8, 218))
-        );
-    panel->setZValue(1);
-
     QLabel *titulo = crearEtiqueta(
         "CONFIGURACIÓN",
-        350, 55, 554, 88, 40
+        312, 8, 630, 150, 64
         );
     titulo->setStyleSheet(
         "QLabel { background-color: rgba(8, 24, 8, 225); color: white;"
-        "border: 2px solid #d2a93b; border-radius: 12px;"
-        "font-family: 'Arial'; font-size: 40px; font-weight: bold; }"
+        "border: 5px solid #39ff14; border-radius: 14px;"
+        "font-family: 'Fredoka'; font-size: 64px; font-weight: bold; }"
         );
 
-    QLabel *textoMusica = crearEtiqueta("MÚSICA", 255, 245, 210, 60, 27);
-    QLabel *textoSonido = crearEtiqueta("SONIDO", 255, 430, 210, 60, 27);
-    textoMusica->setStyleSheet(
-        "QLabel { background: transparent; color: white; border: none;"
-        "font-size: 27px; font-weight: bold; }"
-        );
-    textoSonido->setStyleSheet(textoMusica->styleSheet());
+    QLabel *textoMusica = crearEtiqueta("MÚSICA", 75, 225, 375, 110, 44);
+    QLabel *textoSonido = crearEtiqueta("SONIDO", 75, 410, 375, 110, 44);
+    const QString estiloEtiquetaCanva =
+        "QLabel { background-color: rgba(48, 132, 24, 235); color: white;"
+        "border: 5px solid #39ff14; border-radius: 12px;"
+        "font-family: 'Fredoka'; font-size: 44px; font-weight: bold; }";
+    textoMusica->setStyleSheet(estiloEtiquetaCanva);
+    textoSonido->setStyleSheet(estiloEtiquetaCanva);
 
     barraMusica = crearBarraVolumen(
-        410, 300, 75
+        610, 267, 75, ":/imagenes/imagenes/ajustes_perilla_musica.png"
         );
 
     barraSonido = crearBarraVolumen(
-        410, 485, 75
+        610, 452, 75, ":/imagenes/imagenes/ajustes_perilla_sonido.png"
         );
 
-    crearIcono("♫", 190, 240);
-    crearIcono("🔊", 190, 425);
+    auto agregarBarraDecorativa = [this](const QString &ruta, qreal x, qreal y) {
+        const QPixmap original(ruta);
+        if (original.isNull()) return;
+        auto *barra = addPixmap(original.scaled(700, 177, Qt::KeepAspectRatio,
+                                                 Qt::SmoothTransformation));
+        barra->setPos(x, y);
+        barra->setZValue(2);
+    };
+    agregarBarraDecorativa(":/imagenes/imagenes/ajustes_barra_musica.png", 495, 220);
+    agregarBarraDecorativa(":/imagenes/imagenes/ajustes_barra_sonido.png", 495, 405);
 
     etiquetaVolumenMusica = crearEtiqueta("75%", 985, 307, 82, 58, 22);
     etiquetaVolumenSonido = crearEtiqueta("75%", 985, 492, 82, 58, 22);
+    etiquetaVolumenMusica->setVisible(false);
+    etiquetaVolumenSonido->setVisible(false);
     etiquetaVolumenMusica->setStyleSheet(
         "QLabel { background-color: rgba(46, 126, 24, 235); color: white;"
         "border: 2px solid #d2a93b; border-radius: 10px;"
@@ -268,20 +266,20 @@ void Ajustes::construirInterfaz()
 
     QPushButton *botonPerfil = crearBoton(
         "PERFIL",
-        255, 675, 340, 82
+        438, 668, 375, 110
         );
 
     QPushButton *botonControles = crearBoton(
         "CONTROLES",
-        659, 675, 340, 82
+        438, 850, 375, 110
         );
 
     QPushButton *botonVolver = crearBoton(
         "",
-        1015, 985, 94, 82
+        1090, 1050, 105, 105
         );
     botonVolver->setIcon(crearIconoSalida());
-    botonVolver->setIconSize(QSize(58, 58));
+    botonVolver->setIconSize(QSize(70, 70));
     botonVolver->setToolTip("Volver al menú");
     botonVolver->setAccessibleName("Volver al menú");
 
@@ -315,6 +313,7 @@ void Ajustes::construirInterfaz()
             etiquetaVolumenMusica->setText(
                 QString::number(valor) + "%"
                 );
+            AudioManager::instancia().establecerVolumenMusica(valor);
         }
         );
 
@@ -327,6 +326,7 @@ void Ajustes::construirInterfaz()
             etiquetaVolumenSonido->setText(
                 QString::number(valor) + "%"
                 );
+            AudioManager::instancia().establecerVolumenSonido(valor);
         }
         );
 
@@ -361,6 +361,8 @@ void Ajustes::establecerUsuario(const QString &usuario)
     cargandoConfiguracion = true;
     barraMusica->setValue(volumenMusica);
     barraSonido->setValue(volumenSonido);
+    AudioManager::instancia().establecerVolumenMusica(volumenMusica);
+    AudioManager::instancia().establecerVolumenSonido(volumenSonido);
     cargandoConfiguracion = false;
 }
 

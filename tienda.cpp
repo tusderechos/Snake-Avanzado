@@ -183,6 +183,7 @@ void Tienda::actualizarTarjeta(TarjetaSkin &tarjeta)
     const bool comprada = GestorUsuarios::tieneSkin(usuarioActual, tarjeta.id);
     const bool equipada = GestorUsuarios::obtenerSkinEquipada(usuarioActual) == tarjeta.id;
     tarjeta.estado->setText(equipada ? "EQUIPADA" : comprada ? "DESBLOQUEADA" : QString("%1 monedas").arg(tarjeta.precio));
-    tarjeta.boton->setEnabled(!equipada && (!comprada || GestorUsuarios::obtenerMonedasUsuario(usuarioActual) >= tarjeta.precio));
+    tarjeta.boton->setEnabled(!equipada && (comprada
+                                            || GestorUsuarios::obtenerMonedasUsuario(usuarioActual) >= tarjeta.precio));
     tarjeta.boton->setText(equipada ? "EQUIPADA" : comprada ? "EQUIPAR" : "COMPRAR");
 }

@@ -1,4 +1,5 @@
 #include "tutorial.h"
+#include "audio.h"
 #include "gestorconfiguracion.h"
 #include "gestorusuarios.h"
 
@@ -101,7 +102,8 @@ TutorialView::TutorialView(const QString &usuario)
     cargarObjeto(m_spriteFrutaEnergetica, ":/assets/fruta_energetica.png");
     cargarObjeto(m_spriteCaja, ":/assets/caja_misteriosa.png");
     m_explosionPlayer->setAudioOutput(m_explosionAudio);
-    m_explosionAudio->setVolume(0.35);
+    // La derrota usa game_over.mp3; el video conserva únicamente su imagen.
+    m_explosionAudio->setVolume(0.0);
     m_explosionPlayer->setVideoSink(m_explosionSink);
     m_explosionPlayer->setSource(QUrl("qrc:/assets/deltarune_explosion.mp4"));
     connect(m_explosionSink, &QVideoSink::videoFrameChanged, this,
@@ -343,6 +345,8 @@ void TutorialView::avanzar() {
 }
 
 void TutorialView::reproducirExplosion() {
+    AudioManager::instancia().detenerMusica();
+    AudioManager::instancia().reproducirEfecto(AudioManager::Efecto::Perder);
     m_colisionando = true;
     m_timer->stop();
     QObject::disconnect(m_explosionPlayer, &QMediaPlayer::mediaStatusChanged,
@@ -379,6 +383,7 @@ void TutorialView::reproducirExplosion() {
 }
 
 void TutorialView::reiniciarEtapa() {
+    AudioManager::instancia().reproducirJuego();
     m_explosionPlayer->stop();
     if (m_explosionItem != nullptr) {
         delete m_explosionItem;

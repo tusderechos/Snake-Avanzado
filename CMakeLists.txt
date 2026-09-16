@@ -26,6 +26,8 @@ add_executable(Snake
     juegoview.cpp
     animadorserpiente.h
     animadorserpiente.cpp
+    audio.h
+    audio.cpp
     fruta.h
     fruta.cpp
     item.h

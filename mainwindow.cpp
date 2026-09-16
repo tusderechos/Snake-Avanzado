@@ -13,6 +13,8 @@
 #include "controlesview.h"
 #include "tienda.h"
 #include "gestorusuarios.h"
+#include "gestorconfiguracion.h"
+#include "audio.h"
 
 #include <QCursor>
 #include <QFrame>
@@ -49,6 +51,7 @@ MainWindow::MainWindow(QWidget *parent)
     , menuJuego(nullptr)
 {
     ui->setupUi(this);
+    AudioManager::instancia().inicializar();
 
     // Ocultar elementos innecesarios
     ui->menubar->hide();
@@ -522,6 +525,7 @@ void MainWindow::construirMenuInicio()
 
 void MainWindow::mostrarRegistro()
 {
+    AudioManager::instancia().reproducirMenu();
     ui->graphicsView->setScene(
         escenaRegistro
         );
@@ -531,6 +535,7 @@ void MainWindow::mostrarRegistro()
 
 void MainWindow::mostrarInicioSesion()
 {
+    AudioManager::instancia().reproducirMenu();
     ui->graphicsView->setScene(
         escenaInicioSesion
         );
@@ -539,6 +544,7 @@ void MainWindow::mostrarInicioSesion()
 
 void MainWindow::mostrarMenuInicio()
 {
+    AudioManager::instancia().reproducirMenu();
     ui->graphicsView->setScene(
         escenaInicio
         );
@@ -551,6 +557,13 @@ void MainWindow::mostrarMenuPrincipal(
     )
 {
     usuarioActual = usuario;
+    int volumenMusica = 75;
+    int volumenSonido = 75;
+    GestorConfiguracion::cargarVolumen(
+        usuarioActual, volumenMusica, volumenSonido);
+    AudioManager::instancia().establecerVolumenMusica(volumenMusica);
+    AudioManager::instancia().establecerVolumenSonido(volumenSonido);
+    AudioManager::instancia().reproducirMenu();
 
     ui->graphicsView->setScene(
         escenaMenuPrincipal
@@ -561,6 +574,7 @@ void MainWindow::mostrarMenuPrincipal(
 
 void MainWindow::mostrarRanking()
 {
+    AudioManager::instancia().reproducirMenu();
     escenaRanking->actualizarRanking();
 
     ui->graphicsView->setScene(
@@ -572,6 +586,7 @@ void MainWindow::mostrarRanking()
 
 void MainWindow::mostrarAjustes()
 {
+    AudioManager::instancia().reproducirMenu();
     escenaAjustes->establecerUsuario(
         usuarioActual
         );
@@ -585,6 +600,7 @@ void MainWindow::mostrarAjustes()
 
 void MainWindow::mostrarPerfil()
 {
+    AudioManager::instancia().reproducirMenu();
     escenaPerfil->establecerUsuario(
         usuarioActual
         );
@@ -598,6 +614,7 @@ void MainWindow::mostrarPerfil()
 
 void MainWindow::mostrarControles()
 {
+    AudioManager::instancia().reproducirMenu();
     escenaControles->establecerUsuario(
         usuarioActual
         );
@@ -611,6 +628,7 @@ void MainWindow::mostrarControles()
 
 void MainWindow::mostrarTienda()
 {
+    AudioManager::instancia().reproducirTienda();
     escenaTienda->establecerUsuario(usuarioActual);
     ui->graphicsView->setScene(
         escenaTienda
@@ -627,6 +645,7 @@ void MainWindow::cerrarSesion()
 
 void MainWindow::regresarMenuPrincipal()
 {
+    AudioManager::instancia().reproducirMenu();
     ui->graphicsView->setScene(
         escenaMenuPrincipal
         );
@@ -636,6 +655,7 @@ void MainWindow::regresarMenuPrincipal()
 
 void MainWindow::mostrarMenuJuego()
 {
+    AudioManager::instancia().reproducirMenu();
     if (menuJuego != nullptr)
     {
         menuJuego->show();
@@ -677,15 +697,14 @@ void MainWindow::iniciarModoJuego(ModoJuego modo)
 
     if (modo == ModoJuego::Tutorial)
     {
+        AudioManager::instancia().reproducirJuego();
         auto *tutorial = new TutorialView(usuarioActual);
         tutorial->setAttribute(Qt::WA_DeleteOnClose);
         menuJuego->hide();
-        connect(
-            tutorial,
-            &QObject::destroyed,
-            menuJuego,
-            &QWidget::show
-            );
+        connect(tutorial, &QObject::destroyed, menuJuego, [this]() {
+            AudioManager::instancia().reproducirMenu();
+            menuJuego->show();
+        });
         tutorial->show();
         return;
     }
@@ -700,10 +719,15 @@ void MainWindow::iniciarModoJuego(ModoJuego modo)
         auto *tutorial = new TutorialView(usuarioActual);
         tutorial->setAttribute(Qt::WA_DeleteOnClose);
         menuJuego->hide();
-        connect(tutorial, &QObject::destroyed, menuJuego, &QWidget::show);
+        connect(tutorial, &QObject::destroyed, menuJuego, [this]() {
+            AudioManager::instancia().reproducirMenu();
+            menuJuego->show();
+        });
         tutorial->show();
         return;
     }
+
+    AudioManager::instancia().reproducirJuego();
 
     int nivelInicial = 1;
     ConfiguracionJuego configuracion;
@@ -807,12 +831,10 @@ void MainWindow::iniciarModoJuego(ModoJuego modo)
     auto *juego = new JuegoView(nivelInicial, configuracion, usuarioActual);
     juego->setAttribute(Qt::WA_DeleteOnClose);
     menuJuego->hide();
-    connect(
-        juego,
-        &QObject::destroyed,
-        menuJuego,
-        &QWidget::show
-        );
+    connect(juego, &QObject::destroyed, menuJuego, [this]() {
+        AudioManager::instancia().reproducirMenu();
+        menuJuego->show();
+    });
     juego->show();
 }
 

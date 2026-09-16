@@ -1,5 +1,18 @@
 <RCC>
     <qresource prefix="/assets">
+        <file alias="audio/button_click.mp3">assets/audio/button_click.mp3</file>
+        <file alias="audio/coin_pickup.mp3">assets/audio/coin_pickup.mp3</file>
+        <file alias="audio/game_over.mp3">assets/audio/game_over.mp3</file>
+        <file alias="audio/level_complete.mp3">assets/audio/level_complete.mp3</file>
+        <file alias="audio/snake_eat.mp3">assets/audio/snake_eat.mp3</file>
+        <file alias="audio/tienda_background_music.mp3">assets/audio/tienda_background_music.mp3</file>
+        <file alias="audio/game_background_music1.mp3">assets/audio/game_background_music1.mp3</file>
+        <file alias="audio/game_background_music2.mp3">assets/audio/game_background_music2.mp3</file>
+        <file alias="audio/game_background_music3.mp3">assets/audio/game_background_music3.mp3</file>
+        <file alias="audio/menu_background_music1.mp3">assets/audio/menu_background_music1.mp3</file>
+        <file alias="audio/menu_background_music2.mp3">assets/audio/menu_background_music2.mp3</file>
+        <file alias="audio/menu_background_music3.mp3">assets/audio/menu_background_music3.mp3</file>
+        <file alias="audio/menu_background_music4.mp3">assets/audio/menu_background_music4.mp3</file>
         <file alias="snake_sheet.png">assets/snake_sheet.png</file>
         <file alias="cabeza_snake.png">assets/cabeza_snake.png</file>
         <file alias="skin_gato.png">assets/skin_gato.png</file>
@@ -29,6 +42,10 @@
         <file alias="imagenes/MenuP.png">assets/menu/MenuP.png</file>
         <file alias="imagenes/Ranking.png">assets/menu/Ranking.png</file>
         <file alias="imagenes/Ajustes.png">assets/menu/Ajustes.png</file>
+        <file alias="imagenes/ajustes_barra_musica.png">assets/menu/ajustes_barra_musica.png</file>
+        <file alias="imagenes/ajustes_barra_sonido.png">assets/menu/ajustes_barra_sonido.png</file>
+        <file alias="imagenes/ajustes_perilla_musica.png">assets/menu/ajustes_perilla_musica.png</file>
+        <file alias="imagenes/ajustes_perilla_sonido.png">assets/menu/ajustes_perilla_sonido.png</file>
         <file alias="imagenes/Tienda.png">assets/menu/Tienda.png</file>
     </qresource>
 </RCC>

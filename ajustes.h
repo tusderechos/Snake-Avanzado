@@ -54,7 +54,8 @@ private:
     QSlider *crearBarraVolumen(
         qreal x,
         qreal y,
-        int valorInicial
+        int valorInicial,
+        const QString &imagenPerilla
         );
 
     void crearIcono(

@@ -2,6 +2,7 @@
 #include "gestorconfiguracion.h"
 #include "gestorusuarios.h"
 #include "animadorserpiente.h"
+#include "audio.h"
 
 #include "progreso.h"
 #include "reglasmovimiento.h"
@@ -117,7 +118,8 @@ JuegoView::JuegoView(int nivelInicial, ConfiguracionJuego configuracion,
     reiniciar();
 
     m_explosionPlayer->setAudioOutput(m_explosionAudio);
-    m_explosionAudio->setVolume(0.35);
+    // La derrota usa game_over.mp3; el video conserva únicamente su imagen.
+    m_explosionAudio->setVolume(0.0);
     m_explosionPlayer->setVideoSink(m_explosionSink);
     m_explosionPlayer->setSource(QUrl("qrc:/assets/deltarune_explosion.mp4"));
     connect(m_explosionSink, &QVideoSink::videoFrameChanged, this,
@@ -1195,6 +1197,7 @@ void JuegoView::avanzarJuego() {
     actualizarMapa();
 
     if (comioFruta) {
+        AudioManager::instancia().reproducirEfecto(AudioManager::Efecto::Comer);
         m_frutaActual = frutaComida;
         m_progreso->registrarFruta(frutaComida.puntos(),
                                    m_serpiente->longitud(),
@@ -1217,6 +1220,7 @@ void JuegoView::avanzarJuego() {
 
         generarManzana();
     } else if (tomoCaja) {
+        AudioManager::instancia().reproducirEfecto(AudioManager::Efecto::Moneda);
         aplicarItem();
         generarManzana();
     }
@@ -1229,6 +1233,8 @@ void JuegoView::avanzarJuego() {
 void JuegoView::terminarJuego() {
     m_terminado = true;
     detenerAnimacionEnHilo();
+    AudioManager::instancia().detenerMusica();
+    AudioManager::instancia().reproducirEfecto(AudioManager::Efecto::Perder);
     m_ultimoEfecto = m_tiempoRestanteSegundos <= 0
         ? "Se agotó el tiempo de la partida."
         : "La serpiente chocó con un borde, obstáculo o su propio cuerpo.";
@@ -1286,6 +1292,7 @@ void JuegoView::mostrarTarjetaDerrota() {
         "QPushButton:hover { background:#34536a; }");
     tarjeta.exec();
     if (tarjeta.clickedButton() == reintentar) {
+        AudioManager::instancia().reproducirJuego();
         reiniciar();
         iniciarCuentaRegresiva();
     } else {
@@ -1296,6 +1303,8 @@ void JuegoView::mostrarTarjetaDerrota() {
 void JuegoView::ganarNivel() {
     m_terminado = true;
     detenerAnimacionEnHilo();
+    AudioManager::instancia().detenerMusica();
+    AudioManager::instancia().reproducirEfecto(AudioManager::Efecto::Ganar);
     ++m_nivelesCompletados;
 
     if (m_configuracion.progresionAutomatica) {
@@ -1315,12 +1324,14 @@ void JuegoView::ganarNivel() {
         tarjeta.addButton("Volver al menú", QMessageBox::RejectRole);
         tarjeta.setStyleSheet(
             "QMessageBox { background:#0d121a; color:#ebf0f5; }"
-            "QLabel { color:#ebf0f5; font-family:'Fredoka'; font-size:14px; }"
-            "QPushButton { background:#26384a; color:#ffffff; border:1px solid #5cb6e6;"
-            " border-radius:8px; padding:8px 16px; min-width:120px; }"
-            "QPushButton:hover { background:#34536a; }");
+            "QLabel { color:#ebf0f5; font-family:'Fredoka'; font-size:16px; }"
+            "QPushButton { background:#379114; color:#ffffff; border:2px solid #39ff14;"
+            " border-radius:8px; padding:8px 20px; min-width:140px;"
+            " font-family:'Fredoka'; font-weight:bold; }"
+            "QPushButton:hover { background:#4cae22; border-color:#b6ff00; }");
         tarjeta.exec();
         if (tarjeta.clickedButton() == reintentar) {
+            AudioManager::instancia().reproducirJuego();
             reiniciar();
             iniciarCuentaRegresiva();
         } else {
@@ -1331,15 +1342,46 @@ void JuegoView::ganarNivel() {
 
     if (m_nivel == NIVEL_3) {
         m_gestorPartida.marcarCompletada();
-        QMessageBox::information(this, "Juego completado",
-                                 "Completaste todos los niveles de Snake.");
+        QMessageBox tarjeta(this);
+        tarjeta.setWindowTitle("Juego completado");
+        tarjeta.setIcon(QMessageBox::Information);
+        tarjeta.setText("<h2>¡JUEGO COMPLETADO!</h2>");
+        tarjeta.setInformativeText("Completaste todos los niveles de Snake.");
+        tarjeta.setStyleSheet(
+            "QMessageBox { background:#0d121a; color:#ebf0f5; }"
+            "QLabel { color:#ebf0f5; font-family:'Fredoka'; font-size:16px; }"
+            "QPushButton { background:#379114; color:#ffffff; border:2px solid #39ff14;"
+            " border-radius:8px; padding:8px 20px; min-width:140px;"
+            " font-family:'Fredoka'; font-weight:bold; }"
+            "QPushButton:hover { background:#4cae22; border-color:#b6ff00; }");
+        tarjeta.exec();
         setWindowTitle("Snake - Juego completado");
         actualizarInformacion();
         return;
     }
 
-    QMessageBox::information(this, "Nivel completado",
-                             QString("Cumpliste las metas del nivel %1.").arg(m_nivel));
+    QMessageBox tarjeta(this);
+    tarjeta.setWindowTitle("Nivel completado");
+    tarjeta.setIcon(QMessageBox::Information);
+    tarjeta.setText(QString("<h2>¡NIVEL %1 COMPLETADO!</h2>").arg(m_nivel));
+    tarjeta.setInformativeText(QString(
+        "Cumpliste las metas del nivel %1.<br><br>"
+        "<b>Puntaje:</b> %2 &nbsp;&nbsp; <b>Frutas:</b> %3<br>"
+        "<b>Longitud:</b> %4")
+        .arg(m_nivel)
+        .arg(m_progreso->puntaje())
+        .arg(m_progreso->frutasComidas())
+        .arg(m_serpiente->longitud()));
+    tarjeta.setStyleSheet(
+        "QMessageBox { background:#0d121a; color:#ebf0f5; }"
+        "QLabel { color:#ebf0f5; font-family:'Fredoka'; font-size:16px; }"
+        "QPushButton { background:#379114; color:#ffffff; border:2px solid #39ff14;"
+        " border-radius:8px; padding:8px 20px; min-width:140px;"
+        " font-family:'Fredoka'; font-weight:bold; }"
+        "QPushButton:hover { background:#4cae22; border-color:#b6ff00; }");
+    tarjeta.exec();
+
+    AudioManager::instancia().reproducirJuego();
 
     if (m_nivel == NIVEL_1) {
         configurarNivel(NIVEL_2);
