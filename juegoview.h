@@ -3,9 +3,10 @@
 
 #include <QGraphicsView>
 #include <QHash>
-#include <QList>
+#include <QPixmap>
 #include <QPointF>
 #include <QString>
+#include <QVector>
 
 #include "fruta.h"
 #include "gestorpartida.h"
@@ -128,9 +129,6 @@ private:
     std::unique_ptr<ProgresoNivel> m_progreso;
     int m_direccionX;
     int m_direccionY;
-    int m_manzanaX;
-    int m_manzanaY;
-    int m_tipoObjeto;
     Fruta m_frutaActual;
     struct ObjetoActivo {
         bool activo = false;
@@ -175,6 +173,7 @@ private:
     QPixmap *m_spriteCabeza;
     QPixmap *m_spriteCuerpo;
     QPixmap *m_spriteCola;
+    QVector<QPixmap> m_spritesGemas;
     QPixmap *m_spriteFrutaNormal;
     QPixmap *m_spriteFrutaDorada;
     QPixmap *m_spriteFrutaGrande;
@@ -187,7 +186,7 @@ private:
     QGraphicsPixmapItem *m_explosionItem;
     bool m_tarjetaDerrotaMostrada;
     QHash<int, QPointF> m_posicionesVisuales;
-    QList<QVariantAnimation *> m_animacionesMovimiento;
+    QHash<QGraphicsPixmapItem *, QVariantAnimation *> m_animacionesMovimiento;
 };
 
 #endif // JUEGOVIEW_H

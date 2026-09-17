@@ -84,6 +84,9 @@ public:
         const QString &contrasena
         );
 
+    // Crea o actualiza la cuenta local de pruebas del administrador.
+    static bool asegurarCuentaAdmin();
+
 private:
     // Devuelve la ubicación del archivo usuarios.txt.
     static QString obtenerRutaArchivo();

@@ -8,6 +8,8 @@
 #include "reglasmovimiento.h"
 #include "snake.h"
 #include "tablero.h"
+#include "skins.h"
+#include "dialogos.h"
 
 #include <QBrush>
 #include <QGuiApplication>
@@ -57,9 +59,6 @@ JuegoView::JuegoView(int nivelInicial, ConfiguracionJuego configuracion,
                                    META_LONGITUD_NIVEL_1)),
       m_direccionX(1),
       m_direccionY(0),
-      m_manzanaX(0),
-      m_manzanaY(0),
-      m_tipoObjeto(MANZANA),
       m_nivel(NIVEL_1),
       m_columnas(10),
       m_filas(10),
@@ -207,17 +206,6 @@ JuegoView::~JuegoView() {
 }
 
 void JuegoView::keyPressEvent(QKeyEvent *evento) {
-    if (evento->key() == Qt::Key_1 || evento->key() == Qt::Key_2 || evento->key() == Qt::Key_3) {
-        const int nivel = evento->key() == Qt::Key_1 ? NIVEL_1
-                          : evento->key() == Qt::Key_2 ? NIVEL_2 : NIVEL_3;
-        configurarNivel(nivel);
-        cargarSprites();
-        crearGrid();
-        reiniciar();
-        iniciarCuentaRegresiva();
-        return;
-    }
-
     if (Controles::esMovimiento(evento->key())
         && !Controles::esTeclaPermitida(evento->key(), m_esquemaControles)) {
         return;
@@ -484,28 +472,9 @@ void JuegoView::cargarSprites() {
         colorPrincipal = QColor("#7048b8");
         colorManchas = QColor("#33205d");
     }
-    const QString rutaCabeza = skin == "gato" ? ":/assets/skin_gato.png"
-                              : skin == "dragon" ? ":/assets/skin_dragon.png"
-                              : skin == "burro" ? ":/assets/skin_burro.png"
-                              : skin == "thanos" ? ":/assets/skin_thanos.png"
-                              : skin == "spiderman" ? ":/assets/skin_spiderman.png"
-                              : skin == "miles" ? ":/assets/skin_miles.png"
-                              : skin == "personaje" ? ":/assets/skin_personaje.png"
-                              : ":/assets/cabeza_snake.png";
-    const QPixmap cabezaCanva(rutaCabeza);
+    const QPixmap cabezaCanva = Skins::cabeza(skin, 44);
     if (!cabezaCanva.isNull()) {
-        *m_spriteCabeza = cabezaCanva.scaled(44, 44, Qt::KeepAspectRatio,
-                                             Qt::SmoothTransformation);
-        if (skin == "veneno" || skin == "hielo" || skin == "fuego" || skin == "cosmica") {
-            QImage cabeza = m_spriteCabeza->toImage();
-            QPainter pintor(&cabeza);
-            pintor.setCompositionMode(QPainter::CompositionMode_SourceAtop);
-            pintor.fillRect(cabeza.rect(), QColor(colorPrincipal.red(),
-                                                  colorPrincipal.green(),
-                                                  colorPrincipal.blue(), 65));
-            pintor.end();
-            *m_spriteCabeza = QPixmap::fromImage(cabeza);
-        }
+        *m_spriteCabeza = cabezaCanva;
     }
 
     QImage hoja(":/assets/snake_sheet.png");
@@ -529,8 +498,34 @@ void JuegoView::cargarSprites() {
         }
     }
 
-    // El cuerpo se representa con piezas circulares para evitar estirar
-    // la ilustración vertical de Canva dentro de cada celda.
+    m_spritesGemas.clear();
+    if (skin == "thanos") {
+        const QColor coloresGemas[] = {QColor("#9b59ff"), QColor("#ffd740"),
+                                       QColor("#29b6f6"), QColor("#ef5350"),
+                                       QColor("#66bb6a"), QColor("#ff8a65")};
+        for (const QColor &color : coloresGemas) {
+            QImage gema(36, 36, QImage::Format_ARGB32_Premultiplied);
+            gema.fill(Qt::transparent);
+            QPainter pintor(&gema);
+            pintor.setRenderHint(QPainter::Antialiasing);
+            pintor.setPen(QPen(QColor("#f8edb6"), 1.2));
+            pintor.setBrush(color);
+            pintor.drawEllipse(2, 2, 32, 32);
+            pintor.setPen(QPen(color.lighter(155), 1.2));
+            pintor.drawArc(6, 5, 22, 22, 35 * 16, 105 * 16);
+            pintor.setPen(QPen(color.darker(145), 1.1));
+            pintor.drawLine(QPointF(8, 25), QPointF(26, 11));
+            pintor.drawLine(QPointF(13, 31), QPointF(29, 18));
+            pintor.setPen(Qt::NoPen);
+            pintor.setBrush(QColor(255, 255, 255, 175));
+            pintor.drawEllipse(QPointF(12, 10), 2.2, 3.2);
+            pintor.end();
+            m_spritesGemas.append(QPixmap::fromImage(gema));
+        }
+    }
+
+    // El cuerpo normal se representa con piezas circulares para evitar
+    // estirar la ilustración vertical de Canva dentro de cada celda.
     QImage cuerpo(36, 36, QImage::Format_ARGB32_Premultiplied);
     cuerpo.fill(Qt::transparent);
     QPainter pintorCuerpo(&cuerpo);
@@ -541,15 +536,6 @@ void JuegoView::cargarSprites() {
     pintorCuerpo.setBrush(colorManchas);
     pintorCuerpo.drawEllipse(11, 8, 6, 6);
     pintorCuerpo.drawEllipse(21, 19, 6, 6);
-    if (skin == "thanos") {
-        const QColor gemas[] = {QColor("#9b59ff"), QColor("#ffd740"),
-                                QColor("#29b6f6"), QColor("#ef5350"),
-                                QColor("#66bb6a"), QColor("#ff8a65")};
-        for (int i = 0; i < 6; ++i) {
-            pintorCuerpo.setBrush(gemas[i]);
-            pintorCuerpo.drawEllipse(5 + (i % 3) * 10, 4 + (i / 3) * 17, 5, 5);
-        }
-    }
     pintorCuerpo.end();
     *m_spriteCuerpo = QPixmap::fromImage(cuerpo);
 
@@ -804,20 +790,40 @@ void JuegoView::actualizarMapa() {
 
 void JuegoView::redibujar() {
     for (QVariantAnimation *animacion : std::as_const(m_animacionesMovimiento)) {
-        delete animacion;
+        animacion->stop();
     }
-    m_animacionesMovimiento.clear();
+
     const QHash<int, QPointF> posicionesAnteriores = m_posicionesVisuales;
+    m_posicionesVisuales.clear();
+
+    // Resolver la posición de cada segmento una sola vez evita recorrer la
+    // lista enlazada completa por cada casilla ocupada en cada tick.
+    int indicesSegmentos[MAX_FILAS][MAX_COLUMNAS];
+    const bool usaGemasThanos = GestorUsuarios::obtenerSkinEquipada(m_usuario)
+                              == "thanos" && !m_spritesGemas.isEmpty();
+    for (int y = 0; y < m_filas; ++y) {
+        for (int x = 0; x < m_columnas; ++x) {
+            indicesSegmentos[y][x] = -1;
+        }
+    }
+    int indiceSegmento = 0;
+    for (const Nodo *segmento = m_serpiente->cabeza();
+         segmento != nullptr;
+         segmento = segmento->siguiente) {
+        if (segmento->x >= 0 && segmento->x < m_columnas
+            && segmento->y >= 0 && segmento->y < m_filas) {
+            indicesSegmentos[segmento->y][segmento->x] = indiceSegmento;
+        }
+        ++indiceSegmento;
+    }
 
     for (int y = 0; y < m_filas; ++y) {
         for (int x = 0; x < m_columnas; ++x) {
             if (m_sprites[y][x] != nullptr) {
-                delete m_sprites[y][x];
-                m_sprites[y][x] = nullptr;
+                m_sprites[y][x]->setVisible(false);
             }
             if (m_resaltos[y][x] != nullptr) {
-                delete m_resaltos[y][x];
-                m_resaltos[y][x] = nullptr;
+                m_resaltos[y][x]->setVisible(false);
             }
 
             const int casilla = m_tablero->valor(x, y);
@@ -845,44 +851,54 @@ void JuegoView::redibujar() {
                 const bool esCabeza = x == m_serpiente->cabezaX()
                                    && y == m_serpiente->cabezaY();
                 const bool esCola = !esCabeza && m_serpiente->ocupaCola(x, y);
-                const QPixmap &sprite = esCabeza ? *m_spriteCabeza
-                                      : esCola ? *m_spriteCola : *m_spriteCuerpo;
+                const int indice = indicesSegmentos[y][x];
+                const QPixmap *spriteSeleccionado = m_spriteCuerpo;
+                if (esCabeza) {
+                    spriteSeleccionado = m_spriteCabeza;
+                } else if (usaGemasThanos) {
+                    const int indiceGema = qMax(0, indice - 1)
+                                         % m_spritesGemas.size();
+                    spriteSeleccionado = &m_spritesGemas.at(indiceGema);
+                } else if (esCola) {
+                    spriteSeleccionado = m_spriteCola;
+                }
+                const QPixmap &sprite = *spriteSeleccionado;
                 if (!sprite.isNull()) {
-                    QGraphicsPixmapItem *item = m_escena->addPixmap(sprite);
-                    int indiceSegmento = 0;
-                    const Nodo *segmento = m_serpiente->cabeza();
-                    while (segmento != nullptr
-                           && (segmento->x != x || segmento->y != y)) {
-                        ++indiceSegmento;
-                        segmento = segmento->siguiente;
+                    QGraphicsPixmapItem *item = m_sprites[y][x];
+                    if (item == nullptr) {
+                        item = m_escena->addPixmap(sprite);
+                        m_sprites[y][x] = item;
                     }
+                    item->setPixmap(sprite);
+                    item->setVisible(true);
+
                     const int margen = esCabeza ? -2 : 2;
                     const QPointF destino(m_margenColiseo + x * TAMANO_CELDA + margen,
                                           m_margenColiseo + y * TAMANO_CELDA + margen);
-                    const QPointF inicio = posicionesAnteriores.contains(indiceSegmento)
-                        ? (indiceSegmento == 0 ? posicionesAnteriores.value(0)
-                                               : posicionesAnteriores.value(indiceSegmento - 1))
+                    const QPointF inicio = posicionesAnteriores.contains(indice)
+                        ? (indice == 0 ? posicionesAnteriores.value(0)
+                                       : posicionesAnteriores.value(indice - 1))
                         : destino;
                     item->setPos(inicio);
                     if (inicio != destino) {
-                        auto *animacion = new QVariantAnimation(this);
+                        auto animacion = m_animacionesMovimiento.value(item, nullptr);
+                        if (animacion == nullptr) {
+                            animacion = new QVariantAnimation(this);
+                            connect(animacion, &QVariantAnimation::valueChanged,
+                                    this, [item](const QVariant &valor) {
+                                        item->setPos(valor.toPointF());
+                                    });
+                            m_animacionesMovimiento.insert(item, animacion);
+                        }
+                        animacion->stop();
                         animacion->setStartValue(inicio);
                         animacion->setEndValue(destino);
                         animacion->setDuration(qBound(40, intervaloActual() * 8 / 10, 120));
-                        connect(animacion, &QVariantAnimation::valueChanged,
-                                [item](const QVariant &valor) {
-                                    item->setPos(valor.toPointF());
-                                });
-                        connect(animacion, &QVariantAnimation::finished, this,
-                                [this, animacion]() {
-                                    m_animacionesMovimiento.removeOne(animacion);
-                                    animacion->deleteLater();
-                                });
-                        m_animacionesMovimiento.append(animacion);
                         animacion->start();
                     }
-                    m_posicionesVisuales[indiceSegmento] = destino;
+                    m_posicionesVisuales[indice] = destino;
 
+                    item->setRotation(0);
                     if (esCabeza) {
                         item->setTransformOriginPoint(item->boundingRect().center());
                         if (m_direccionX < 0) {
@@ -894,7 +910,6 @@ void JuegoView::redibujar() {
                         }
                     }
 
-                    m_sprites[y][x] = item;
                 }
             } else if (casilla == MANZANA || casilla == MANZANA_DORADA
                        || casilla == FRUTA_GRANDE || casilla == FRUTA_ENERGETICA
@@ -906,20 +921,30 @@ void JuegoView::redibujar() {
                                                                     : m_spriteCaja;
                 if (sprite != nullptr && !sprite->isNull()) {
                     if (casilla != CAJA_MISTERIOSA) {
-                        auto *resalto = m_escena->addEllipse(
-                            m_margenColiseo + x * TAMANO_CELDA + 3,
-                            m_margenColiseo + y * TAMANO_CELDA + 3,
-                            TAMANO_CELDA - 6, TAMANO_CELDA - 6,
-                            QPen(QColor("#ffe58a"), 2),
-                            QBrush(QColor(255, 224, 104, 55)));
-                        resalto->setZValue(3);
-                        m_resaltos[y][x] = resalto;
+                        auto *resalto = m_resaltos[y][x];
+                        if (resalto == nullptr) {
+                            resalto = m_escena->addEllipse(
+                                0, 0, TAMANO_CELDA - 6, TAMANO_CELDA - 6,
+                                QPen(QColor("#ffe58a"), 2),
+                                QBrush(QColor(255, 224, 104, 55)));
+                            resalto->setZValue(3);
+                            m_resaltos[y][x] = resalto;
+                        }
+                        resalto->setPos(m_margenColiseo + x * TAMANO_CELDA + 3,
+                                       m_margenColiseo + y * TAMANO_CELDA + 3);
+                        resalto->setVisible(true);
                     }
-                    auto *item = m_escena->addPixmap(*sprite);
+                    auto *item = m_sprites[y][x];
+                    if (item == nullptr) {
+                        item = m_escena->addPixmap(*sprite);
+                        m_sprites[y][x] = item;
+                    }
+                    item->setPixmap(*sprite);
                     item->setPos(m_margenColiseo + x * TAMANO_CELDA + 2,
                                  m_margenColiseo + y * TAMANO_CELDA + 2);
                     item->setZValue(4);
-                    m_sprites[y][x] = item;
+                    item->setRotation(0);
+                    item->setVisible(true);
                 }
             }
         }
@@ -1284,12 +1309,7 @@ void JuegoView::mostrarTarjetaDerrota() {
         .arg(m_progreso->frutasComidas()).arg(m_serpiente->longitud()));
     QAbstractButton *reintentar = tarjeta.addButton("Reintentar nivel", QMessageBox::AcceptRole);
     tarjeta.addButton("Cerrar", QMessageBox::RejectRole);
-    tarjeta.setStyleSheet(
-        "QMessageBox { background:#0d121a; color:#ebf0f5; }"
-        "QLabel { color:#ebf0f5; font-family:'Fredoka'; font-size:14px; }"
-        "QPushButton { background:#26384a; color:#ffffff; border:1px solid #5cb6e6;"
-        " border-radius:8px; padding:8px 16px; min-width:120px; }"
-        "QPushButton:hover { background:#34536a; }");
+    Dialogos::aplicarEstilo(tarjeta);
     tarjeta.exec();
     if (tarjeta.clickedButton() == reintentar) {
         AudioManager::instancia().reproducirJuego();
@@ -1322,13 +1342,7 @@ void JuegoView::ganarNivel() {
         QAbstractButton *reintentar = tarjeta.addButton("Reintentar nivel",
                                                          QMessageBox::AcceptRole);
         tarjeta.addButton("Volver al menú", QMessageBox::RejectRole);
-        tarjeta.setStyleSheet(
-            "QMessageBox { background:#0d121a; color:#ebf0f5; }"
-            "QLabel { color:#ebf0f5; font-family:'Fredoka'; font-size:16px; }"
-            "QPushButton { background:#379114; color:#ffffff; border:2px solid #39ff14;"
-            " border-radius:8px; padding:8px 20px; min-width:140px;"
-            " font-family:'Fredoka'; font-weight:bold; }"
-            "QPushButton:hover { background:#4cae22; border-color:#b6ff00; }");
+        Dialogos::aplicarEstilo(tarjeta);
         tarjeta.exec();
         if (tarjeta.clickedButton() == reintentar) {
             AudioManager::instancia().reproducirJuego();
@@ -1347,13 +1361,7 @@ void JuegoView::ganarNivel() {
         tarjeta.setIcon(QMessageBox::Information);
         tarjeta.setText("<h2>¡JUEGO COMPLETADO!</h2>");
         tarjeta.setInformativeText("Completaste todos los niveles de Snake.");
-        tarjeta.setStyleSheet(
-            "QMessageBox { background:#0d121a; color:#ebf0f5; }"
-            "QLabel { color:#ebf0f5; font-family:'Fredoka'; font-size:16px; }"
-            "QPushButton { background:#379114; color:#ffffff; border:2px solid #39ff14;"
-            " border-radius:8px; padding:8px 20px; min-width:140px;"
-            " font-family:'Fredoka'; font-weight:bold; }"
-            "QPushButton:hover { background:#4cae22; border-color:#b6ff00; }");
+        Dialogos::aplicarEstilo(tarjeta);
         tarjeta.exec();
         setWindowTitle("Snake - Juego completado");
         actualizarInformacion();
@@ -1372,13 +1380,7 @@ void JuegoView::ganarNivel() {
         .arg(m_progreso->puntaje())
         .arg(m_progreso->frutasComidas())
         .arg(m_serpiente->longitud()));
-    tarjeta.setStyleSheet(
-        "QMessageBox { background:#0d121a; color:#ebf0f5; }"
-        "QLabel { color:#ebf0f5; font-family:'Fredoka'; font-size:16px; }"
-        "QPushButton { background:#379114; color:#ffffff; border:2px solid #39ff14;"
-        " border-radius:8px; padding:8px 20px; min-width:140px;"
-        " font-family:'Fredoka'; font-weight:bold; }"
-        "QPushButton:hover { background:#4cae22; border-color:#b6ff00; }");
+    Dialogos::aplicarEstilo(tarjeta);
     tarjeta.exec();
 
     AudioManager::instancia().reproducirJuego();

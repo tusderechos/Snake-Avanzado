@@ -65,7 +65,7 @@ void Ranking::construirInterfaz()
         "   color: white;"
         "   border: 6px solid #d5a52e;"
         "   border-radius: 12px;"
-        "   font-family: 'Georgia';"
+        "   font-family: 'Fredoka';"
         "   font-size: 52px;"
         "   font-weight: bold;"
         "}"
@@ -98,7 +98,7 @@ void Ranking::construirInterfaz()
         "   background-color: transparent;"
         "   border: none;"
         "   color: white;"
-        "   font-family: 'Georgia';"
+        "   font-family: 'Fredoka';"
         "   font-size: 25px;"
         "   font-weight: bold;"
         "}"
@@ -322,7 +322,7 @@ void Ranking::configurarEstiloFila(int indice)
           "   color: "
         + colorTexto
         + ";"
-          "   font-family: 'Georgia';"
+          "   font-family: 'Fredoka';"
           "   font-size: 27px;"
           "   font-weight: bold;"
           "}";

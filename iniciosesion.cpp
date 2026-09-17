@@ -1,4 +1,5 @@
 #include "iniciosesion.h"
+#include "dialogos.h"
 #include "gestorusuarios.h"
 
 #include <QApplication>
@@ -344,8 +345,9 @@ void InicioSesion::intentarIniciarSesion()
             "Debe completar el usuario y la contraseña"
             );
 
-        QMessageBox::warning(
+        Dialogos::mostrar(
             QApplication::activeWindow(),
+            QMessageBox::Warning,
             "Datos incompletos",
             "Escriba el usuario y la contraseña."
             );
@@ -364,8 +366,9 @@ void InicioSesion::intentarIniciarSesion()
             "Usuario o contraseña incorrectos"
             );
 
-        QMessageBox::warning(
+        Dialogos::mostrar(
             QApplication::activeWindow(),
+            QMessageBox::Warning,
             "Acceso rechazado",
             "El usuario o la contraseña "
             "son incorrectos."
@@ -377,8 +380,9 @@ void InicioSesion::intentarIniciarSesion()
         return;
     }
 
-    QMessageBox::information(
+    Dialogos::mostrar(
         QApplication::activeWindow(),
+        QMessageBox::Information,
         "Bienvenido",
         "Sesión iniciada correctamente. "
         "Bienvenido, " + usuario + "."

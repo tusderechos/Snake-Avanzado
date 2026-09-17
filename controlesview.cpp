@@ -72,7 +72,7 @@ QString ControlesView::estiloOpcion(bool activa) const
         return
             "QPushButton { background-color: rgba(48, 132, 24, 240);"
             "color: white; border: 3px solid #68dd3e; border-radius: 16px;"
-            "font-family: 'Arial'; font-size: 38px; font-weight: bold; }"
+            "font-family: 'Fredoka'; font-size: 38px; font-weight: bold; }"
             "QPushButton:hover { background-color: rgba(67, 165, 34, 245);"
             "border-color: #d2a93b; }";
     }
@@ -80,7 +80,7 @@ QString ControlesView::estiloOpcion(bool activa) const
     return
         "QPushButton { background-color: rgba(15, 25, 16, 235);"
         "color: #aeb9ab; border: 3px solid #596257; border-radius: 16px;"
-        "font-family: 'Arial'; font-size: 38px; font-weight: bold; }"
+        "font-family: 'Fredoka'; font-size: 38px; font-weight: bold; }"
         "QPushButton:hover { background-color: rgba(28, 48, 27, 240);"
         "color: white; border-color: #8b6f26; }";
 }
@@ -115,7 +115,7 @@ void ControlesView::construirInterfaz()
     titulo->setStyleSheet(
         "QLabel { background-color: rgba(8, 24, 8, 225); color: white;"
         "border: 2px solid #d2a93b; border-radius: 12px;"
-        "font-family: 'Arial'; font-size: 40px; font-weight: bold; }"
+        "font-family: 'Fredoka'; font-size: 40px; font-weight: bold; }"
         );
     agregarWidget(this, titulo, 350, 55);
 

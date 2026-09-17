@@ -130,13 +130,14 @@ QSlider *Ajustes::crearBarraVolumen(
     qreal x,
     qreal y,
     int valorInicial,
-    const QString &imagenPerilla
+    const QString &imagenPerilla,
+    int ancho
     )
 {
     QSlider *barra = new QSlider(Qt::Horizontal);
-    // El área interactiva coincide con el canal oscuro central de la imagen.
-    // Los adornos laterales quedan fuera del recorrido real de la perilla.
-    barra->setFixedSize(470, 82);
+    // El ancho incluye la mitad de la perilla a cada lado. Así, el centro
+    // visual del handle recorre exactamente el canal oscuro de cada asset.
+    barra->setFixedSize(ancho, 82);
     barra->setRange(0, 100);
     barra->setValue(valorInicial);
     barra->setCursor(Qt::PointingHandCursor);
@@ -235,11 +236,11 @@ void Ajustes::construirInterfaz()
     textoSonido->setStyleSheet(estiloEtiquetaCanva);
 
     barraMusica = crearBarraVolumen(
-        610, 267, 75, ":/imagenes/imagenes/ajustes_perilla_musica.png"
+        602, 267, 75, ":/imagenes/imagenes/ajustes_perilla_musica.png", 551
         );
 
     barraSonido = crearBarraVolumen(
-        610, 452, 75, ":/imagenes/imagenes/ajustes_perilla_sonido.png"
+        618, 452, 75, ":/imagenes/imagenes/ajustes_perilla_sonido.png", 543
         );
 
     auto agregarBarraDecorativa = [this](const QString &ruta, qreal x, qreal y) {

@@ -66,6 +66,8 @@ add_executable(Snake
     ranking.cpp
     tienda.h
     tienda.cpp
+    dialogos.h
+    skins.h
     validarcuenta.h
     validarcuenta.cpp
     recursos.qrc

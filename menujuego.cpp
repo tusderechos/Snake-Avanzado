@@ -43,12 +43,13 @@ QIcon crearIconoSalida()
 
 MenuJuego::MenuJuego(std::function<void(ModoJuego)> alSeleccionar,
                      QWidget *parent)
-    : QWidget(parent), m_alSeleccionar(std::move(alSeleccionar)) {
+    : QWidget(parent), m_alSeleccionar(std::move(alSeleccionar)),
+      m_botonTutorial(nullptr) {
     setWindowTitle("Snake - Menú de Juego");
     setFixedSize(500, 560);
     setStyleSheet(
         "QWidget { background: #0d121a; color: #ebf0f5; }"
-        "QPushButton { color: white; font-family: 'Arial Black';"
+        "QPushButton { color: white; font-family: 'Fredoka';"
         " font-weight: bold; }");
     QFontDatabase::addApplicationFont(":/assets/Fredoka-Variable.ttf");
     setFont(QFont("Fredoka", 14));
@@ -78,6 +79,7 @@ MenuJuego::MenuJuego(std::function<void(ModoJuego)> alSeleccionar,
 
     for (const Opcion &opcion : opciones) {
         auto *boton = new QPushButton(opcion.texto, this);
+        if (opcion.modo == ModoJuego::Tutorial) m_botonTutorial = boton;
         boton->setFixedHeight(52);
         boton->setCursor(Qt::PointingHandCursor);
         boton->setStyleSheet(
@@ -137,4 +139,11 @@ MenuJuego::MenuJuego(std::function<void(ModoJuego)> alSeleccionar,
         this,
         &QWidget::close
         );
+}
+
+void MenuJuego::establecerTutorialDisponible(bool disponible)
+{
+    if (m_botonTutorial != nullptr) {
+        m_botonTutorial->setVisible(disponible);
+    }
 }

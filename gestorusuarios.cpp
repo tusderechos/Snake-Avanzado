@@ -2,7 +2,11 @@
 
 #include <QCoreApplication>
 #include <QCryptographicHash>
+#include <QDir>
+#include <QFile>
+#include <QFileInfo>
 #include <QSaveFile>
+#include <QStandardPaths>
 #include <QStringList>
 #include <QTextStream>
 
@@ -10,6 +14,21 @@
 #include <string>
 
 namespace {
+QString rutaDatosUsuarios() {
+    const QString directorio = QStandardPaths::writableLocation(
+        QStandardPaths::AppDataLocation);
+    QDir().mkpath(directorio);
+
+    const QString rutaNueva = directorio + "/usuarios.txt";
+    const QString rutaAnterior = QCoreApplication::applicationDirPath()
+                                 + "/usuarios.txt";
+    if (!QFile::exists(rutaNueva) && QFile::exists(rutaAnterior)
+        && rutaNueva != rutaAnterior) {
+        QFile::copy(rutaAnterior, rutaNueva);
+    }
+    return rutaNueva;
+}
+
 QString hashPassword(const QString &password) {
     return "sha256$" + QString::fromLatin1(
         QCryptographicHash::hash(password.toUtf8(), QCryptographicHash::Sha256).toHex());
@@ -90,9 +109,9 @@ bool guardarRegistros(const QString &ruta, const QVector<RegistroUsuario> &regis
 
 QString GestorUsuarios::obtenerRutaArchivo()
 {
-    // usuarios.txt se guardará junto al ejecutable.
-    return QCoreApplication::applicationDirPath()
-           + "/usuarios.txt";
+    // Todas las ejecuciones del juego del mismo usuario de Windows comparten
+    // este archivo, aunque el ejecutable esté en otra carpeta.
+    return rutaDatosUsuarios();
 }
 
 bool GestorUsuarios::usuarioExiste(
@@ -209,123 +228,18 @@ bool GestorUsuarios::sumarPuntos(
     int puntosGanados
     )
 {
-    if (puntosGanados < 0)
-    {
-        return false;
+    if (usuario.isEmpty() || puntosGanados < 0) return false;
+
+    QVector<RegistroUsuario> registros;
+    const QString ruta = obtenerRutaArchivo();
+    if (!cargarRegistros(ruta, registros)) return false;
+
+    for (RegistroUsuario &registro : registros) {
+        if (registro.usuario != usuario) continue;
+        registro.puntos += puntosGanados;
+        return guardarRegistros(ruta, registros);
     }
-
-    QString ruta =
-        obtenerRutaArchivo();
-
-    std::ifstream archivoEntrada(
-        ruta.toStdString()
-        );
-
-    if (!archivoEntrada.is_open())
-    {
-        return false;
-    }
-
-    QVector<QString> lineas;
-    std::string linea;
-    bool usuarioEncontrado = false;
-
-    while (std::getline(archivoEntrada, linea))
-    {
-        QString lineaQt =
-            QString::fromStdString(linea);
-
-        int primerSeparador =
-            lineaQt.indexOf('|');
-
-        if (primerSeparador == -1)
-        {
-            lineas.append(lineaQt);
-            continue;
-        }
-
-        int segundoSeparador =
-            lineaQt.indexOf(
-                '|',
-                primerSeparador + 1
-                );
-
-        QString usuarioGuardado =
-            lineaQt.left(primerSeparador);
-
-        if (usuarioGuardado != usuario)
-        {
-            lineas.append(lineaQt);
-            continue;
-        }
-
-        QString contrasenaGuardada;
-        int puntosActuales = 0;
-
-        // Cuenta sin puntos: usuario|contrasena
-        if (segundoSeparador == -1)
-        {
-            contrasenaGuardada =
-                lineaQt.mid(primerSeparador + 1);
-        }
-        // Cuenta completa: usuario|contrasena|puntos
-        else
-        {
-            contrasenaGuardada =
-                lineaQt.mid(
-                    primerSeparador + 1,
-                    segundoSeparador
-                        - primerSeparador
-                        - 1
-                    );
-
-            bool conversionCorrecta = false;
-
-            puntosActuales =
-                lineaQt.mid(segundoSeparador + 1).section('|', 0, 0)
-                    .toInt(&conversionCorrecta);
-
-            if (!conversionCorrecta)
-            {
-                puntosActuales = 0;
-            }
-        }
-
-        int nuevoTotal =
-            puntosActuales + puntosGanados;
-
-        QString lineaActualizada =
-            usuarioGuardado
-            + "|"
-            + contrasenaGuardada
-            + "|"
-            + QString::number(nuevoTotal);
-
-        lineas.append(lineaActualizada);
-        usuarioEncontrado = true;
-    }
-
-    archivoEntrada.close();
-
-    if (!usuarioEncontrado)
-    {
-        return false;
-    }
-
-    QSaveFile archivoSalida(ruta);
-    if (!archivoSalida.open(QIODevice::WriteOnly | QIODevice::Text))
-    {
-        return false;
-    }
-
-    QTextStream salida(&archivoSalida);
-    for (const QString &lineaActualizada : lineas)
-    {
-        salida << lineaActualizada << '\n';
-    }
-
-    salida.flush();
-    return archivoSalida.commit();
+    return false;
 }
 
 bool GestorUsuarios::registrarPuntajePartida(
@@ -757,4 +671,34 @@ GestorUsuarios::registrarUsuario(
     }
 
     return ResultadoRegistro::Exito;
+}
+
+bool GestorUsuarios::asegurarCuentaAdmin()
+{
+    const QString usuarioAdmin = "admin";
+    const QString contrasenaAdmin = "Aa.2.3";
+    const QString ruta = obtenerRutaArchivo();
+    QVector<RegistroUsuario> registros;
+
+    if (!QFile::exists(ruta)) {
+        QDir().mkpath(QFileInfo(ruta).absolutePath());
+    }
+
+    if (QFile::exists(ruta) && !cargarRegistros(ruta, registros)) {
+        return false;
+    }
+
+    for (RegistroUsuario &registro : registros) {
+        if (registro.usuario != usuarioAdmin) continue;
+        registro.contrasena = hashPassword(contrasenaAdmin);
+        registro.monedas = qMax(registro.monedas, 10000);
+        return guardarRegistros(ruta, registros);
+    }
+
+    RegistroUsuario admin;
+    admin.usuario = usuarioAdmin;
+    admin.contrasena = hashPassword(contrasenaAdmin);
+    admin.monedas = 10000;
+    registros.append(admin);
+    return guardarRegistros(ruta, registros);
 }

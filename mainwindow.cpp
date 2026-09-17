@@ -15,6 +15,7 @@
 #include "gestorusuarios.h"
 #include "gestorconfiguracion.h"
 #include "audio.h"
+#include "dialogos.h"
 
 #include <QCursor>
 #include <QFrame>
@@ -259,7 +260,7 @@ void MainWindow::construirMenuInicio()
         "Serpent Society";
 
     QFont fuenteTitulo(
-        "Georgia",
+        "Fredoka",
         82,
         QFont::Black
         );
@@ -658,6 +659,11 @@ void MainWindow::mostrarMenuJuego()
     AudioManager::instancia().reproducirMenu();
     if (menuJuego != nullptr)
     {
+        if (!GestorUsuarios::tutorialCompletado(usuarioActual)) {
+            iniciarModoJuego(ModoJuego::Tutorial);
+            return;
+        }
+        menuJuego->establecerTutorialDisponible(false);
         menuJuego->show();
         menuJuego->raise();
         menuJuego->activateWindow();
@@ -684,6 +690,13 @@ void MainWindow::mostrarMenuJuego()
         }
         );
 
+    if (!GestorUsuarios::tutorialCompletado(usuarioActual)) {
+        hide();
+        iniciarModoJuego(ModoJuego::Tutorial);
+        return;
+    }
+
+    menuJuego->establecerTutorialDisponible(false);
     hide();
     menuJuego->show();
 }
@@ -703,6 +716,8 @@ void MainWindow::iniciarModoJuego(ModoJuego modo)
         menuJuego->hide();
         connect(tutorial, &QObject::destroyed, menuJuego, [this]() {
             AudioManager::instancia().reproducirMenu();
+            menuJuego->establecerTutorialDisponible(
+                !GestorUsuarios::tutorialCompletado(usuarioActual));
             menuJuego->show();
         });
         tutorial->show();
@@ -711,8 +726,9 @@ void MainWindow::iniciarModoJuego(ModoJuego modo)
 
     if (modo == ModoJuego::Normal
         && !GestorUsuarios::tutorialCompletado(usuarioActual)) {
-        QMessageBox::information(
+        Dialogos::mostrar(
             menuJuego,
+            QMessageBox::Information,
             "Tutorial requerido",
             "Antes de jugar HISTORIA tenés que completar el TUTORIAL."
             );
@@ -721,13 +737,13 @@ void MainWindow::iniciarModoJuego(ModoJuego modo)
         menuJuego->hide();
         connect(tutorial, &QObject::destroyed, menuJuego, [this]() {
             AudioManager::instancia().reproducirMenu();
+            menuJuego->establecerTutorialDisponible(
+                !GestorUsuarios::tutorialCompletado(usuarioActual));
             menuJuego->show();
         });
         tutorial->show();
         return;
     }
-
-    AudioManager::instancia().reproducirJuego();
 
     int nivelInicial = 1;
     ConfiguracionJuego configuracion;
@@ -736,8 +752,9 @@ void MainWindow::iniciarModoJuego(ModoJuego modo)
     {
         const int nivelMaximo = GestorUsuarios::obtenerNivelHistoria(usuarioActual);
         if (nivelMaximo < 1) {
-            QMessageBox::information(
+            Dialogos::mostrar(
                 menuJuego,
+                QMessageBox::Information,
                 "Modo Libre bloqueado",
                 "Primero completá al menos el Nivel 1 de HISTORIA."
                 );
@@ -828,6 +845,7 @@ void MainWindow::iniciarModoJuego(ModoJuego modo)
         configuracion.esAleatorio = true;
     }
 
+    AudioManager::instancia().reproducirJuego();
     auto *juego = new JuegoView(nivelInicial, configuracion, usuarioActual);
     juego->setAttribute(Qt::WA_DeleteOnClose);
     menuJuego->hide();

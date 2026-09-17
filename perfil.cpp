@@ -1,4 +1,5 @@
 #include "perfil.h"
+#include "dialogos.h"
 #include "gestorusuarios.h"
 #include "validarcuenta.h"
 
@@ -47,7 +48,7 @@ QLabel *Perfil::crearEtiqueta(
         "   color: white;"
         "   border: 2px solid rgba(99, 220, 55, 210);"
         "   border-radius: 12px;"
-        "   font-family: 'Arial';"
+        "   font-family: 'Fredoka';"
         "   font-size: " + QString::number(tamanoLetra) + "px;"
         "   font-weight: bold;"
         "}"
@@ -112,7 +113,7 @@ void Perfil::construirInterfaz()
         "   color: white;"
         "   border: 2px solid #68dd3e;"
         "   border-radius: 10px;"
-        "   font-family: 'Arial';"
+        "   font-family: 'Fredoka';"
         "   font-size: 22px;"
         "   font-weight: bold;"
         "}"
@@ -132,7 +133,7 @@ void Perfil::construirInterfaz()
         "   color: white;"
         "   border: 2px solid #d2a93b;"
         "   border-radius: 12px;"
-        "   font-family: 'Arial';"
+        "   font-family: 'Fredoka';"
         "   font-size: 38px;"
         "   font-weight: bold;"
         "}"
@@ -148,7 +149,7 @@ void Perfil::construirInterfaz()
         "   color: white;"
         "   border: 4px solid #d2a93b;"
         "   border-radius: 76px;"
-        "   font-family: 'Arial';"
+        "   font-family: 'Fredoka';"
         "   font-size: 64px;"
         "   font-weight: bold;"
         "}"
@@ -415,8 +416,9 @@ void Perfil::intentarCambiarContrasena()
             "La contraseña nueva no cumple los requisitos"
             );
 
-        QMessageBox::warning(
+        Dialogos::mostrar(
             QApplication::activeWindow(),
+            QMessageBox::Warning,
             "Contraseña inválida",
             "Use entre 5 y 8 caracteres, una mayúscula, "
             "una minúscula, un número y un símbolo."
@@ -455,8 +457,9 @@ void Perfil::intentarCambiarContrasena()
         "Contraseña actualizada correctamente"
         );
 
-    QMessageBox::information(
+    Dialogos::mostrar(
         QApplication::activeWindow(),
+        QMessageBox::Information,
         "Cambio realizado",
         "La contraseña fue actualizada correctamente."
         );

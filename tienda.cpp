@@ -15,6 +15,7 @@
 #include <QGridLayout>
 #include <QFont>
 #include "gestorusuarios.h"
+#include "skins.h"
 
 namespace
 {
@@ -88,7 +89,7 @@ void Tienda::construirInterfaz()
     titulo->setStyleSheet(
         "QLabel { background-color: rgba(8, 24, 8, 210); color: white;"
         "border: 2px solid #d2a93b; border-radius: 12px;"
-        "font-family: 'Arial'; font-size: 42px; font-weight: bold; }"
+        "font-family: 'Fredoka'; font-size: 42px; font-weight: bold; }"
         );
 
     QGraphicsProxyWidget *proxyTitulo = addWidget(titulo);
@@ -107,27 +108,38 @@ void Tienda::construirInterfaz()
     proxyMonedas->setZValue(2);
 
     const QList<QString> nombres = {"clasica", "gato", "dragon", "burro", "spiderman", "miles", "personaje", "thanos"};
+    const QList<QString> etiquetas = {"Shrek", "Gato", "Dragón", "Burro", "Spider-Man", "Miles", "Farquaad", "Thanos"};
     const QList<int> precios = {0, 150, 250, 350, 500, 650, 850, 1400};
     const QList<QString> colores = {"#78c850", "#e58a32", "#d83232", "#626262", "#e52d35", "#4b4b78", "#d18b42", "#7048b8"};
-    const QList<QString> descripciones = {"Shrek original", "Gato naranja", "Dragon rojo", "Burro", "Spider-Man", "Spider-Man negro", "Personaje dorado", "Gemas del infinito"};
+    const QList<QString> descripciones = {"Shrek original", "Gato naranja", "Dragón rojo", "Burro", "Spider-Man", "Spider-Man negro", "Farquaad dorado", "Gemas del infinito"};
 
     for (int i = 0; i < nombres.size(); ++i) {
         QWidget *tarjeta = new QWidget;
         tarjeta->setFixedSize(235, 220);
         tarjeta->setAttribute(Qt::WA_StyledBackground, true);
-        tarjeta->setStyleSheet(QString("QWidget { background: rgba(8,24,8,220); border: 3px solid %1; border-radius: 10px; } QLabel { border: none; color: white; font-size: 20px; font-weight: bold; } QPushButton { background: %1; color: white; border: 2px solid white; border-radius: 7px; padding: 6px; font-weight: bold; } QPushButton:disabled { background: #555555; color: #cccccc; }").arg(colores[i]));
+        tarjeta->setStyleSheet(QString("QWidget { background: rgba(8,24,8,220); border: 3px solid %1; border-radius: 10px; } QLabel { border: none; color: white; font-family: 'Fredoka'; font-size: 20px; font-weight: bold; } QPushButton { background: %1; color: white; border: 2px solid white; border-radius: 7px; padding: 6px; font-family: 'Fredoka'; font-weight: bold; } QPushButton:disabled { background: #555555; color: #cccccc; }").arg(colores[i]));
         auto *layout = new QVBoxLayout(tarjeta);
-        layout->setContentsMargins(10, 10, 10, 10);
-        auto *nombre = new QLabel(nombres[i].toUpper(), tarjeta);
+        layout->setContentsMargins(8, 7, 8, 7);
+        layout->setSpacing(3);
+        auto *nombre = new QLabel(etiquetas[i].toUpper(), tarjeta);
         nombre->setAlignment(Qt::AlignCenter);
+        nombre->setFixedHeight(27);
+        auto *cabeza = new QLabel(tarjeta);
+        cabeza->setFixedSize(70, 66);
+        cabeza->setAlignment(Qt::AlignCenter);
+        cabeza->setPixmap(Skins::cabeza(nombres[i], 62));
+        cabeza->setToolTip("Vista previa de la cabeza");
         auto *descripcion = new QLabel(descripciones[i], tarjeta);
         descripcion->setAlignment(Qt::AlignCenter);
         descripcion->setWordWrap(true);
+        descripcion->setFixedHeight(28);
         auto *boton = new QPushButton(tarjeta);
+        boton->setFixedHeight(30);
         auto *estado = new QLabel(tarjeta);
         estado->setAlignment(Qt::AlignCenter);
         layout->addWidget(nombre);
-        layout->addWidget(descripcion, 1);
+        layout->addWidget(cabeza, 0, Qt::AlignCenter);
+        layout->addWidget(descripcion);
         layout->addWidget(estado);
         layout->addWidget(boton);
 

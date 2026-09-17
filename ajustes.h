@@ -55,7 +55,8 @@ private:
         qreal x,
         qreal y,
         int valorInicial,
-        const QString &imagenPerilla
+        const QString &imagenPerilla,
+        int ancho
         );
 
     void crearIcono(

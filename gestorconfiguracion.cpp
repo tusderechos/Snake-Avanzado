@@ -1,17 +1,36 @@
 #include "gestorconfiguracion.h"
 
 #include <QCoreApplication>
+#include <QDir>
+#include <QFile>
 #include <QSaveFile>
+#include <QStandardPaths>
 #include <QTextStream>
 #include <QVector>
 
 #include <fstream>
 #include <string>
 
+namespace {
+QString rutaDatosConfiguracion() {
+    const QString directorio = QStandardPaths::writableLocation(
+        QStandardPaths::AppDataLocation);
+    QDir().mkpath(directorio);
+
+    const QString rutaNueva = directorio + "/configuracion.txt";
+    const QString rutaAnterior = QCoreApplication::applicationDirPath()
+                                 + "/configuracion.txt";
+    if (!QFile::exists(rutaNueva) && QFile::exists(rutaAnterior)
+        && rutaNueva != rutaAnterior) {
+        QFile::copy(rutaAnterior, rutaNueva);
+    }
+    return rutaNueva;
+}
+}
+
 QString GestorConfiguracion::obtenerRutaArchivo()
 {
-    return QCoreApplication::applicationDirPath()
-           + "/configuracion.txt";
+    return rutaDatosConfiguracion();
 }
 
 void GestorConfiguracion::cargarVolumen(

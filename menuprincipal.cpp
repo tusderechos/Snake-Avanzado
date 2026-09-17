@@ -39,7 +39,7 @@ QPushButton *MenuPrincipal::crearBoton(
         "   color: white;"
         "   border: 6px solid #39ff14;"
         "   border-radius: 18px;"
-        "   font-family: 'Arial Black';"
+        "   font-family: 'Fredoka';"
         "   font-size: 46px;"
         "   font-weight: bold;"
         "}"

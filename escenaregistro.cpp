@@ -1,4 +1,5 @@
 #include "escenaregistro.h"
+#include "dialogos.h"
 #include "gestorusuarios.h"
 #include "validarcuenta.h"
 
@@ -127,7 +128,7 @@ void EscenaRegistro::construirInterfaz()
     tituloPrincipal->setStyleSheet(
         "QLabel { background-color: rgba(8, 24, 8, 225); color: white;"
         "border: 2px solid #d2a93b; border-radius: 12px;"
-        "font-family: 'Arial'; font-size: 40px; font-weight: bold; }"
+        "font-family: 'Fredoka'; font-size: 40px; font-weight: bold; }"
         );
     QGraphicsProxyWidget *proxyTituloPrincipal = addWidget(tituloPrincipal);
     proxyTituloPrincipal->setPos(350, 55);
@@ -447,7 +448,8 @@ bool EscenaRegistro::formularioCompleto() const
 void EscenaRegistro::intentarCrearCuenta()
 {
     if (!formularioCompleto()) {
-        QMessageBox::warning(QApplication::activeWindow(),
+        Dialogos::mostrar(QApplication::activeWindow(),
+                           QMessageBox::Warning,
                              "Aviso",
                              "Revise los datos y cumpla todos "
                              "los requisitos.");
@@ -464,7 +466,8 @@ void EscenaRegistro::intentarCrearCuenta()
         // de limpiar los campos.
         QString usuarioCreado = campoUsuario->text();
 
-        QMessageBox::information(QApplication::activeWindow(),
+        Dialogos::mostrar(QApplication::activeWindow(),
+                          QMessageBox::Information,
                                  "Cuenta creada",
                                  "La cuenta fue creada correctamente. "
                                  "Bienvenido, "
@@ -488,7 +491,8 @@ void EscenaRegistro::intentarCrearCuenta()
 
         mensajeEstado->setText("Ese nombre de usuario ya está registrado");
 
-        QMessageBox::warning(QApplication::activeWindow(),
+        Dialogos::mostrar(QApplication::activeWindow(),
+                          QMessageBox::Warning,
                              "Usuario duplicado",
                              "Ese nombre de usuario ya existe. "
                              "Escriba uno diferente.");
@@ -501,7 +505,8 @@ void EscenaRegistro::intentarCrearCuenta()
 
         mensajeEstado->setText("No se pudo guardar la cuenta");
 
-        QMessageBox::critical(QApplication::activeWindow(),
+        Dialogos::mostrar(QApplication::activeWindow(),
+                          QMessageBox::Critical,
                               "Error",
                               "No se pudo abrir o escribir "
                               "el archivo de usuarios.");
