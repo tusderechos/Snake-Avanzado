@@ -51,6 +51,8 @@ Tienda::Tienda(QObject *parent)
 {
     setSceneRect(0, 0, 1254, 1254);
     construirInterfaz();
+    connect(&GestorUsuarios::instancia(), &GestorUsuarios::perfilActualizado, this, &Tienda::actualizarTienda);
+    connect(&GestorUsuarios::instancia(), &GestorUsuarios::pendientesCambiaron, this, &Tienda::actualizarTienda);
 }
 
 void Tienda::establecerUsuario(const QString &usuario)
@@ -149,6 +151,7 @@ void Tienda::construirInterfaz()
 
         tarjetas.append({nombres[i], precios[i], boton, estado});
         connect(boton, &QPushButton::clicked, this, [this, id = nombres[i], precio = precios[i]]() {
+            if (GestorUsuarios::pendientes()) return;
             if (GestorUsuarios::tieneSkin(usuarioActual, id)) {
                 GestorUsuarios::equiparSkin(usuarioActual, id);
             } else {
@@ -195,7 +198,7 @@ void Tienda::actualizarTarjeta(TarjetaSkin &tarjeta)
     const bool comprada = GestorUsuarios::tieneSkin(usuarioActual, tarjeta.id);
     const bool equipada = GestorUsuarios::obtenerSkinEquipada(usuarioActual) == tarjeta.id;
     tarjeta.estado->setText(equipada ? "EQUIPADA" : comprada ? "DESBLOQUEADA" : QString("%1 monedas").arg(tarjeta.precio));
-    tarjeta.boton->setEnabled(!equipada && (comprada
+    tarjeta.boton->setEnabled(!GestorUsuarios::pendientes() && !usuarioActual.isEmpty() && !equipada && (comprada
                                             || GestorUsuarios::obtenerMonedasUsuario(usuarioActual) >= tarjeta.precio));
-    tarjeta.boton->setText(equipada ? "EQUIPADA" : comprada ? "EQUIPAR" : "COMPRAR");
+    tarjeta.boton->setText(GestorUsuarios::pendientes() ? "GUARDANDO..." : equipada ? "EQUIPADA" : comprada ? "EQUIPAR" : "COMPRAR");
 }

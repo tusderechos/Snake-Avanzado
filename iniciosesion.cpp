@@ -1,6 +1,7 @@
 #include "iniciosesion.h"
 #include "dialogos.h"
 #include "gestorusuarios.h"
+#include "validarcuenta.h"
 
 #include <QApplication>
 #include <QBrush>
@@ -149,7 +150,7 @@ void InicioSesion::construirInterfaz()
     campoUsuario->setFixedSize(814, 90);
     campoUsuario->setMaxLength(15);
     campoUsuario->setPlaceholderText(
-        "Escriba su nombre de usuario"
+        "Escriba su usuario"
         );
     campoUsuario->setStyleSheet(estiloCampo);
 
@@ -180,7 +181,7 @@ void InicioSesion::construirInterfaz()
     campoContrasena = new QLineEdit;
 
     campoContrasena->setFixedSize(560, 90);
-    campoContrasena->setMaxLength(8);
+    campoContrasena->setMaxLength(72);
     campoContrasena->setEchoMode(
         QLineEdit::Password
         );
@@ -333,65 +334,46 @@ void InicioSesion::alternarVisibilidadContrasena()
 
 void InicioSesion::intentarIniciarSesion()
 {
-    QString usuario =
-        campoUsuario->text();
-
-    QString contrasena =
-        campoContrasena->text();
-
+    if (solicitudPendiente) return;
+    const QString usuario = campoUsuario->text().trimmed();
+    const QString contrasena = campoContrasena->text();
+    QString error;
     if (usuario.isEmpty() || contrasena.isEmpty())
-    {
-        mensajeEstado->setText(
-            "Debe completar el usuario y la contraseña"
-            );
-
-        Dialogos::mostrar(
-            QApplication::activeWindow(),
-            QMessageBox::Warning,
-            "Datos incompletos",
-            "Escriba el usuario y la contraseña."
-            );
-
+        error = "Escriba el usuario y la contraseña.";
+    else if (!ValidarCuenta::usuarioValido(usuario))
+        error = "El usuario debe tener entre 3 y 15 letras, números o guiones bajos.";
+    if (!error.isEmpty()) {
+        mensajeEstado->setText(error);
+        Dialogos::mostrar(QApplication::activeWindow(), QMessageBox::Warning, "Revise los datos", error);
         return;
     }
-
-    if (
-        !GestorUsuarios::credencialesValidas(
-            usuario,
-            contrasena
-            )
-        )
-    {
-        mensajeEstado->setText(
-            "Usuario o contraseña incorrectos"
-            );
-
-        Dialogos::mostrar(
-            QApplication::activeWindow(),
-            QMessageBox::Warning,
-            "Acceso rechazado",
-            "El usuario o la contraseña "
-            "son incorrectos."
-            );
-
+    solicitudPendiente = true;
+    botonIngresar->setEnabled(false);
+    botonVolver->setEnabled(false);
+    campoUsuario->setEnabled(false);
+    campoContrasena->setEnabled(false);
+    mensajeEstado->setText("Iniciando sesión...");
+    GestorUsuarios::iniciarSesion(usuario, contrasena, this,
+        [this](bool exito, const QString &mensaje) {
+        solicitudPendiente = false;
+        botonIngresar->setEnabled(true);
+        botonVolver->setEnabled(true);
+        campoUsuario->setEnabled(true);
+        campoContrasena->setEnabled(true);
+        mensajeEstado->setText(mensaje);
+        if (!exito) {
+            Dialogos::mostrar(QApplication::activeWindow(), QMessageBox::Warning, "Acceso rechazado", mensaje);
+            campoContrasena->clear();
+            campoContrasena->setFocus();
+            return;
+        }
+        const QString usuario = GestorUsuarios::nombreActual();
+        Dialogos::mostrar(QApplication::activeWindow(), QMessageBox::Information,
+            "Bienvenido", "Sesión iniciada correctamente. Bienvenido, " + usuario + ".");
+        campoUsuario->clear();
         campoContrasena->clear();
-        campoContrasena->setFocus();
-
-        return;
-    }
-
-    Dialogos::mostrar(
-        QApplication::activeWindow(),
-        QMessageBox::Information,
-        "Bienvenido",
-        "Sesión iniciada correctamente. "
-        "Bienvenido, " + usuario + "."
-        );
-
-    campoUsuario->clear();
-    campoContrasena->clear();
-    campoContrasena->setEchoMode(QLineEdit::Password);
-    botonMostrarContrasena->setText("MOSTRAR");
-
-    emit sesionIniciada(usuario);
+        campoContrasena->setEchoMode(QLineEdit::Password);
+        botonMostrarContrasena->setText("MOSTRAR");
+        emit sesionIniciada(usuario);
+    });
 }

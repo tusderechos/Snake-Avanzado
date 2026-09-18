@@ -8,6 +8,8 @@ class ValidarCuenta
 public:
     // Validación del nombre de usuario
     static bool usuarioValido(const QString &usuario);
+    static bool correoValido(const QString &correo);
+    static QString errorContrasena(const QString &contrasena);
 
     // Validaciones individuales de la contraseña
     static bool longitudValida(const QString &contrasena);

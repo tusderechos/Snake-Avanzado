@@ -38,6 +38,9 @@ private:
     QLineEdit *campoConfirmacion;
 
     QPushButton *botonMostrarContrasenas;
+    QPushButton *botonGuardar = nullptr;
+    QPushButton *botonVolver = nullptr;
+    bool solicitudPendiente = false;
 
     void construirInterfaz();
 

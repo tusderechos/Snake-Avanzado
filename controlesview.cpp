@@ -1,5 +1,6 @@
 #include "controlesview.h"
 #include "gestorconfiguracion.h"
+#include "gestorusuarios.h"
 
 #include <QBrush>
 #include <QGraphicsPixmapItem>
@@ -63,6 +64,14 @@ ControlesView::ControlesView(QObject *parent)
 {
     setSceneRect(0, 0, 1254, 1254);
     construirInterfaz();
+    auto refrescar = [this]() {
+        actualizarSeleccion(GestorConfiguracion::cargarControl(usuarioActual));
+        botonWasd->setEnabled(!GestorUsuarios::pendientes());
+        botonFlechas->setEnabled(!GestorUsuarios::pendientes());
+    };
+    connect(&GestorUsuarios::instancia(), &GestorUsuarios::perfilActualizado, this, refrescar);
+    connect(&GestorUsuarios::instancia(), &GestorUsuarios::pendientesCambiaron, this, refrescar);
+    connect(&GestorUsuarios::instancia(), &GestorUsuarios::errorGuardado, this, refrescar);
 }
 
 QString ControlesView::estiloOpcion(bool activa) const
@@ -223,7 +232,7 @@ void ControlesView::actualizarSeleccion(const QString &control)
 
 void ControlesView::seleccionarWasd()
 {
-    actualizarSeleccion("WASD");
+    if (GestorUsuarios::pendientes()) return;
 
     if (!usuarioActual.isEmpty())
     {
@@ -233,7 +242,7 @@ void ControlesView::seleccionarWasd()
 
 void ControlesView::seleccionarFlechas()
 {
-    actualizarSeleccion("FLECHAS");
+    if (GestorUsuarios::pendientes()) return;
 
     if (!usuarioActual.isEmpty())
     {

@@ -7,6 +7,7 @@
 class QLabel;
 class QPushButton;
 class QSlider;
+class QTimer;
 
 class Ajustes : public QGraphicsScene
 {
@@ -15,6 +16,7 @@ class Ajustes : public QGraphicsScene
 public:
     explicit Ajustes(QObject *parent = nullptr);
     void establecerUsuario(const QString &usuario);
+    void confirmarCambios();
 
 signals:
     void volverSolicitado();
@@ -31,6 +33,8 @@ private:
     QLabel *etiquetaVolumenSonido;
     QString usuarioActual;
     bool cargandoConfiguracion;
+    QTimer *temporizadorGuardado = nullptr;
+    QString usuarioPendiente;
 
     void construirInterfaz();
 

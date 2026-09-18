@@ -50,6 +50,7 @@ private:
     QPushButton *botonCrearCuenta;
     QPushButton *botonVolver;
     QPushButton *botonMostrarContrasenas;
+    bool solicitudPendiente = false;
 
     // Métodos internos
     void construirInterfaz();

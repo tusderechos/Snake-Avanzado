@@ -199,7 +199,7 @@ void Perfil::construirInterfaz()
 
     campoContrasenaActual = new QLineEdit;
     campoContrasenaActual->setFixedSize(725, 68);
-    campoContrasenaActual->setMaxLength(8);
+    campoContrasenaActual->setMaxLength(72);
     campoContrasenaActual->setEchoMode(QLineEdit::Password);
     campoContrasenaActual->setPlaceholderText("Contraseña actual");
     campoContrasenaActual->setStyleSheet(estiloCampo);
@@ -213,6 +213,7 @@ void Perfil::construirInterfaz()
     campoContrasenaNueva = new QLineEdit;
     campoContrasenaNueva->setFixedSize(725, 68);
     campoContrasenaNueva->setMaxLength(8);
+    campoContrasenaNueva->setPlaceholderText("Entre 6 y 8 caracteres");
     campoContrasenaNueva->setEchoMode(QLineEdit::Password);
     campoContrasenaNueva->setPlaceholderText("Nueva contraseña");
     campoContrasenaNueva->setStyleSheet(estiloCampo);
@@ -249,7 +250,7 @@ void Perfil::construirInterfaz()
     proxyMostrar->setPos(800, 414);
     proxyMostrar->setZValue(2);
 
-    QPushButton *botonGuardar =
+    botonGuardar =
         new QPushButton("GUARDAR CAMBIOS");
 
     botonGuardar->setFixedSize(420, 72);
@@ -284,7 +285,7 @@ void Perfil::construirInterfaz()
     proxyMensaje->setPos(265, 870);
     proxyMensaje->setZValue(2);
 
-    QPushButton *botonVolver =
+    botonVolver =
         new QPushButton("VOLVER");
 
     botonVolver->setFixedSize(250, 72);
@@ -376,91 +377,48 @@ void Perfil::alternarVisibilidadContrasenas()
 
 void Perfil::intentarCambiarContrasena()
 {
-    QString contrasenaActual =
-        campoContrasenaActual->text();
-
-    QString contrasenaNueva =
-        campoContrasenaNueva->text();
-
-    QString confirmacion =
-        campoConfirmacion->text();
-
-    if (contrasenaActual.isEmpty()
-        || contrasenaNueva.isEmpty()
-        || confirmacion.isEmpty())
-    {
-        mensajeEstado->setText(
-            "Debe completar los tres campos"
-            );
+    if (solicitudPendiente) return;
+    const QString actual = campoContrasenaActual->text();
+    const QString nueva = campoContrasenaNueva->text();
+    const QString confirmacion = campoConfirmacion->text();
+    QString error;
+    if (actual.isEmpty() || nueva.isEmpty() || confirmacion.isEmpty())
+        error = "Debe completar los tres campos.";
+    else if (!ValidarCuenta::contrasenaValida(nueva))
+        error = ValidarCuenta::errorContrasena(nueva);
+    else if (!ValidarCuenta::contrasenasCoinciden(nueva, confirmacion))
+        error = "Las contraseñas nuevas no coinciden.";
+    if (!error.isEmpty()) {
+        mensajeEstado->setText(error);
+        Dialogos::mostrar(QApplication::activeWindow(), QMessageBox::Warning, "Revise los datos", error);
         return;
     }
-
-    if (!GestorUsuarios::credencialesValidas(
-            usuarioActual,
-            contrasenaActual
-            ))
-    {
-        mensajeEstado->setText(
-            "La contraseña actual es incorrecta"
-            );
-        campoContrasenaActual->selectAll();
-        campoContrasenaActual->setFocus();
-        return;
-    }
-
-    if (!ValidarCuenta::contrasenaValida(
-            contrasenaNueva
-            ))
-    {
-        mensajeEstado->setText(
-            "La contraseña nueva no cumple los requisitos"
-            );
-
-        Dialogos::mostrar(
-            QApplication::activeWindow(),
-            QMessageBox::Warning,
-            "Contraseña inválida",
-            "Use entre 5 y 8 caracteres, una mayúscula, "
-            "una minúscula, un número y un símbolo."
-            );
-        return;
-    }
-
-    if (!ValidarCuenta::contrasenasCoinciden(
-            contrasenaNueva,
-            confirmacion
-            ))
-    {
-        mensajeEstado->setText(
-            "Las contraseñas nuevas no coinciden"
-            );
-        campoConfirmacion->selectAll();
-        campoConfirmacion->setFocus();
-        return;
-    }
-
-    if (!GestorUsuarios::cambiarContrasena(
-            usuarioActual,
-            contrasenaNueva
-            ))
-    {
-        mensajeEstado->setText(
-            "No se pudo actualizar el archivo de usuarios"
-            );
-        return;
-    }
-
-    campoContrasenaActual->clear();
-    campoContrasenaNueva->clear();
-    campoConfirmacion->clear();
-    mensajeEstado->setText(
-        "Contraseña actualizada correctamente"
-        );
-
-    Dialogos::mostrar(
-        QApplication::activeWindow(),
-        QMessageBox::Information,
-        "Cambio realizado",
-        "La contraseña fue actualizada correctamente."
-        );
+    solicitudPendiente = true;
+    botonGuardar->setEnabled(false);
+    botonVolver->setEnabled(false);
+    campoContrasenaActual->setEnabled(false);
+    campoContrasenaNueva->setEnabled(false);
+    campoConfirmacion->setEnabled(false);
+    mensajeEstado->setText("Actualizando contraseña...");
+    GestorUsuarios::cambiarContrasena(usuarioActual, actual, nueva, this,
+        [this](bool exito, const QString &mensaje) {
+        solicitudPendiente = false;
+        botonGuardar->setEnabled(true);
+        botonVolver->setEnabled(true);
+        campoContrasenaActual->setEnabled(true);
+        campoContrasenaNueva->setEnabled(true);
+        campoConfirmacion->setEnabled(true);
+        mensajeEstado->setText(mensaje);
+        Dialogos::mostrar(QApplication::activeWindow(),
+            exito ? QMessageBox::Information : QMessageBox::Warning,
+            exito ? "Cambio realizado" : "No se pudo cambiar la contraseña", mensaje);
+        if (!exito) return;
+        campoContrasenaActual->clear();
+        campoContrasenaNueva->clear();
+        campoConfirmacion->clear();
+        campoContrasenaActual->setEchoMode(QLineEdit::Password);
+        campoContrasenaNueva->setEchoMode(QLineEdit::Password);
+        campoConfirmacion->setEchoMode(QLineEdit::Password);
+        botonMostrarContrasenas->setText("MOSTRAR");
+    });
 }

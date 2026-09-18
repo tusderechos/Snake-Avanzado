@@ -1,704 +1,164 @@
 #include "gestorusuarios.h"
-
 #include <QCoreApplication>
 #include <QCryptographicHash>
-#include <QDir>
-#include <QFile>
-#include <QFileInfo>
-#include <QSaveFile>
-#include <QStandardPaths>
-#include <QStringList>
-#include <QTextStream>
-
-#include <fstream>
-#include <string>
 
 namespace {
-QString rutaDatosUsuarios() {
-    const QString directorio = QStandardPaths::writableLocation(
-        QStandardPaths::AppDataLocation);
-    QDir().mkpath(directorio);
-
-    const QString rutaNueva = directorio + "/usuarios.txt";
-    const QString rutaAnterior = QCoreApplication::applicationDirPath()
-                                 + "/usuarios.txt";
-    if (!QFile::exists(rutaNueva) && QFile::exists(rutaAnterior)
-        && rutaNueva != rutaAnterior) {
-        QFile::copy(rutaAnterior, rutaNueva);
-    }
-    return rutaNueva;
+QString identificadorAuth(const QString &usuario) {
+    return QString::fromLatin1(QCryptographicHash::hash(usuario.trimmed().toUtf8(), QCryptographicHash::Sha256).toHex()) + "@snake.invalid";
+}
 }
 
-QString hashPassword(const QString &password) {
-    return "sha256$" + QString::fromLatin1(
-        QCryptographicHash::hash(password.toUtf8(), QCryptographicHash::Sha256).toHex());
+#include <QDateTime>
+#include <QJsonArray>
+#include <QTimer>
+#include <QUuid>
+
+GestorUsuarios::GestorUsuarios(QObject *p) : QObject(p) {}
+GestorUsuarios &GestorUsuarios::instancia() {
+    static auto *g = new GestorUsuarios(QCoreApplication::instance());
+    return *g;
 }
-
-bool passwordMatches(const QString &stored, const QString &provided) {
-    // Se aceptan registros antiguos una sola vez para no invalidar cuentas existentes.
-    return stored == provided || stored == hashPassword(provided);
+QString GestorUsuarios::nombreActual() { return instancia().m_perfil.value("nombre_usuario").toString(); }
+bool GestorUsuarios::sesionActiva() { return !instancia().m_id.isEmpty() && !instancia().m_perfil.isEmpty(); }
+bool GestorUsuarios::pendientes() { auto &g=instancia(); return !g.m_cola.empty() || g.m_autenticando; }
+QJsonObject GestorUsuarios::perfil(const QString &u) {
+    return sesionActiva() && u == nombreActual() ? instancia().m_perfil : QJsonObject{};
 }
-
-struct RegistroUsuario {
-    QString usuario;
-    QString contrasena;
-    int puntos = 0;
-    int monedas = 0;
-    QStringList skins = {"clasica"};
-    QString skinEquipada = "clasica";
-    bool tutorialTerminado = false;
-    int nivelHistoria = 0;
-};
-
-RegistroUsuario leerRegistro(const QString &linea) {
-    RegistroUsuario registro;
-    const QStringList campos = linea.split('|');
-    if (campos.size() < 2) return registro;
-
-    registro.usuario = campos[0];
-    registro.contrasena = campos[1];
-    if (campos.size() >= 3) registro.puntos = qMax(0, campos[2].toInt());
-    if (campos.size() >= 4) registro.monedas = qMax(0, campos[3].toInt());
-    if (campos.size() >= 5 && !campos[4].isEmpty()) {
-        registro.skins = campos[4].split(',', Qt::SkipEmptyParts);
-        if (!registro.skins.contains("clasica")) registro.skins.prepend("clasica");
-    }
-    if (campos.size() >= 6 && !campos[5].isEmpty()) registro.skinEquipada = campos[5];
-    if (campos.size() < 7) {
-        // Las cuentas creadas antes de esta progresion conservan su acceso.
-        registro.tutorialTerminado = true;
-        registro.nivelHistoria = 3;
-    } else {
-        registro.tutorialTerminado = campos[6] == "1";
-        if (campos.size() >= 8) registro.nivelHistoria = qBound(0, campos[7].toInt(), 3);
-    }
-    if (!registro.skins.contains(registro.skinEquipada)) registro.skinEquipada = "clasica";
-    return registro;
-}
-
-QString serializarRegistro(const RegistroUsuario &registro) {
-    return registro.usuario + "|" + registro.contrasena + "|"
-           + QString::number(registro.puntos) + "|"
-           + QString::number(registro.monedas) + "|"
-           + registro.skins.join(',') + "|" + registro.skinEquipada + "|"
-           + (registro.tutorialTerminado ? "1" : "0") + "|"
-           + QString::number(registro.nivelHistoria);
-}
-
-bool cargarRegistros(const QString &ruta, QVector<RegistroUsuario> &registros) {
-    std::ifstream archivo(ruta.toStdString());
-    if (!archivo.is_open()) return false;
-    std::string linea;
-    while (std::getline(archivo, linea)) {
-        RegistroUsuario registro = leerRegistro(QString::fromStdString(linea));
-        if (!registro.usuario.isEmpty()) registros.append(registro);
-    }
+int GestorUsuarios::obtenerPuntosUsuario(const QString &u) { return perfil(u).value("puntos").toInt(); }
+int GestorUsuarios::obtenerMonedasUsuario(const QString &u) { return perfil(u).value("monedas").toInt(); }
+bool GestorUsuarios::tieneSkin(const QString &u,const QString &s) { return perfil(u).value("skins").toArray().contains(s); }
+QString GestorUsuarios::obtenerSkinEquipada(const QString &u) { return perfil(u).value("skin_equipada").toString("clasica"); }
+bool GestorUsuarios::tutorialCompletado(const QString &u) { return perfil(u).value("tutorial_completado").toBool(); }
+int GestorUsuarios::obtenerNivelHistoria(const QString &u) { return perfil(u).value("nivel_historia").toInt(); }
+bool GestorUsuarios::adoptarSesion(const QJsonObject &o) {
+    const auto user=o.value("user").toObject();
+    if(o.value("access_token").toString().isEmpty() || user.value("id").toString().isEmpty()) return false;
+    if(!m_id.isEmpty() && user.value("id").toString()!=m_id) return false;
+    m_token=o.value("access_token").toString(); m_refresh=o.value("refresh_token").toString();
+    m_id=user.value("id").toString(); m_correo=user.value("email").toString();
+    m_expira=QDateTime::currentSecsSinceEpoch()+o.value("expires_in").toInt(3600);
     return true;
 }
-
-bool guardarRegistros(const QString &ruta, const QVector<RegistroUsuario> &registros) {
-    QSaveFile archivo(ruta);
-    if (!archivo.open(QIODevice::WriteOnly | QIODevice::Text)) return false;
-    QTextStream salida(&archivo);
-    for (const RegistroUsuario &registro : registros) salida << serializarRegistro(registro) << '\n';
-    salida.flush();
-    return archivo.commit();
-}
-}
-
-
-QString GestorUsuarios::obtenerRutaArchivo()
-{
-    // Todas las ejecuciones del juego del mismo usuario de Windows comparten
-    // este archivo, aunque el ejecutable esté en otra carpeta.
-    return rutaDatosUsuarios();
-}
-
-bool GestorUsuarios::usuarioExiste(
-    const QString &usuario
-    )
-{
-    std::ifstream archivo(
-        obtenerRutaArchivo().toStdString()
-        );
-
-    // Si todavía no existe el archivo,
-    // significa que tampoco existen usuarios.
-    if (!archivo.is_open())
-    {
-        return false;
-    }
-
-    std::string linea;
-
-    while (std::getline(archivo, linea))
-    {
-        QString lineaQt =
-            QString::fromStdString(linea);
-
-        int posicionSeparador =
-            lineaQt.indexOf('|');
-
-        if (posicionSeparador == -1)
-        {
-            continue;
+void GestorUsuarios::registrarUsuario(const QString &u,const QString &pass,QObject *ctx,Respuesta cb) {
+    SupabaseClient::solicitar("POST","/auth/v1/signup",{{"email",identificadorAuth(u)},{"password",pass},
+        {"data",QJsonObject{{"nombre_usuario",u.trimmed()}}}}, {},ctx,[cb](auto r){
+        if(!r.exito) {cb(false,r.mensaje); return;}
+        const auto o=r.datos.toObject();
+        if(o.value("user").toObject().value("id").toString().isEmpty() && o.value("id").toString().isEmpty()) {
+            cb(false,"El servidor no devolvio la cuenta registrada."); return;
         }
-
-        QString usuarioGuardado =
-            lineaQt.left(posicionSeparador);
-
-        if (usuarioGuardado == usuario)
-        {
-            return true;
+        cb(!o.value("access_token").toString().isEmpty(),o.value("access_token").toString().isEmpty()
+            ? QStringLiteral("El servidor aun exige confirmacion de correo. El administrador debe desactivar Confirm email en Supabase.")
+            : QStringLiteral("Cuenta creada. Ya puede iniciar sesion con su usuario y contrasena."));
+    });
+}
+void GestorUsuarios::iniciarSesion(const QString &usuario,const QString &pass,QObject *ctx,Respuesta cb) {
+    auto &g=instancia();
+    if(pendientes()) {cb(false,"Espere a que termine la operacion actual."); return;}
+    cerrarSesion(); g.m_autenticando=true;
+    QPointer<QObject> guard(ctx); auto gen=g.m_generacion;
+    SupabaseClient::solicitar("POST","/auth/v1/token?grant_type=password",{{"email",identificadorAuth(usuario)},{"password",pass}}, {},&g,
+        [&g,guard,cb,gen](auto r){
+        if(gen!=g.m_generacion) return;
+        if(!r.exito || !g.adoptarSesion(r.datos.toObject())) {
+            g.m_autenticando=false; if(guard) cb(false,r.exito?"Respuesta de inicio de sesion incompleta.":r.mensaje); return;
         }
-    }
-
-    return false;
-}
-
-bool GestorUsuarios::credencialesValidas(
-    const QString &usuario,
-    const QString &contrasena
-    )
-{
-    std::ifstream archivo(
-        obtenerRutaArchivo().toStdString()
-        );
-
-    if (!archivo.is_open())
-    {
-        return false;
-    }
-
-    std::string linea;
-
-    while (std::getline(archivo, linea))
-    {
-        QString lineaQt =
-            QString::fromStdString(linea);
-
-        int primerSeparador =
-            lineaQt.indexOf('|');
-
-        if (primerSeparador == -1)
-        {
-            continue;
-        }
-
-        int segundoSeparador =
-            lineaQt.indexOf(
-                '|',
-                primerSeparador + 1
-                );
-
-        QString usuarioGuardado =
-            lineaQt.left(primerSeparador);
-
-        QString contrasenaGuardada;
-
-        // Cuenta sin puntos: usuario|contrasena
-        if (segundoSeparador == -1)
-        {
-            contrasenaGuardada =
-                lineaQt.mid(primerSeparador + 1);
-        }
-        // Cuenta completa: usuario|contrasena|puntos
-        else
-        {
-            contrasenaGuardada =
-                lineaQt.mid(
-                    primerSeparador + 1,
-                    segundoSeparador
-                        - primerSeparador
-                        - 1
-                    );
-        }
-
-        if (usuarioGuardado == usuario)
-        {
-            return passwordMatches(contrasenaGuardada, contrasena);
-        }
-    }
-
-    return false;
-}
-
-bool GestorUsuarios::sumarPuntos(
-    const QString &usuario,
-    int puntosGanados
-    )
-{
-    if (usuario.isEmpty() || puntosGanados < 0) return false;
-
-    QVector<RegistroUsuario> registros;
-    const QString ruta = obtenerRutaArchivo();
-    if (!cargarRegistros(ruta, registros)) return false;
-
-    for (RegistroUsuario &registro : registros) {
-        if (registro.usuario != usuario) continue;
-        registro.puntos += puntosGanados;
-        return guardarRegistros(ruta, registros);
-    }
-    return false;
-}
-
-bool GestorUsuarios::registrarPuntajePartida(
-    const QString &usuario,
-    int puntosGanados,
-    int monedasBonus
-    )
-{
-    if (usuario.isEmpty() || puntosGanados <= 0) return false;
-
-    QVector<RegistroUsuario> registros;
-    const QString ruta = obtenerRutaArchivo();
-    if (!cargarRegistros(ruta, registros)) return false;
-
-    for (RegistroUsuario &registro : registros) {
-        if (registro.usuario != usuario) continue;
-        registro.puntos += puntosGanados;
-        registro.monedas += puntosGanados / 2 + qMax(0, monedasBonus);
-        return guardarRegistros(ruta, registros);
-    }
-    return false;
-}
-
-int GestorUsuarios::obtenerMonedasUsuario(const QString &usuario)
-{
-    QVector<RegistroUsuario> registros;
-    if (!cargarRegistros(obtenerRutaArchivo(), registros)) return 0;
-    for (const RegistroUsuario &registro : registros) {
-        if (registro.usuario == usuario) return registro.monedas;
-    }
-    return 0;
-}
-
-bool GestorUsuarios::tieneSkin(const QString &usuario, const QString &skin)
-{
-    QVector<RegistroUsuario> registros;
-    if (!cargarRegistros(obtenerRutaArchivo(), registros)) return false;
-    for (const RegistroUsuario &registro : registros) {
-        if (registro.usuario == usuario) return registro.skins.contains(skin);
-    }
-    return false;
-}
-
-QString GestorUsuarios::obtenerSkinEquipada(const QString &usuario)
-{
-    QVector<RegistroUsuario> registros;
-    if (!cargarRegistros(obtenerRutaArchivo(), registros)) return "clasica";
-    for (const RegistroUsuario &registro : registros) {
-        if (registro.usuario == usuario) return registro.skinEquipada;
-    }
-    return "clasica";
-}
-
-bool GestorUsuarios::comprarSkin(
-    const QString &usuario,
-    const QString &skin,
-    int precio
-    )
-{
-    if (usuario.isEmpty() || skin.isEmpty() || precio < 0) return false;
-
-    QVector<RegistroUsuario> registros;
-    const QString ruta = obtenerRutaArchivo();
-    if (!cargarRegistros(ruta, registros)) return false;
-    for (RegistroUsuario &registro : registros) {
-        if (registro.usuario != usuario) continue;
-        if (registro.skins.contains(skin) || registro.monedas < precio) return false;
-        registro.monedas -= precio;
-        registro.skins.append(skin);
-        return guardarRegistros(ruta, registros);
-    }
-    return false;
-}
-
-bool GestorUsuarios::equiparSkin(
-    const QString &usuario,
-    const QString &skin
-    )
-{
-    QVector<RegistroUsuario> registros;
-    const QString ruta = obtenerRutaArchivo();
-    if (!cargarRegistros(ruta, registros)) return false;
-    for (RegistroUsuario &registro : registros) {
-        if (registro.usuario != usuario) continue;
-        if (!registro.skins.contains(skin)) return false;
-        registro.skinEquipada = skin;
-        return guardarRegistros(ruta, registros);
-    }
-    return false;
-}
-
-bool GestorUsuarios::tutorialCompletado(const QString &usuario)
-{
-    QVector<RegistroUsuario> registros;
-    if (!cargarRegistros(obtenerRutaArchivo(), registros)) return false;
-    for (const RegistroUsuario &registro : registros) {
-        if (registro.usuario == usuario) return registro.tutorialTerminado;
-    }
-    return false;
-}
-
-bool GestorUsuarios::marcarTutorialCompletado(const QString &usuario)
-{
-    QVector<RegistroUsuario> registros;
-    const QString ruta = obtenerRutaArchivo();
-    if (!cargarRegistros(ruta, registros)) return false;
-    for (RegistroUsuario &registro : registros) {
-        if (registro.usuario != usuario) continue;
-        registro.tutorialTerminado = true;
-        return guardarRegistros(ruta, registros);
-    }
-    return false;
-}
-
-int GestorUsuarios::obtenerNivelHistoria(const QString &usuario)
-{
-    QVector<RegistroUsuario> registros;
-    if (!cargarRegistros(obtenerRutaArchivo(), registros)) return 0;
-    for (const RegistroUsuario &registro : registros) {
-        if (registro.usuario == usuario) return registro.nivelHistoria;
-    }
-    return 0;
-}
-
-bool GestorUsuarios::marcarNivelHistoriaCompletado(
-    const QString &usuario,
-    int nivel
-    )
-{
-    if (nivel < 1 || nivel > 3) return false;
-    QVector<RegistroUsuario> registros;
-    const QString ruta = obtenerRutaArchivo();
-    if (!cargarRegistros(ruta, registros)) return false;
-    for (RegistroUsuario &registro : registros) {
-        if (registro.usuario != usuario) continue;
-        registro.nivelHistoria = qMax(registro.nivelHistoria, nivel);
-        return guardarRegistros(ruta, registros);
-    }
-    return false;
-}
-
-int GestorUsuarios::obtenerPuntosUsuario(
-    const QString &usuario
-    )
-{
-    std::ifstream archivo(
-        obtenerRutaArchivo().toStdString()
-        );
-
-    if (!archivo.is_open())
-    {
-        return 0;
-    }
-
-    std::string linea;
-
-    while (std::getline(archivo, linea))
-    {
-        QString lineaQt =
-            QString::fromStdString(linea);
-
-        int primerSeparador =
-            lineaQt.indexOf('|');
-
-        if (primerSeparador == -1)
-        {
-            continue;
-        }
-
-        QString usuarioGuardado =
-            lineaQt.left(primerSeparador);
-
-        if (usuarioGuardado != usuario)
-        {
-            continue;
-        }
-
-        int segundoSeparador =
-            lineaQt.indexOf(
-                '|',
-                primerSeparador + 1
-                );
-
-        if (segundoSeparador == -1)
-        {
-            return 0;
-        }
-
-        bool conversionCorrecta = false;
-
-        int puntos =
-            lineaQt.mid(segundoSeparador + 1).section('|', 0, 0)
-                .toInt(&conversionCorrecta);
-
-        if (conversionCorrecta)
-        {
-            return puntos;
-        }
-
-        return 0;
-    }
-
-    return 0;
-}
-
-bool GestorUsuarios::cambiarContrasena(
-    const QString &usuario,
-    const QString &contrasenaNueva
-    )
-{
-    QString ruta = obtenerRutaArchivo();
-
-    std::ifstream archivoEntrada(
-        ruta.toStdString()
-        );
-
-    if (!archivoEntrada.is_open())
-    {
-        return false;
-    }
-
-    QVector<QString> lineas;
-    std::string linea;
-    bool usuarioEncontrado = false;
-
-    while (std::getline(archivoEntrada, linea))
-    {
-        QString lineaQt =
-            QString::fromStdString(linea);
-
-        int primerSeparador =
-            lineaQt.indexOf('|');
-
-        if (primerSeparador == -1)
-        {
-            lineas.append(lineaQt);
-            continue;
-        }
-
-        QString usuarioGuardado =
-            lineaQt.left(primerSeparador);
-
-        if (usuarioGuardado != usuario)
-        {
-            lineas.append(lineaQt);
-            continue;
-        }
-
-        int segundoSeparador =
-            lineaQt.indexOf(
-                '|',
-                primerSeparador + 1
-                );
-
-        QString puntosGuardados = "0";
-
-        if (segundoSeparador != -1)
-        {
-            puntosGuardados =
-                lineaQt.mid(segundoSeparador + 1);
-        }
-
-        QString lineaActualizada =
-            usuarioGuardado
-            + "|"
-            + hashPassword(contrasenaNueva)
-            + "|"
-            + puntosGuardados;
-
-        lineas.append(lineaActualizada);
-        usuarioEncontrado = true;
-    }
-
-    archivoEntrada.close();
-
-    if (!usuarioEncontrado)
-    {
-        return false;
-    }
-
-    QSaveFile archivoSalida(ruta);
-    if (!archivoSalida.open(QIODevice::WriteOnly | QIODevice::Text))
-    {
-        return false;
-    }
-
-    QTextStream salida(&archivoSalida);
-    for (const QString &lineaActualizada : lineas)
-    {
-        salida << lineaActualizada << '\n';
-    }
-
-    salida.flush();
-    return archivoSalida.commit();
-}
-
-QVector<GestorUsuarios::DatoRanking>
-GestorUsuarios::obtenerRanking(int limite)
-{
-    QVector<DatoRanking> ranking;
-
-    if (limite <= 0)
-    {
-        return ranking;
-    }
-
-    std::ifstream archivo(
-        obtenerRutaArchivo().toStdString()
-        );
-
-    if (!archivo.is_open())
-    {
-        return ranking;
-    }
-
-    std::string linea;
-
-    while (std::getline(archivo, linea))
-    {
-        QString lineaQt =
-            QString::fromStdString(linea);
-
-        int primerSeparador =
-            lineaQt.indexOf('|');
-
-        if (primerSeparador == -1)
-        {
-            continue;
-        }
-
-        int segundoSeparador =
-            lineaQt.indexOf(
-                '|',
-                primerSeparador + 1
-                );
-
-        QString usuario =
-            lineaQt.left(primerSeparador);
-
-        int puntos = 0;
-
-        if (segundoSeparador != -1)
-        {
-            bool conversionCorrecta = false;
-
-            puntos =
-                lineaQt.mid(segundoSeparador + 1).section('|', 0, 0)
-                    .toInt(&conversionCorrecta);
-
-            if (!conversionCorrecta)
-            {
-                puntos = 0;
+        SupabaseClient::solicitar("POST","/rest/v1/rpc/snake_perfil",{},g.m_token,&g,[&g,guard,cb,gen](auto p){
+            if(gen!=g.m_generacion) return;
+            g.m_autenticando=false;
+            const auto o=p.datos.toObject();
+            if(!guard || !p.exito || o.value("id").toString()!=g.m_id || o.value("nombre_usuario").toString().isEmpty()) {
+                cerrarSesion(); if(guard) cb(false,p.exito?"No se pudo cargar el perfil de esta cuenta.":p.mensaje); return;
             }
-        }
-
-        DatoRanking dato;
-
-        dato.usuario = usuario;
-        dato.puntos = puntos;
-
-        ranking.append(dato);
-    }
-
-    // Ordenamiento burbuja de mayor a menor puntaje.
-    for (int pasada = 0;
-         pasada < ranking.size() - 1;
-         pasada++)
-    {
-        for (int posicion = 0;
-             posicion < ranking.size() - pasada - 1;
-             posicion++)
-        {
-            if (ranking[posicion].puntos
-                < ranking[posicion + 1].puntos)
-            {
-                DatoRanking temporal =
-                    ranking[posicion];
-
-                ranking[posicion] =
-                    ranking[posicion + 1];
-
-                ranking[posicion + 1] =
-                    temporal;
+            g.m_perfil=o; emit g.perfilActualizado(); cb(true,{});
+        });
+    });
+}
+void GestorUsuarios::conToken(std::function<void(bool,QString)> cb) {
+    if(m_token.isEmpty()) {cb(false,"Inicie sesion de nuevo."); return;}
+    if(m_expira>QDateTime::currentSecsSinceEpoch()+60) {cb(true,{}); return;}
+    const auto gen=m_generacion;
+    SupabaseClient::solicitar("POST","/auth/v1/token?grant_type=refresh_token",{{"refresh_token",m_refresh}}, {},this,
+        [this,gen,cb](auto r){
+        if(gen!=m_generacion) return;
+        cb(r.exito && adoptarSesion(r.datos.toObject()),r.exito?"No se pudo renovar la sesion.":r.mensaje);
+    });
+}
+bool GestorUsuarios::encolar(const QString &u,const QString &ruta,const QJsonObject &body,const QByteArray &metodo) {
+    auto &g=instancia();
+    if(!sesionActiva() || u!=nombreActual()) {emit g.errorGuardado("No hay una sesion valida para guardar estos datos."); return false;}
+    g.m_cola.push_back({metodo,ruta,body}); emit g.pendientesCambiaron();
+    QTimer::singleShot(0,&g,[&g]{g.procesar();}); return true;
+}
+void GestorUsuarios::procesar() {
+    if(m_procesando || m_fallido || m_cola.empty() || m_autenticando) return;
+    m_procesando=true; const auto gen=m_generacion;
+    conToken([this,gen](bool ok,QString error){
+        if(gen!=m_generacion) return;
+        if(!ok) {m_procesando=false; m_fallido=true; emit errorGuardado(error); return;}
+        const auto job=m_cola.front();
+        SupabaseClient::solicitar(job.metodo,job.ruta,job.cuerpo,m_token,this,[this,gen](auto r){
+            if(gen!=m_generacion) return;
+            m_procesando=false;
+            auto o=r.datos.toObject();
+            if(r.datos.isArray() && !r.datos.toArray().isEmpty()) o=r.datos.toArray().first().toObject();
+            if(!r.exito || o.value("id").toString()!=m_id) {
+                const bool temporal=r.codigo==0 || r.codigo>=500 || r.codigo==429 || r.codigo==401;
+                m_fallido=temporal;
+                if(r.codigo==401) m_expira=0;
+                if(!temporal) m_cola.pop_front();
+                emit errorGuardado(r.exito?"El servidor no devolvio el perfil guardado.":r.mensaje);
+                emit pendientesCambiaron();
+                if(!temporal) QTimer::singleShot(0,this,[this]{procesar();});
+                return;
             }
-        }
-    }
-
-    while (ranking.size() > limite)
-    {
-        ranking.removeLast();
-    }
-
-    return ranking;
+            m_perfil=o; m_cola.pop_front(); emit perfilActualizado(); emit pendientesCambiaron(); procesar();
+        });
+    });
 }
-
-GestorUsuarios::ResultadoRegistro
-GestorUsuarios::registrarUsuario(
-    const QString &usuario,
-    const QString &contrasena
-    )
-{
-    if (usuarioExiste(usuario))
-    {
-        return ResultadoRegistro::UsuarioDuplicado;
-    }
-
-    std::ofstream archivo(
-        obtenerRutaArchivo().toStdString(),
-        std::ios::app
-        );
-
-    if (!archivo.is_open())
-    {
-        return ResultadoRegistro::ErrorArchivo;
-    }
-
-    archivo
-        << usuario.toStdString()
-        << "|"
-        << hashPassword(contrasena).toStdString()
-        << "|"
-        << 0
-        << "|0|clasica|clasica|0|0"
-        << "\n";
-
-    if (!archivo.good())
-    {
-        return ResultadoRegistro::ErrorArchivo;
-    }
-
-    return ResultadoRegistro::Exito;
+void GestorUsuarios::reintentar() {auto &g=instancia(); g.m_fallido=false; g.procesar();}
+bool GestorUsuarios::cerrarSesion() {
+    auto &g=instancia(); if(pendientes()) return false;
+    const auto token=g.m_token;
+    ++g.m_generacion; g.m_token.clear(); g.m_refresh.clear(); g.m_id.clear(); g.m_correo.clear(); g.m_perfil={};
+    g.m_expira=0; g.m_fallido=false;
+    if(!token.isEmpty()) SupabaseClient::solicitar("POST","/auth/v1/logout?scope=local",{},token,&g,[](auto){});
+    emit g.perfilActualizado(); return true;
 }
-
-bool GestorUsuarios::asegurarCuentaAdmin()
-{
-    const QString usuarioAdmin = "admin";
-    const QString contrasenaAdmin = "Aa.2.3";
-    const QString ruta = obtenerRutaArchivo();
-    QVector<RegistroUsuario> registros;
-
-    if (!QFile::exists(ruta)) {
-        QDir().mkpath(QFileInfo(ruta).absolutePath());
+bool GestorUsuarios::registrarPuntajePartida(const QString &u,int p,int b) {
+    if(p<0 || b<0 || (p==0 && b==0)) return false;
+    return encolar(u,"/rest/v1/rpc/snake_partida",{{"p_operacion",QUuid::createUuid().toString(QUuid::WithoutBraces)}, {"p_puntos",p},{"p_bonus",b}});
+}
+bool GestorUsuarios::comprarSkin(const QString &u,const QString &s,int) {return encolar(u,"/rest/v1/rpc/snake_comprar_skin",{{"p_skin",s}});}
+bool GestorUsuarios::equiparSkin(const QString &u,const QString &s) {return encolar(u,"/rest/v1/rpc/snake_equipar_skin",{{"p_skin",s}});}
+bool GestorUsuarios::marcarTutorialCompletado(const QString &u) {return encolar(u,"/rest/v1/rpc/snake_tutorial",{});}
+bool GestorUsuarios::marcarNivelHistoriaCompletado(const QString &u,int n) {return encolar(u,"/rest/v1/rpc/snake_nivel",{{"p_nivel",n}});}
+bool GestorUsuarios::guardarPreferencias(const QString &u,const QJsonObject &c) {
+    for(auto i=c.begin();i!=c.end();++i) {
+        if(i.key()=="control") {if(i.value()!="WASD" && i.value()!="FLECHAS") return false;}
+        else if(i.key()=="volumen_musica" || i.key()=="volumen_sonido") {if(!i.value().isDouble() || i.value().toDouble()<0 || i.value().toDouble()>1) return false;}
+        else return false;
     }
-
-    if (QFile::exists(ruta) && !cargarRegistros(ruta, registros)) {
-        return false;
-    }
-
-    for (RegistroUsuario &registro : registros) {
-        if (registro.usuario != usuarioAdmin) continue;
-        registro.contrasena = hashPassword(contrasenaAdmin);
-        registro.monedas = qMax(registro.monedas, 10000);
-        return guardarRegistros(ruta, registros);
-    }
-
-    RegistroUsuario admin;
-    admin.usuario = usuarioAdmin;
-    admin.contrasena = hashPassword(contrasenaAdmin);
-    admin.monedas = 10000;
-    registros.append(admin);
-    return guardarRegistros(ruta, registros);
+    return encolar(u,"/rest/v1/perfiles?id=eq."+instancia().m_id,c,"PATCH");
+}
+void GestorUsuarios::cambiarContrasena(const QString &u,const QString &oldPass,const QString &newPass,QObject *ctx,Respuesta cb) {
+    auto &g=instancia();
+    if(!sesionActiva() || u!=nombreActual() || pendientes()) {cb(false,"Espere a que finalice el guardado y compruebe su sesion."); return;}
+    g.m_autenticando=true; const auto gen=g.m_generacion; QPointer<QObject> guard(ctx);
+    SupabaseClient::solicitar("POST","/auth/v1/token?grant_type=password",{{"email",g.m_correo},{"password",oldPass}}, {},&g,
+        [&g,gen,guard,newPass,cb](auto r){
+        if(gen!=g.m_generacion) return;
+        if(!r.exito || !g.adoptarSesion(r.datos.toObject())) {g.m_autenticando=false; if(guard) cb(false,r.mensaje); g.procesar(); return;}
+        SupabaseClient::solicitar("PUT","/auth/v1/user",{{"password",newPass}},g.m_token,&g,[&g,gen,guard,cb](auto rr){
+            if(gen!=g.m_generacion) return;
+            g.m_autenticando=false; if(guard) cb(rr.exito,rr.mensaje); g.procesar();
+        });
+    });
+}
+void GestorUsuarios::obtenerRanking(int n,QObject *ctx,std::function<void(bool,const QString &,QVector<DatoRanking>)> cb) {
+    SupabaseClient::solicitar("GET","/rest/v1/ranking_publico?select=nombre_usuario,puntos&order=puntos.desc,nombre_usuario.asc&limit="+QString::number(qBound(1,n,100)),{}, {},ctx,[cb](auto r){
+        QVector<DatoRanking> datos;
+        if(r.exito && r.datos.isArray()) for(const auto &v:r.datos.toArray()) {auto o=v.toObject(); datos.append({o.value("nombre_usuario").toString(),o.value("puntos").toInt()});}
+        cb(r.exito && r.datos.isArray(),r.mensaje,datos);
+    });
 }

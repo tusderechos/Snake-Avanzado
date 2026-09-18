@@ -43,6 +43,7 @@ private:
     QPushButton *botonIngresar;
     QPushButton *botonVolver;
     QPushButton *botonMostrarContrasena;
+    bool solicitudPendiente = false;
 
     void construirInterfaz();
 };

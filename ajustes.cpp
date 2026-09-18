@@ -1,6 +1,8 @@
 #include "ajustes.h"
 #include "audio.h"
 #include "gestorconfiguracion.h"
+#include "gestorusuarios.h"
+#include <QTimer>
 
 #include <QGraphicsPixmapItem>
 #include <QGraphicsProxyWidget>
@@ -55,6 +57,16 @@ Ajustes::Ajustes(QObject *parent)
 {
     setSceneRect(0, 0, 1254, 1254);
     construirInterfaz();
+    temporizadorGuardado = new QTimer(this);
+    temporizadorGuardado->setSingleShot(true);
+    temporizadorGuardado->setInterval(400);
+    connect(temporizadorGuardado, &QTimer::timeout, this, &Ajustes::confirmarCambios);
+    connect(&GestorUsuarios::instancia(), &GestorUsuarios::errorGuardado, this,
+        [this](const QString &) { establecerUsuario(usuarioActual); });
+    connect(&GestorUsuarios::instancia(), &GestorUsuarios::perfilActualizado, this, [this]() {
+        if (!temporizadorGuardado->isActive() && !barraMusica->isSliderDown()
+            && !barraSonido->isSliderDown()) establecerUsuario(usuarioActual);
+    });
 }
 
 QLabel *Ajustes::crearEtiqueta(
@@ -139,6 +151,7 @@ QSlider *Ajustes::crearBarraVolumen(
     // visual del handle recorre exactamente el canal oscuro de cada asset.
     barra->setFixedSize(ancho, 82);
     barra->setRange(0, 100);
+    barra->setTracking(false);
     barra->setValue(valorInicial);
     barra->setCursor(Qt::PointingHandCursor);
     barra->setAttribute(Qt::WA_TranslucentBackground);
@@ -348,6 +361,8 @@ void Ajustes::construirInterfaz()
 
 void Ajustes::establecerUsuario(const QString &usuario)
 {
+    temporizadorGuardado->stop();
+    usuarioPendiente.clear();
     usuarioActual = usuario;
 
     int volumenMusica = 75;
@@ -374,8 +389,18 @@ void Ajustes::guardarVolumenActual()
         return;
     }
 
+    usuarioPendiente = usuarioActual;
+    temporizadorGuardado->start();
+}
+
+void Ajustes::confirmarCambios()
+{
+    temporizadorGuardado->stop();
+    const QString propietario = usuarioPendiente;
+    usuarioPendiente.clear();
+    if (propietario.isEmpty() || propietario != GestorUsuarios::nombreActual()) return;
     GestorConfiguracion::guardarVolumen(
-        usuarioActual,
+        propietario,
         barraMusica->value(),
         barraSonido->value()
         );

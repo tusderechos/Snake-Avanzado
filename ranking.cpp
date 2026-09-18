@@ -1,5 +1,7 @@
 #include "ranking.h"
 #include "gestorusuarios.h"
+#include "dialogos.h"
+#include <QApplication>
 
 #include <QGraphicsPixmapItem>
 #include <QGraphicsProxyWidget>
@@ -23,7 +25,6 @@ Ranking::Ranking(QObject *parent)
     setSceneRect(0, 0, 1254, 1254);
 
     construirInterfaz();
-    actualizarRanking();
 }
 
 void Ranking::construirInterfaz()
@@ -334,29 +335,25 @@ void Ranking::configurarEstiloFila(int indice)
 
 void Ranking::actualizarRanking()
 {
-    QVector<GestorUsuarios::DatoRanking> datos =
-        GestorUsuarios::obtenerRanking(5);
-
-    for (int i = 0; i < CANTIDAD_POSICIONES; i++)
-    {
-        etiquetasPosicion[i]->setText(
-            QString::number(i + 1)
-            );
-
-        if (i < datos.size())
-        {
-            etiquetasUsuario[i]->setText(
-                datos[i].usuario
-                );
-
-            etiquetasPuntos[i]->setText(
-                QString::number(datos[i].puntos)
-                );
-        }
-        else
-        {
-            etiquetasUsuario[i]->setText("---");
-            etiquetasPuntos[i]->setText("0");
-        }
+    if (cargando) return;
+    cargando = true;
+    for (int i = 0; i < CANTIDAD_POSICIONES; ++i) {
+        etiquetasUsuario[i]->setText(i == 0 ? "Cargando..." : "---");
+        etiquetasPuntos[i]->setText("---");
     }
+    GestorUsuarios::obtenerRanking(CANTIDAD_POSICIONES, this,
+        [this](bool exito, const QString &mensaje, QVector<GestorUsuarios::DatoRanking> datos) {
+        cargando = false;
+        for (int i = 0; i < CANTIDAD_POSICIONES; ++i) {
+            etiquetasUsuario[i]->setText(exito && i < datos.size() ? datos[i].usuario : "---");
+            etiquetasPuntos[i]->setText(exito && i < datos.size() ? QString::number(datos[i].puntos) : "---");
+        }
+        if (!exito) {
+            auto *aviso = new QMessageBox(QMessageBox::Warning, "No se pudo cargar el ranking",
+                mensaje, QMessageBox::Ok, QApplication::activeWindow());
+            aviso->setAttribute(Qt::WA_DeleteOnClose);
+            Dialogos::aplicarEstilo(*aviso);
+            aviso->open();
+        }
+    });
 }

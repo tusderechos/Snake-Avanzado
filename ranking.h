@@ -17,7 +17,7 @@ public:
         );
 
 public slots:
-    // Lee nuevamente usuarios.txt y actualiza
+    // Consulta el ranking remoto y actualiza
     // las cinco posiciones mostradas.
     void actualizarRanking();
 
@@ -37,6 +37,7 @@ private:
     QLabel *etiquetasPuntos[CANTIDAD_POSICIONES];
 
     QPushButton *botonVolver;
+    bool cargando = false;
 
     void construirInterfaz();
 

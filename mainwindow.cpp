@@ -18,6 +18,8 @@
 #include "dialogos.h"
 
 #include <QCursor>
+#include <QCloseEvent>
+#include <QApplication>
 #include <QFrame>
 #include <QGraphicsPixmapItem>
 #include <QGraphicsProxyWidget>
@@ -119,15 +121,6 @@ MainWindow::MainWindow(QWidget *parent)
         &MainWindow::mostrarMenuInicio
         );
 
-    // Una cuenta nueva entra automáticamente al juego.
-    connect(
-        escenaRegistro,
-        &EscenaRegistro::cuentaCreada,
-        this,
-        &MainWindow::mostrarMenuPrincipal
-        );
-
-
     connect(
         escenaInicioSesion,
         &InicioSesion::volverSolicitado,
@@ -225,6 +218,13 @@ MainWindow::MainWindow(QWidget *parent)
         this,
         &MainWindow::cerrarSesion
         );
+
+    connect(&GestorUsuarios::instancia(), &GestorUsuarios::errorGuardado,
+        this, &MainWindow::mostrarErrorGuardado);
+    connect(&GestorUsuarios::instancia(), &GestorUsuarios::perfilActualizado, this, [this]() {
+        if (menuJuego) menuJuego->establecerTutorialDisponible(
+            !GestorUsuarios::tutorialCompletado(usuarioActual));
+    });
 
     // Mostrar inicialmente el menú
     mostrarMenuInicio();
@@ -601,6 +601,7 @@ void MainWindow::mostrarAjustes()
 
 void MainWindow::mostrarPerfil()
 {
+    escenaAjustes->confirmarCambios();
     AudioManager::instancia().reproducirMenu();
     escenaPerfil->establecerUsuario(
         usuarioActual
@@ -615,6 +616,7 @@ void MainWindow::mostrarPerfil()
 
 void MainWindow::mostrarControles()
 {
+    escenaAjustes->confirmarCambios();
     AudioManager::instancia().reproducirMenu();
     escenaControles->establecerUsuario(
         usuarioActual
@@ -640,12 +642,21 @@ void MainWindow::mostrarTienda()
 
 void MainWindow::cerrarSesion()
 {
+    escenaAjustes->confirmarCambios();
+    if (!GestorUsuarios::cerrarSesion()) {
+        mostrarErrorGuardado("Hay cambios pendientes de guardar. Espere a que termine el guardado o reintente antes de cerrar sesión.");
+        return;
+    }
+    escenaAjustes->establecerUsuario({});
+    escenaControles->establecerUsuario({});
+    escenaTienda->establecerUsuario({});
     usuarioActual.clear();
     mostrarMenuInicio();
 }
 
 void MainWindow::regresarMenuPrincipal()
 {
+    escenaAjustes->confirmarCambios();
     AudioManager::instancia().reproducirMenu();
     ui->graphicsView->setScene(
         escenaMenuPrincipal
@@ -886,4 +897,33 @@ void MainWindow::ajustarEscenaActual()
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+void MainWindow::mostrarErrorGuardado(const QString &mensaje)
+{
+    if (avisoGuardado) {
+        avisoGuardado->setText(mensaje);
+        avisoGuardado->raise();
+        return;
+    }
+    auto *aviso = new QMessageBox(QMessageBox::Warning, "Guardado pendiente",
+        mensaje, QMessageBox::Ok, QApplication::activeWindow());
+    avisoGuardado = aviso;
+    aviso->setAttribute(Qt::WA_DeleteOnClose);
+    if (GestorUsuarios::pendientes()) {
+        auto *reintentar = aviso->addButton("Reintentar", QMessageBox::ActionRole);
+        connect(reintentar, &QPushButton::clicked, this, []() { GestorUsuarios::reintentar(); });
+    }
+    Dialogos::aplicarEstilo(*aviso);
+    aviso->open();
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    escenaAjustes->confirmarCambios();
+    if (GestorUsuarios::pendientes()) {
+        event->ignore();
+        mostrarErrorGuardado("Hay cambios pendientes de guardar. Mantenga el juego abierto y reintente el guardado antes de salir.");
+        return;
+    }
+    QMainWindow::closeEvent(event);
 }

@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QString>
+#include <QPointer>
 
 QT_BEGIN_NAMESPACE
 namespace Ui
@@ -21,6 +22,8 @@ class Perfil;
 class ControlesView;
 class Tienda;
 class MenuJuego;
+class QMessageBox;
+class QCloseEvent;
 enum class ModoJuego;
 
 class MainWindow : public QMainWindow
@@ -33,6 +36,9 @@ public:
         );
 
     ~MainWindow();
+
+protected:
+    void closeEvent(QCloseEvent *event) override;
 
 private slots:
     // Abre la pantalla para crear una cuenta.
@@ -92,6 +98,8 @@ private:
 
     // Nombre del usuario que tiene la sesión abierta.
     QString usuarioActual;
+    QPointer<QMessageBox> avisoGuardado;
+    void mostrarErrorGuardado(const QString &mensaje);
 
     void construirMenuInicio();
     void ajustarEscenaActual();

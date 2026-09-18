@@ -27,8 +27,6 @@ public:
         const QString &control
         );
 
-private:
-    static QString obtenerRutaArchivo();
 };
 
 #endif // GESTORCONFIGURACION_H

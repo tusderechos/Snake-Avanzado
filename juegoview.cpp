@@ -1329,9 +1329,10 @@ void JuegoView::ganarNivel() {
 
     if (m_configuracion.progresionAutomatica) {
         GestorUsuarios::marcarNivelHistoriaCompletado(m_usuario, m_nivel);
-        m_puntajePartida += m_progreso->puntaje();
-        guardarPuntajePartida();
     }
+    // El nivel actual sigue en m_progreso hasta cambiarlo o reiniciarlo.
+    // Se guarda una sola vez junto con los niveles anteriores.
+    guardarPuntajePartida();
 
     if (!m_configuracion.progresionAutomatica) {
         QMessageBox tarjeta(this);
@@ -1346,6 +1347,7 @@ void JuegoView::ganarNivel() {
         tarjeta.exec();
         if (tarjeta.clickedButton() == reintentar) {
             AudioManager::instancia().reproducirJuego();
+            m_puntajePartida += m_progreso->puntaje();
             reiniciar();
             iniciarCuentaRegresiva();
         } else {
@@ -1385,6 +1387,9 @@ void JuegoView::ganarNivel() {
 
     AudioManager::instancia().reproducirJuego();
 
+    // Transferir el puntaje solamente cuando se reemplaza el progreso actual.
+    // El último nivel no pasa por aquí: al cerrar aún se cuenta desde m_progreso.
+    m_puntajePartida += m_progreso->puntaje();
     if (m_nivel == NIVEL_1) {
         configurarNivel(NIVEL_2);
         cargarSprites();

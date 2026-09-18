@@ -1,95 +1,56 @@
 #ifndef GESTORUSUARIOS_H
 #define GESTORUSUARIOS_H
-
-#include <QString>
+#include "supabaseclient.h"
+#include <QObject>
+#include <QPointer>
 #include <QVector>
-
-class GestorUsuarios
-{
+#include <deque>
+#include <functional>
+// Lecturas del perfil confirmado. Una escritura aceptada se encola y confirma por señal.
+class GestorUsuarios : public QObject {
+    Q_OBJECT
 public:
-    // Posibles resultados al intentar guardar una cuenta.
-    enum class ResultadoRegistro
-    {
-        Exito,
-        UsuarioDuplicado,
-        ErrorArchivo
-    };
-
-    // Información necesaria para una fila del ranking.
-    struct DatoRanking
-    {
-        QString usuario;
-        int puntos;
-    };
-
-    // Comprueba si el nombre de usuario ya está registrado.
-    static bool usuarioExiste(const QString &usuario);
-
-    // Comprueba que el usuario y la contraseña sean correctos.
-    static bool credencialesValidas(
-        const QString &usuario,
-        const QString &contrasena
-        );
-
-    // Suma los puntos obtenidos en una partida.
-    static bool sumarPuntos(
-        const QString &usuario,
-        int puntosGanados
-        );
-
-    // Registra el resultado de una partida: puntaje para el ranking y
-    // monedas para la tienda. Las monedas se calculan a razon de 1 por
-    // cada 2 puntos.
-    static bool registrarPuntajePartida(
-        const QString &usuario,
-        int puntosGanados,
-        int monedasBonus = 0
-        );
-
-    // Obtiene los puntos acumulados de un usuario.
-    static int obtenerPuntosUsuario(
-        const QString &usuario
-        );
-
-    static int obtenerMonedasUsuario(const QString &usuario);
-    static bool comprarSkin(const QString &usuario,
-                            const QString &skin,
-                            int precio);
-    static bool equiparSkin(const QString &usuario,
-                            const QString &skin);
-    static bool tieneSkin(const QString &usuario,
-                          const QString &skin);
-    static QString obtenerSkinEquipada(const QString &usuario);
-
-    static bool tutorialCompletado(const QString &usuario);
-    static bool marcarTutorialCompletado(const QString &usuario);
-    static int obtenerNivelHistoria(const QString &usuario);
-    static bool marcarNivelHistoriaCompletado(const QString &usuario,
-                                              int nivel);
-
-    // Reemplaza la contraseña y conserva los puntos.
-    static bool cambiarContrasena(
-        const QString &usuario,
-        const QString &contrasenaNueva
-        );
-
-    // Devuelve los usuarios con mayor puntuación.
-    static QVector<DatoRanking> obtenerRanking(
-        int limite = 5
-        );
-
-    // Guarda una nueva cuenta.
-    static ResultadoRegistro registrarUsuario(
-        const QString &usuario,
-        const QString &contrasena
-        );
-
-    // Crea o actualiza la cuenta local de pruebas del administrador.
-    static bool asegurarCuentaAdmin();
-
+    using Respuesta = std::function<void(bool, const QString &)>;
+    struct DatoRanking { QString usuario; int puntos; };
+    static GestorUsuarios &instancia();
+    static QString nombreActual();
+    static bool sesionActiva();
+    static bool pendientes();
+    static void reintentar();
+    static bool cerrarSesion();
+    static void registrarUsuario(const QString &, const QString &, QObject *, Respuesta);
+    static void iniciarSesion(const QString &, const QString &, QObject *, Respuesta);
+    static void cambiarContrasena(const QString &, const QString &, const QString &, QObject *, Respuesta);
+    static void obtenerRanking(int, QObject *, std::function<void(bool, const QString &, QVector<DatoRanking>)>);
+    static int obtenerPuntosUsuario(const QString &);
+    static int obtenerMonedasUsuario(const QString &);
+    static bool tieneSkin(const QString &, const QString &);
+    static QString obtenerSkinEquipada(const QString &);
+    static bool tutorialCompletado(const QString &);
+    static int obtenerNivelHistoria(const QString &);
+    static QJsonObject perfil(const QString &);
+    static bool registrarPuntajePartida(const QString &, int, int = 0);
+    static bool comprarSkin(const QString &, const QString &, int);
+    static bool equiparSkin(const QString &, const QString &);
+    static bool marcarTutorialCompletado(const QString &);
+    static bool marcarNivelHistoriaCompletado(const QString &, int);
+    static bool guardarPreferencias(const QString &, const QJsonObject &);
+signals:
+    void perfilActualizado();
+    void pendientesCambiaron();
+    void errorGuardado(const QString &mensaje);
 private:
-    // Devuelve la ubicación del archivo usuarios.txt.
-    static QString obtenerRutaArchivo();
+    explicit GestorUsuarios(QObject *parent);
+    struct Trabajo { QByteArray metodo; QString ruta; QJsonObject cuerpo; };
+    static bool encolar(const QString &, const QString &, const QJsonObject &, const QByteArray & = "POST");
+    void procesar();
+    void conToken(std::function<void(bool, QString)>);
+    bool adoptarSesion(const QJsonObject &);
+    QString m_token, m_refresh, m_id, m_correo;
+    qint64 m_expira = 0;
+    QJsonObject m_perfil;
+    std::deque<Trabajo> m_cola;
+    bool m_procesando = false, m_fallido = false, m_autenticando = false;
+    quint64 m_generacion = 0;
 };
-
-#endif // GESTORUSUARIOS_H
+#endif

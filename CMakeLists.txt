@@ -9,7 +9,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets Multimedia)
+find_package(Qt6 REQUIRED COMPONENTS Widgets Multimedia Network)
 
 add_executable(Snake
     main.cpp
@@ -70,10 +70,28 @@ add_executable(Snake
     skins.h
     validarcuenta.h
     validarcuenta.cpp
+    supabaseclient.h
+    supabaseclient.cpp
     recursos.qrc
 )
 
-target_link_libraries(Snake PRIVATE Qt6::Widgets Qt6::Multimedia)
+target_link_libraries(Snake PRIVATE Qt6::Widgets Qt6::Multimedia Qt6::Network)
+
+include(CTest)
+if(BUILD_TESTING)
+    find_package(Qt6 REQUIRED COMPONENTS Test)
+    add_executable(test_validacion tests/test_validacion.cpp validarcuenta.cpp)
+    target_include_directories(test_validacion PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(test_validacion PRIVATE Qt6::Core)
+    add_test(NAME validacion COMMAND test_validacion)
+    foreach(nombre IN ITEMS supabaseclient gestorusuarios)
+        add_executable(test_${nombre} tests/test_${nombre}.cpp supabaseclient.cpp)
+        target_include_directories(test_${nombre} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+        target_link_libraries(test_${nombre} PRIVATE Qt6::Test Qt6::Network)
+        add_test(NAME ${nombre} COMMAND test_${nombre})
+    endforeach()
+    target_sources(test_gestorusuarios PRIVATE gestorusuarios.cpp gestorconfiguracion.cpp)
+endif()
 
 # Algunos assets exportados desde Canva son WebP aunque conserven una
 # extensión .png. Copiar el plugin oficial evita que desaparezcan al ejecutar

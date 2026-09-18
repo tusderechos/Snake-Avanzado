@@ -138,7 +138,7 @@ void EscenaRegistro::construirInterfaz()
     // CAMPO USUARIO
     // =====================================================
 
-    crearTitulo("USUARIO", 205, 225, 300, estiloTitulo);
+    crearTitulo("USUARIO", 205, 190, 300, estiloTitulo);
 
     campoUsuario = new QLineEdit;
     campoUsuario->setFixedSize(520, 68);
@@ -148,32 +148,33 @@ void EscenaRegistro::construirInterfaz()
 
     QGraphicsProxyWidget *proxyUsuario = addWidget(campoUsuario);
 
-    proxyUsuario->setPos(205, 270);
+    proxyUsuario->setPos(205, 230);
     proxyUsuario->setZValue(2);
 
     // =====================================================
     // CAMPO CONTRASEÑA
     // =====================================================
 
-    crearTitulo("CONTRASEÑA", 205, 370, 300, estiloTitulo);
+
+    crearTitulo("CONTRASEÑA", 205, 320, 300, estiloTitulo);
 
     campoContrasena = new QLineEdit;
     campoContrasena->setFixedSize(520, 68);
     campoContrasena->setMaxLength(8);
     campoContrasena->setEchoMode(QLineEdit::Password);
-    campoContrasena->setPlaceholderText("Entre 5 y 8 caracteres");
+    campoContrasena->setPlaceholderText("Entre 6 y 8 caracteres");
     campoContrasena->setStyleSheet(estiloCampo);
 
     QGraphicsProxyWidget *proxyContrasena = addWidget(campoContrasena);
 
-    proxyContrasena->setPos(205, 415);
+    proxyContrasena->setPos(205, 365);
     proxyContrasena->setZValue(2);
 
     // =====================================================
     // CAMPO CONFIRMACIÓN
     // =====================================================
 
-    crearTitulo("CONFIRMAR CONTRASEÑA", 205, 515, 360, estiloTitulo);
+    crearTitulo("CONFIRMAR CONTRASEÑA", 205, 455, 360, estiloTitulo);
 
     campoConfirmacion = new QLineEdit;
     campoConfirmacion->setFixedSize(520, 68);
@@ -184,7 +185,7 @@ void EscenaRegistro::construirInterfaz()
 
     QGraphicsProxyWidget *proxyConfirmacion = addWidget(campoConfirmacion);
 
-    proxyConfirmacion->setPos(205, 560);
+    proxyConfirmacion->setPos(205, 500);
     proxyConfirmacion->setZValue(2);
 
     botonMostrarContrasenas =
@@ -199,7 +200,7 @@ void EscenaRegistro::construirInterfaz()
     QGraphicsProxyWidget *proxyMostrar =
         addWidget(botonMostrarContrasenas);
 
-    proxyMostrar->setPos(540, 365);
+    proxyMostrar->setPos(540, 315);
     proxyMostrar->setZValue(2);
 
     // =====================================================
@@ -297,7 +298,7 @@ void EscenaRegistro::construirInterfaz()
     botonCrearCuenta->setFixedSize(350, 72);
     botonCrearCuenta->setStyleSheet(estiloBoton);
     botonCrearCuenta->setCursor(Qt::PointingHandCursor);
-    botonCrearCuenta->setEnabled(false);
+    botonCrearCuenta->setEnabled(true);
 
     QGraphicsProxyWidget *proxyCrear = addWidget(botonCrearCuenta);
 
@@ -307,6 +308,7 @@ void EscenaRegistro::construirInterfaz()
     // =====================================================
     // CONEXIONES
     // =====================================================
+
 
     connect(campoUsuario, &QLineEdit::textChanged, this, &EscenaRegistro::actualizarValidaciones);
 
@@ -398,7 +400,7 @@ void EscenaRegistro::actualizarValidaciones()
 
     actualizarIndicador(requisitoLongitud,
                         ValidarCuenta::longitudValida(contrasena),
-                        "Entre 5 y 8 caracteres");
+                        "Entre 6 y 8 caracteres");
 
     actualizarIndicador(requisitoMayuscula,
                         ValidarCuenta::contieneMayuscula(contrasena),
@@ -421,7 +423,7 @@ void EscenaRegistro::actualizarValidaciones()
 
     actualizarIndicador(requisitoCoincidencia, coinciden, "Las contraseñas coinciden");
 
-    botonCrearCuenta->setEnabled(formularioCompleto());
+    botonCrearCuenta->setEnabled(!solicitudPendiente);
 
     if (!usuario.isEmpty() && !ValidarCuenta::usuarioValido(usuario)) {
         mensajeEstado->setText("Usuario inválido: use entre 3 y 15 "
@@ -447,69 +449,45 @@ bool EscenaRegistro::formularioCompleto() const
 
 void EscenaRegistro::intentarCrearCuenta()
 {
-    if (!formularioCompleto()) {
-        Dialogos::mostrar(QApplication::activeWindow(),
-                           QMessageBox::Warning,
-                             "Aviso",
-                             "Revise los datos y cumpla todos "
-                             "los requisitos.");
-
+    if (solicitudPendiente) return;
+    QString error;
+    if (!ValidarCuenta::usuarioValido(campoUsuario->text()))
+        error = "El usuario debe tener entre 3 y 15 letras, números o guiones bajos.";
+    else if (!ValidarCuenta::contrasenaValida(campoContrasena->text()))
+        error = ValidarCuenta::errorContrasena(campoContrasena->text());
+    else if (!ValidarCuenta::contrasenasCoinciden(campoContrasena->text(), campoConfirmacion->text()))
+        error = "Las contraseñas no coinciden.";
+    if (!error.isEmpty()) {
+        mensajeEstado->setText(error);
+        Dialogos::mostrar(QApplication::activeWindow(), QMessageBox::Warning, "Revise los datos", error);
         return;
     }
-
-    GestorUsuarios::ResultadoRegistro resultado
-        = GestorUsuarios::registrarUsuario(campoUsuario->text(), campoContrasena->text());
-
-    switch (resultado) {
-    case GestorUsuarios::ResultadoRegistro::Exito: {
-        // Guardar temporalmente el nombre antes
-        // de limpiar los campos.
-        QString usuarioCreado = campoUsuario->text();
-
+    solicitudPendiente = true;
+    botonCrearCuenta->setEnabled(false);
+    botonVolver->setEnabled(false);
+    campoUsuario->setEnabled(false);
+    campoContrasena->setEnabled(false);
+    campoConfirmacion->setEnabled(false);
+    mensajeEstado->setText("Creando cuenta...");
+    GestorUsuarios::registrarUsuario(campoUsuario->text(),
+        campoContrasena->text(), this, [this](bool exito, const QString &mensaje) {
+        solicitudPendiente = false;
+        botonCrearCuenta->setEnabled(true);
+        botonVolver->setEnabled(true);
+        campoUsuario->setEnabled(true);
+        campoContrasena->setEnabled(true);
+        campoConfirmacion->setEnabled(true);
+        mensajeEstado->setText(mensaje);
         Dialogos::mostrar(QApplication::activeWindow(),
-                          QMessageBox::Information,
-                                 "Cuenta creada",
-                                 "La cuenta fue creada correctamente. "
-                                 "Bienvenido, "
-                                     + usuarioCreado + ".");
-
+            exito ? QMessageBox::Information : QMessageBox::Warning,
+            exito ? "Cuenta creada" : "No se pudo crear la cuenta", mensaje);
+        if (!exito) return;
         campoUsuario->clear();
         campoContrasena->clear();
         campoConfirmacion->clear();
         campoContrasena->setEchoMode(QLineEdit::Password);
         campoConfirmacion->setEchoMode(QLineEdit::Password);
         botonMostrarContrasenas->setText("MOSTRAR");
-
-        // MainWindow recibirá esta señal y abrirá
-        // directamente el menú principal.
-        emit cuentaCreada(usuarioCreado);
-
-        break;
-    }
-
-    case GestorUsuarios::ResultadoRegistro::UsuarioDuplicado:
-
-        mensajeEstado->setText("Ese nombre de usuario ya está registrado");
-
-        Dialogos::mostrar(QApplication::activeWindow(),
-                          QMessageBox::Warning,
-                             "Usuario duplicado",
-                             "Ese nombre de usuario ya existe. "
-                             "Escriba uno diferente.");
-
-        campoUsuario->setFocus();
-        campoUsuario->selectAll();
-        break;
-
-    case GestorUsuarios::ResultadoRegistro::ErrorArchivo:
-
-        mensajeEstado->setText("No se pudo guardar la cuenta");
-
-        Dialogos::mostrar(QApplication::activeWindow(),
-                          QMessageBox::Critical,
-                              "Error",
-                              "No se pudo abrir o escribir "
-                              "el archivo de usuarios.");
-        break;
-    }
+        emit volverSolicitado();
+    });
 }
