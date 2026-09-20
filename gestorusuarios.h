@@ -26,6 +26,7 @@ public:
     static int obtenerMonedasUsuario(const QString &);
     static bool tieneSkin(const QString &, const QString &);
     static QString obtenerSkinEquipada(const QString &);
+    static QString obtenerAvatar(const QString &);
     static bool tutorialCompletado(const QString &);
     static int obtenerNivelHistoria(const QString &);
     static QJsonObject perfil(const QString &);
@@ -35,6 +36,7 @@ public:
     static bool marcarTutorialCompletado(const QString &);
     static bool marcarNivelHistoriaCompletado(const QString &, int);
     static bool guardarPreferencias(const QString &, const QJsonObject &);
+    static bool guardarAvatar(const QString &, const QString &);
 signals:
     void perfilActualizado();
     void pendientesCambiaron();

@@ -16,6 +16,7 @@
 #include "gestorconfiguracion.h"
 #include "audio.h"
 #include "dialogos.h"
+#include "manualusuario.h"
 
 #include <QCursor>
 #include <QCloseEvent>
@@ -52,6 +53,7 @@ MainWindow::MainWindow(QWidget *parent)
     , escenaControles(nullptr)
     , escenaTienda(nullptr)
     , menuJuego(nullptr)
+    , manualUsuario(nullptr)
 {
     ui->setupUi(this);
     AudioManager::instancia().inicializar();
@@ -131,6 +133,13 @@ MainWindow::MainWindow(QWidget *parent)
     connect(
         escenaInicioSesion,
         &InicioSesion::sesionIniciada,
+        this,
+        &MainWindow::mostrarMenuPrincipal
+        );
+
+    connect(
+        escenaRegistro,
+        &EscenaRegistro::cuentaCreada,
         this,
         &MainWindow::mostrarMenuPrincipal
         );
@@ -217,6 +226,13 @@ MainWindow::MainWindow(QWidget *parent)
         &MenuPrincipal::salirSolicitado,
         this,
         &MainWindow::cerrarSesion
+        );
+
+    connect(
+        escenaMenuPrincipal,
+        &MenuPrincipal::manualSolicitado,
+        this,
+        &MainWindow::mostrarManual
         );
 
     connect(&GestorUsuarios::instancia(), &GestorUsuarios::errorGuardado,
@@ -522,10 +538,39 @@ void MainWindow::construirMenuInicio()
         this,
         &MainWindow::mostrarInicioSesion
         );
+
+    botonManualInicio = new QPushButton("?", nullptr);
+    botonManualInicio->setFixedSize(82, 82);
+    botonManualInicio->setCursor(Qt::PointingHandCursor);
+    botonManualInicio->setToolTip("Manual de usuario");
+    botonManualInicio->setStyleSheet("QPushButton { background: rgba(48,132,24,235); color: white; border: 4px solid #68dd3e; border-radius: 10px; font: bold 42px 'Fredoka'; } QPushButton:hover { background: #4cae22; border-color: #f4d06f; }");
+    auto *proxyManual = escenaInicio->addWidget(botonManualInicio);
+    proxyManual->setZValue(4);
+    const QRectF limitesInicio = escenaInicio->sceneRect();
+    proxyManual->setPos(limitesInicio.right() - botonManualInicio->width() - 28,
+                        limitesInicio.bottom() - botonManualInicio->height() - 28);
+    connect(botonManualInicio, &QPushButton::clicked, this, &MainWindow::mostrarManual);
+}
+
+void MainWindow::mostrarManual()
+{
+    if (manualUsuario != nullptr) return;
+    manualUsuario = new ManualUsuario();
+    manualUsuario->setAttribute(Qt::WA_DeleteOnClose);
+    connect(manualUsuario, &QObject::destroyed, this, [this]() {
+        manualUsuario = nullptr;
+        show();
+    });
+    hide();
+    manualUsuario->show();
+    manualUsuario->raise();
+    manualUsuario->activateWindow();
 }
 
 void MainWindow::mostrarRegistro()
 {
+    botonManualInicio->setVisible(false);
+    escenaMenuPrincipal->establecerManualVisible(false);
     AudioManager::instancia().reproducirMenu();
     ui->graphicsView->setScene(
         escenaRegistro
@@ -536,6 +581,8 @@ void MainWindow::mostrarRegistro()
 
 void MainWindow::mostrarInicioSesion()
 {
+    botonManualInicio->setVisible(false);
+    escenaMenuPrincipal->establecerManualVisible(false);
     AudioManager::instancia().reproducirMenu();
     ui->graphicsView->setScene(
         escenaInicioSesion
@@ -545,6 +592,8 @@ void MainWindow::mostrarInicioSesion()
 
 void MainWindow::mostrarMenuInicio()
 {
+    botonManualInicio->setVisible(true);
+    escenaMenuPrincipal->establecerManualVisible(false);
     AudioManager::instancia().reproducirMenu();
     ui->graphicsView->setScene(
         escenaInicio
@@ -557,6 +606,8 @@ void MainWindow::mostrarMenuPrincipal(
     const QString &usuario
     )
 {
+    botonManualInicio->setVisible(false);
+    escenaMenuPrincipal->establecerManualVisible(true);
     usuarioActual = usuario;
     int volumenMusica = 75;
     int volumenSonido = 75;
@@ -575,6 +626,7 @@ void MainWindow::mostrarMenuPrincipal(
 
 void MainWindow::mostrarRanking()
 {
+    escenaMenuPrincipal->establecerManualVisible(false);
     AudioManager::instancia().reproducirMenu();
     escenaRanking->actualizarRanking();
 
@@ -587,6 +639,7 @@ void MainWindow::mostrarRanking()
 
 void MainWindow::mostrarAjustes()
 {
+    escenaMenuPrincipal->establecerManualVisible(false);
     AudioManager::instancia().reproducirMenu();
     escenaAjustes->establecerUsuario(
         usuarioActual
@@ -601,6 +654,7 @@ void MainWindow::mostrarAjustes()
 
 void MainWindow::mostrarPerfil()
 {
+    escenaMenuPrincipal->establecerManualVisible(false);
     escenaAjustes->confirmarCambios();
     AudioManager::instancia().reproducirMenu();
     escenaPerfil->establecerUsuario(
@@ -616,6 +670,7 @@ void MainWindow::mostrarPerfil()
 
 void MainWindow::mostrarControles()
 {
+    escenaMenuPrincipal->establecerManualVisible(false);
     escenaAjustes->confirmarCambios();
     AudioManager::instancia().reproducirMenu();
     escenaControles->establecerUsuario(
@@ -631,6 +686,7 @@ void MainWindow::mostrarControles()
 
 void MainWindow::mostrarTienda()
 {
+    escenaMenuPrincipal->establecerManualVisible(false);
     AudioManager::instancia().reproducirTienda();
     escenaTienda->establecerUsuario(usuarioActual);
     ui->graphicsView->setScene(
@@ -656,6 +712,8 @@ void MainWindow::cerrarSesion()
 
 void MainWindow::regresarMenuPrincipal()
 {
+    botonManualInicio->setVisible(false);
+    escenaMenuPrincipal->establecerManualVisible(true);
     escenaAjustes->confirmarCambios();
     AudioManager::instancia().reproducirMenu();
     ui->graphicsView->setScene(
@@ -667,6 +725,8 @@ void MainWindow::regresarMenuPrincipal()
 
 void MainWindow::mostrarMenuJuego()
 {
+    botonManualInicio->setVisible(false);
+    escenaMenuPrincipal->establecerManualVisible(false);
     AudioManager::instancia().reproducirMenu();
     if (menuJuego != nullptr)
     {
@@ -772,34 +832,81 @@ void MainWindow::iniciarModoJuego(ModoJuego modo)
             return;
         }
 
-        bool aceptado = false;
-        nivelInicial = QInputDialog::getInt(
-            menuJuego,
-            "Modo Libre",
-            "Elegí el nivel inicial:",
-            nivelMaximo,
-            1,
-            nivelMaximo,
-            1,
-            &aceptado
-            );
-
-        if (!aceptado)
-        {
+        QDialog dialogo(menuJuego);
+        dialogo.setWindowTitle("Modo Libre");
+        dialogo.setFixedSize(430, 270);
+        dialogo.setStyleSheet(
+            "QDialog { background: #102214; color: #fff9df; }"
+            "QLabel#titulo { color: #f4d06f; font: bold 25px 'Fredoka'; }"
+            "QLabel#descripcion { color: #d7e5cd; font-size: 15px; }"
+            "QSpinBox { background: #071307; color: white; border: 2px solid #d2a93b;"
+            " border-radius: 8px; padding: 8px; font-size: 22px; }"
+            "QDialogButtonBox QPushButton { background: #2f8618; color: white; border: 2px solid #68dd3e;"
+            " border-radius: 8px; padding: 8px 24px; font-weight: bold; }"
+            "QDialogButtonBox QPushButton:hover { border-color: #f4d06f; }");
+        auto *layout = new QVBoxLayout(&dialogo);
+        layout->setContentsMargins(28, 22, 28, 22);
+        auto *titulo = new QLabel("ELEGÍ TU NIVEL", &dialogo);
+        titulo->setObjectName("titulo");
+        titulo->setAlignment(Qt::AlignCenter);
+        layout->addWidget(titulo);
+        auto *descripcion = new QLabel(
+            QString("Podés comenzar en cualquiera de tus niveles desbloqueados.\n\nDesbloqueados: 1 - %1").arg(nivelMaximo),
+            &dialogo);
+        descripcion->setObjectName("descripcion");
+        descripcion->setAlignment(Qt::AlignCenter);
+        descripcion->setWordWrap(true);
+        layout->addWidget(descripcion);
+        auto *nivel = new QSpinBox(&dialogo);
+        nivel->setRange(1, nivelMaximo);
+        nivel->setValue(nivelMaximo);
+        layout->addWidget(nivel);
+        auto *botones = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, &dialogo);
+        botones->button(QDialogButtonBox::Ok)->setText("JUGAR");
+        botones->button(QDialogButtonBox::Cancel)->setText("VOLVER");
+        layout->addWidget(botones);
+        connect(botones, &QDialogButtonBox::accepted, &dialogo, &QDialog::accept);
+        connect(botones, &QDialogButtonBox::rejected, &dialogo, &QDialog::reject);
+        if (dialogo.exec() != QDialog::Accepted) {
             return;
         }
+        nivelInicial = nivel->value();
 
         configuracion.progresionAutomatica = false;
     }
     else if (modo == ModoJuego::Aleatorio)
     {
         QDialog dialogo(menuJuego);
-        dialogo.setWindowTitle("Configuración aleatoria");
+        dialogo.setWindowTitle("Modo Aleatorio");
+        dialogo.setFixedSize(480, 540);
         dialogo.setStyleSheet(
-            "QDialog { background: #0d121a; color: #ebf0f5; }"
-            );
+            "QDialog { background: #102214; color: #fff9df; }"
+            "QLabel#titulo { color: #f4d06f; font: bold 25px 'Fredoka'; }"
+            "QLabel#descripcion { color: #d7e5cd; font-size: 14px; }"
+            "QFrame#panel { background: rgba(7, 19, 7, 220); border: 2px solid #806c36; border-radius: 12px; }"
+            "QLabel { color: #fff9df; }"
+            "QSpinBox { background: #071307; color: white; border: 2px solid #d2a93b; border-radius: 7px; padding: 5px; }"
+            "QCheckBox { spacing: 10px; padding: 6px; font-size: 15px; }"
+            "QCheckBox::indicator { width: 20px; height: 20px; border: 2px solid #68dd3e; border-radius: 5px; background: #071307; }"
+            "QCheckBox::indicator:checked { background: #68dd3e; }"
+            "QDialogButtonBox QPushButton { background: #2f8618; color: white; border: 2px solid #68dd3e; border-radius: 8px; padding: 8px 24px; font-weight: bold; }");
 
-        auto *formulario = new QFormLayout(&dialogo);
+        auto *contenedor = new QVBoxLayout(&dialogo);
+        contenedor->setContentsMargins(24, 20, 24, 20);
+        auto *titulo = new QLabel("MODO ALEATORIO", &dialogo);
+        titulo->setObjectName("titulo");
+        titulo->setAlignment(Qt::AlignCenter);
+        contenedor->addWidget(titulo);
+        auto *descripcion = new QLabel("Personalizá los elementos y el caos de esta partida.", &dialogo);
+        descripcion->setObjectName("descripcion");
+        descripcion->setAlignment(Qt::AlignCenter);
+        contenedor->addWidget(descripcion);
+
+        auto *panel = new QFrame(&dialogo);
+        panel->setObjectName("panel");
+        auto *formulario = new QFormLayout(panel);
+        formulario->setContentsMargins(22, 18, 22, 18);
+        formulario->setVerticalSpacing(8);
         auto *nivel = new QSpinBox(&dialogo);
         nivel->setRange(1, 3);
         nivel->setValue(3);
@@ -822,11 +929,14 @@ void MainWindow::iniciarModoJuego(ModoJuego modo)
         formulario->addRow(moviles);
         formulario->addRow(azar);
 
+        contenedor->addWidget(panel);
         auto *botones = new QDialogButtonBox(
             QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
             &dialogo
             );
-        formulario->addRow(botones);
+        botones->button(QDialogButtonBox::Ok)->setText("COMENZAR");
+        botones->button(QDialogButtonBox::Cancel)->setText("VOLVER");
+        contenedor->addWidget(botones);
 
         connect(
             botones,
@@ -900,8 +1010,17 @@ MainWindow::~MainWindow()
 }
 void MainWindow::mostrarErrorGuardado(const QString &mensaje)
 {
+    const QString mensajeNormalizado = mensaje.toLower();
+    if (mensajeNormalizado.contains("tablas")
+        && mensajeNormalizado.contains("columnas")) {
+        // Es un detalle de configuración del backend, no un error accionable
+        // para quien está navegando por el juego. Se registra sin interrumpir.
+        qWarning() << "Configuración de Supabase incompleta:" << mensaje;
+        return;
+    }
     if (avisoGuardado) {
         avisoGuardado->setText(mensaje);
+        Dialogos::aplicarEstilo(*avisoGuardado);
         avisoGuardado->raise();
         return;
     }

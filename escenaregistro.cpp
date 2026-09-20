@@ -469,8 +469,10 @@ void EscenaRegistro::intentarCrearCuenta()
     campoContrasena->setEnabled(false);
     campoConfirmacion->setEnabled(false);
     mensajeEstado->setText("Creando cuenta...");
-    GestorUsuarios::registrarUsuario(campoUsuario->text(),
-        campoContrasena->text(), this, [this](bool exito, const QString &mensaje) {
+    const QString usuarioCreado = campoUsuario->text().trimmed();
+    const QString contrasenaCreada = campoContrasena->text();
+    GestorUsuarios::registrarUsuario(usuarioCreado,
+        contrasenaCreada, this, [this, usuarioCreado, contrasenaCreada](bool exito, const QString &mensaje) {
         solicitudPendiente = false;
         botonCrearCuenta->setEnabled(true);
         botonVolver->setEnabled(true);
@@ -478,16 +480,24 @@ void EscenaRegistro::intentarCrearCuenta()
         campoContrasena->setEnabled(true);
         campoConfirmacion->setEnabled(true);
         mensajeEstado->setText(mensaje);
-        Dialogos::mostrar(QApplication::activeWindow(),
-            exito ? QMessageBox::Information : QMessageBox::Warning,
-            exito ? "Cuenta creada" : "No se pudo crear la cuenta", mensaje);
         if (!exito) return;
-        campoUsuario->clear();
-        campoContrasena->clear();
-        campoConfirmacion->clear();
-        campoContrasena->setEchoMode(QLineEdit::Password);
-        campoConfirmacion->setEchoMode(QLineEdit::Password);
-        botonMostrarContrasenas->setText("MOSTRAR");
-        emit volverSolicitado();
+        mensajeEstado->setText("Cuenta creada. Iniciando sesión...");
+        GestorUsuarios::iniciarSesion(usuarioCreado, contrasenaCreada, this,
+            [this, usuarioCreado](bool inicioCorrecto, const QString &errorInicio) {
+            if (!inicioCorrecto) {
+                Dialogos::mostrar(QApplication::activeWindow(), QMessageBox::Warning,
+                                  "Cuenta creada", "La cuenta se creó, pero no se pudo iniciar sesión automáticamente.\n\n" + errorInicio);
+                return;
+            }
+            Dialogos::mostrar(QApplication::activeWindow(), QMessageBox::Information,
+                              "Cuenta creada", "Cuenta creada correctamente. Bienvenido, " + usuarioCreado + ".");
+            campoUsuario->clear();
+            campoContrasena->clear();
+            campoConfirmacion->clear();
+            campoContrasena->setEchoMode(QLineEdit::Password);
+            campoConfirmacion->setEchoMode(QLineEdit::Password);
+            botonMostrarContrasenas->setText("MOSTRAR");
+            emit cuentaCreada(usuarioCreado);
+        });
     });
 }

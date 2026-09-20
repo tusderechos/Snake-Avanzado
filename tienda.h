@@ -7,6 +7,8 @@
 
 class QLabel;
 class QPushButton;
+class QWidget;
+class QGraphicsProxyWidget;
 
 class Tienda : public QGraphicsScene
 {
@@ -25,6 +27,7 @@ private:
         int precio;
         QPushButton *boton = nullptr;
         QLabel *estado = nullptr;
+        QGraphicsProxyWidget *proxy = nullptr;
     };
 
     void construirInterfaz();

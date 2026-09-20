@@ -67,6 +67,8 @@ add_executable(Snake
     tienda.h
     tienda.cpp
     dialogos.h
+    manualusuario.h
+    manualusuario.cpp
     skins.h
     validarcuenta.h
     validarcuenta.cpp
@@ -111,8 +113,20 @@ endif()
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     target_compile_options(Snake PRIVATE -Wall -Wextra -Wpedantic)
+    # Optimizaciones de distribución: reducen trabajo del ejecutable sin
+    # cambiar la lógica del juego ni sacrificar la depuración en Debug.
+    target_compile_options(Snake PRIVATE
+        $<$<CONFIG:Release>:-O2;-DNDEBUG>
+        $<$<CONFIG:MinSizeRel>:-Os;-DNDEBUG>
+    )
 elseif (MSVC)
     target_compile_options(Snake PRIVATE /W4)
+    target_compile_options(Snake PRIVATE
+        $<$<CONFIG:Release>:/O2>
+        $<$<CONFIG:MinSizeRel>:/O1>
+        $<$<CONFIG:Release>:/DNDEBUG>
+        $<$<CONFIG:MinSizeRel>:/DNDEBUG>
+    )
 endif()
 
 include(GNUInstallDirs)

@@ -4,6 +4,7 @@
 #include "validarcuenta.h"
 
 #include <QApplication>
+#include <QGraphicsEllipseItem>
 #include <QGraphicsPixmapItem>
 #include <QGraphicsProxyWidget>
 #include <QGraphicsRectItem>
@@ -20,12 +21,16 @@ Perfil::Perfil(QObject *parent)
     , etiquetaInicial(nullptr)
     , etiquetaUsuario(nullptr)
     , etiquetaPuntos(nullptr)
+    , etiquetaAvatar(nullptr)
+    , nombreAvatar(nullptr)
     , mensajeEstado(nullptr)
     , campoContrasenaActual(nullptr)
     , campoContrasenaNueva(nullptr)
     , campoConfirmacion(nullptr)
     , botonMostrarContrasenas(nullptr)
 {
+    avatares = {"clasica", "gato", "dragon", "burro", "spiderman", "miles", "personaje", "thanos"};
+    nombresAvatares = {"Clásica", "Gato", "Dragón", "Burro", "Spider-Man", "Miles", "Farquaad", "Thanos"};
     setSceneRect(0, 0, 1254, 1254);
     construirInterfaz();
 }
@@ -139,16 +144,20 @@ void Perfil::construirInterfaz()
         "}"
         );
 
-    etiquetaInicial = crearEtiqueta(
-        "?", 235, 205, 155, 155, 64
+    auto *fondoAvatar = addEllipse(
+        235, 190, 155, 155,
+        QPen(QColor("#d2a93b"), 4),
+        QBrush(QColor(46, 126, 24, 235))
         );
+    fondoAvatar->setZValue(1);
+
+    etiquetaInicial = crearEtiqueta("", 235, 190, 155, 155, 64);
 
     etiquetaInicial->setStyleSheet(
         "QLabel {"
-        "   background-color: rgba(46, 126, 24, 235);"
+        "   background: transparent;"
         "   color: white;"
-        "   border: 4px solid #d2a93b;"
-        "   border-radius: 76px;"
+        "   border: none;"
         "   font-family: 'Fredoka';"
         "   font-size: 64px;"
         "   font-weight: bold;"
@@ -172,6 +181,24 @@ void Perfil::construirInterfaz()
     etiquetaPuntos = crearEtiqueta(
         "0", 600, 310, 200, 52, 27
         );
+
+    avatarAnterior = new QPushButton("‹");
+    avatarAnterior->setFixedSize(48, 44);
+    avatarSiguiente = new QPushButton("›");
+    avatarSiguiente->setFixedSize(48, 44);
+    nombreAvatar = crearEtiqueta("Clásica", 235, 350, 155, 42, 20);
+    nombreAvatar->setStyleSheet("QLabel { background: transparent; color: #f4d06f; border: none; font-size: 20px; font-weight: bold; }");
+    const QString estiloAvatarBoton = "QPushButton { background: rgba(48,132,24,235); color: white; border: 2px solid #68dd3e; border-radius: 8px; font: bold 21px 'Fredoka'; padding: 0px; } QPushButton:hover { border-color: #f4d06f; }";
+    avatarAnterior->setStyleSheet(estiloAvatarBoton);
+    avatarSiguiente->setStyleSheet(estiloAvatarBoton);
+    auto *proxyAvatarAnterior = addWidget(avatarAnterior);
+    proxyAvatarAnterior->setPos(177, 350);
+    proxyAvatarAnterior->setZValue(2);
+    auto *proxyAvatarSiguiente = addWidget(avatarSiguiente);
+    proxyAvatarSiguiente->setPos(400, 350);
+    proxyAvatarSiguiente->setZValue(2);
+    connect(avatarAnterior, &QPushButton::clicked, this, [this]() { cambiarAvatar(-1); });
+    connect(avatarSiguiente, &QPushButton::clicked, this, [this]() { cambiarAvatar(1); });
 
     QLabel *seccion = crearEtiqueta(
         "CAMBIAR CONTRASEÑA", 235, 410, 500, 58, 27
@@ -318,6 +345,8 @@ void Perfil::construirInterfaz()
         this,
         &Perfil::volverSolicitado
         );
+
+    actualizarAvatar();
 }
 
 void Perfil::establecerUsuario(
@@ -326,14 +355,8 @@ void Perfil::establecerUsuario(
 {
     usuarioActual = usuario;
 
-    QString inicial = "?";
-
-    if (!usuarioActual.isEmpty())
-    {
-        inicial = usuarioActual.left(1).toUpper();
-    }
-
-    etiquetaInicial->setText(inicial);
+    avatarActual = qMax(0, avatares.indexOf(GestorUsuarios::obtenerAvatar(usuarioActual)));
+    actualizarAvatar();
     etiquetaUsuario->setText(usuarioActual);
     etiquetaPuntos->setText(
         QString::number(
@@ -353,6 +376,30 @@ void Perfil::establecerUsuario(
     mensajeEstado->setText(
         "Escriba los datos para cambiar la contraseña"
         );
+}
+
+void Perfil::actualizarAvatar()
+{
+    if (etiquetaInicial == nullptr || avatares.isEmpty()) return;
+    avatarActual = (avatarActual + avatares.size()) % avatares.size();
+    const QString ruta = ":/assets/" + (avatarActual == 0 ? QString("cabeza_snake.png") : QString("skin_%1.png").arg(avatares.at(avatarActual)));
+    const QPixmap avatar(ruta);
+    if (avatar.isNull()) {
+        etiquetaInicial->setPixmap(QPixmap());
+        etiquetaInicial->setText("?");
+    } else {
+        etiquetaInicial->setText(QString());
+        etiquetaInicial->setPixmap(avatar.scaled(135, 135, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    }
+    nombreAvatar->setText(nombresAvatares.value(avatarActual));
+}
+
+void Perfil::cambiarAvatar(int paso)
+{
+    if (usuarioActual.isEmpty()) return;
+    avatarActual = (avatarActual + paso + avatares.size()) % avatares.size();
+    actualizarAvatar();
+    GestorUsuarios::guardarAvatar(usuarioActual, avatares.at(avatarActual));
 }
 
 void Perfil::alternarVisibilidadContrasenas()

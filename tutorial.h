@@ -2,7 +2,10 @@
 #define TUTORIAL_H
 
 #include <QGraphicsView>
+#include <QHash>
+#include <QList>
 #include <QPoint>
+#include <QPointF>
 #include <QString>
 
 #include "fruta.h"
@@ -18,6 +21,7 @@ class QAudioOutput;
 class QVideoSink;
 class QGraphicsPixmapItem;
 class QTimer;
+class QVariantAnimation;
 
 class TutorialView : public QGraphicsView {
 public:
@@ -74,6 +78,8 @@ private:
     QAudioOutput *m_explosionAudio;
     QVideoSink *m_explosionSink;
     QGraphicsPixmapItem *m_explosionItem;
+    QHash<int, QPointF> m_posicionesVisuales;
+    QList<QVariantAnimation *> m_animacionesMovimiento;
     bool m_colisionando;
     bool m_overlayFrutasIniciales;
     bool m_overlayFrutasEspeciales;

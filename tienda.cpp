@@ -16,6 +16,8 @@
 #include <QFont>
 #include "gestorusuarios.h"
 #include "skins.h"
+#include "dialogos.h"
+#include <QMessageBox>
 
 namespace
 {
@@ -146,12 +148,19 @@ void Tienda::construirInterfaz()
         layout->addWidget(boton);
 
         auto *proxy = addWidget(tarjeta);
-        proxy->setPos(285 + (i % 3) * 260, 330 + (i / 3) * 245);
+        // El panel ocupa x=235..1019. Las tres tarjetas caben en 725 px
+        // con 10 px entre ellas, dejando el mismo margen a ambos lados.
+        proxy->setPos(265 + (i % 3) * 245, 330 + (i / 3) * 245);
         proxy->setZValue(2);
 
-        tarjetas.append({nombres[i], precios[i], boton, estado});
+        tarjetas.append({nombres[i], precios[i], boton, estado, proxy});
         connect(boton, &QPushButton::clicked, this, [this, id = nombres[i], precio = precios[i]]() {
             if (GestorUsuarios::pendientes()) return;
+            if (id == "thanos" && GestorUsuarios::obtenerNivelHistoria(usuarioActual) < 3) {
+                Dialogos::mostrar(nullptr, QMessageBox::Information, "Skin bloqueada",
+                                  "Completá los 3 niveles de HISTORIA para desbloquear a Thanos.");
+                return;
+            }
             if (GestorUsuarios::tieneSkin(usuarioActual, id)) {
                 GestorUsuarios::equiparSkin(usuarioActual, id);
             } else {
@@ -195,10 +204,23 @@ void Tienda::actualizarTienda()
 
 void Tienda::actualizarTarjeta(TarjetaSkin &tarjeta)
 {
+    const bool esThanos = tarjeta.id == "thanos";
+    const bool desbloqueadaPorHistoria = GestorUsuarios::obtenerNivelHistoria(usuarioActual) >= 3;
+    if (tarjeta.proxy != nullptr) {
+        tarjeta.proxy->setVisible(!esThanos || desbloqueadaPorHistoria);
+        if (tarjeta.id == "personaje") {
+            tarjeta.proxy->setPos(desbloqueadaPorHistoria ? 265 : 510, 820);
+        } else if (esThanos) {
+            tarjeta.proxy->setPos(510, 820);
+        }
+    }
     const bool comprada = GestorUsuarios::tieneSkin(usuarioActual, tarjeta.id);
     const bool equipada = GestorUsuarios::obtenerSkinEquipada(usuarioActual) == tarjeta.id;
-    tarjeta.estado->setText(equipada ? "EQUIPADA" : comprada ? "DESBLOQUEADA" : QString("%1 monedas").arg(tarjeta.precio));
-    tarjeta.boton->setEnabled(!GestorUsuarios::pendientes() && !usuarioActual.isEmpty() && !equipada && (comprada
+    const bool bloqueada = tarjeta.id == "thanos"
+                        && GestorUsuarios::obtenerNivelHistoria(usuarioActual) < 3;
+    tarjeta.estado->setText(bloqueada ? "BLOQUEADA: HISTORIA 3"
+                       : equipada ? "EQUIPADA" : comprada ? "DESBLOQUEADA" : QString("%1 monedas").arg(tarjeta.precio));
+    tarjeta.boton->setEnabled(!bloqueada && !GestorUsuarios::pendientes() && !usuarioActual.isEmpty() && !equipada && (comprada
                                             || GestorUsuarios::obtenerMonedasUsuario(usuarioActual) >= tarjeta.precio));
-    tarjeta.boton->setText(GestorUsuarios::pendientes() ? "GUARDANDO..." : equipada ? "EQUIPADA" : comprada ? "EQUIPAR" : "COMPRAR");
+    tarjeta.boton->setText(bloqueada ? "BLOQUEADA" : GestorUsuarios::pendientes() ? "GUARDANDO..." : equipada ? "EQUIPADA" : comprada ? "EQUIPAR" : "COMPRAR");
 }

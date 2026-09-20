@@ -151,7 +151,9 @@ QSlider *Ajustes::crearBarraVolumen(
     // visual del handle recorre exactamente el canal oscuro de cada asset.
     barra->setFixedSize(ancho, 82);
     barra->setRange(0, 100);
-    barra->setTracking(false);
+    // El audio responde mientras se arrastra; el guardado permanece protegido
+    // por el debounce de 400 ms.
+    barra->setTracking(true);
     barra->setValue(valorInicial);
     barra->setCursor(Qt::PointingHandCursor);
     barra->setAttribute(Qt::WA_TranslucentBackground);
@@ -249,17 +251,17 @@ void Ajustes::construirInterfaz()
     textoSonido->setStyleSheet(estiloEtiquetaCanva);
 
     barraMusica = crearBarraVolumen(
-        602, 267, 75, ":/imagenes/imagenes/ajustes_perilla_musica.png", 551
+        594, 267, 75, ":/imagenes/imagenes/ajustes_perilla_musica.png", 572
         );
 
     barraSonido = crearBarraVolumen(
-        618, 452, 75, ":/imagenes/imagenes/ajustes_perilla_sonido.png", 543
+        613, 452, 75, ":/imagenes/imagenes/ajustes_perilla_sonido.png", 553
         );
 
     auto agregarBarraDecorativa = [this](const QString &ruta, qreal x, qreal y) {
         const QPixmap original(ruta);
         if (original.isNull()) return;
-        auto *barra = addPixmap(original.scaled(700, 177, Qt::KeepAspectRatio,
+        auto *barra = addPixmap(original.scaled(700, 177, Qt::IgnoreAspectRatio,
                                                  Qt::SmoothTransformation));
         barra->setPos(x, y);
         barra->setZValue(2);

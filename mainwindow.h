@@ -22,6 +22,8 @@ class Perfil;
 class ControlesView;
 class Tienda;
 class MenuJuego;
+class ManualUsuario;
+class QPushButton;
 class QMessageBox;
 class QCloseEvent;
 enum class ModoJuego;
@@ -95,6 +97,8 @@ private:
     ControlesView *escenaControles;
     Tienda *escenaTienda;
     MenuJuego *menuJuego;
+    ManualUsuario *manualUsuario;
+    QPushButton *botonManualInicio = nullptr;
 
     // Nombre del usuario que tiene la sesión abierta.
     QString usuarioActual;
@@ -103,6 +107,7 @@ private:
 
     void construirMenuInicio();
     void ajustarEscenaActual();
+    void mostrarManual();
 };
 
 #endif // MAINWINDOW_H

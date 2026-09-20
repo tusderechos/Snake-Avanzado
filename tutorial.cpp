@@ -23,6 +23,9 @@
 #include <QGraphicsPathItem>
 #include <QPainterPath>
 #include <QTimer>
+#include <QVariantAnimation>
+
+#include <utility>
 
 TutorialView::TutorialView(const QString &usuario)
     : m_escena(new QGraphicsScene(this)),
@@ -137,6 +140,9 @@ TutorialView::TutorialView(const QString &usuario)
                 mostrarOverlay("¡CHOCASTE!\n\nLos obstáculos y tu propio cuerpo bloquean el camino.\n\nPresioná ENTER para reintentar esta etapa.");
             });
     setScene(m_escena);
+    // El tutorial también redibuja sprites y efectos con frecuencia; no
+    // necesita búsquedas espaciales sobre la escena.
+    m_escena->setItemIndexMethod(QGraphicsScene::NoIndex);
     setFixedSize(TABLERO * CELDA + PANEL_ANCHO + 4, TABLERO * CELDA + 4);
     setWindowTitle("Snake - Tutorial");
     setFocusPolicy(Qt::StrongFocus);
@@ -521,6 +527,14 @@ void TutorialView::quitarOverlay() {
 }
 
 void TutorialView::dibujar() {
+    const QHash<int, QPointF> posicionesAnteriores = m_posicionesVisuales;
+    for (QVariantAnimation *animacion : std::as_const(m_animacionesMovimiento)) {
+        animacion->stop();
+        delete animacion;
+    }
+    m_animacionesMovimiento.clear();
+    m_posicionesVisuales.clear();
+
     const QList<QGraphicsItem *> elementos = m_escena->items();
     for (QGraphicsItem *elemento : elementos) {
         if (elemento->zValue() < 10) delete elemento;
@@ -561,8 +575,27 @@ void TutorialView::dibujar() {
                               : i == m_longitud - 1 ? m_spriteCola : m_spriteCuerpo;
         if (sprite == nullptr || sprite->isNull()) continue;
         auto *pieza = m_escena->addPixmap(*sprite);
-        pieza->setPos(m_serpiente[i].x() * CELDA + (i == 0 ? -2 : 2),
-                      m_serpiente[i].y() * CELDA + (i == 0 ? -2 : 2));
+        const QPointF destino(
+            m_serpiente[i].x() * CELDA + (i == 0 ? -2 : 2),
+            m_serpiente[i].y() * CELDA + (i == 0 ? -2 : 2));
+        const QPointF inicio = posicionesAnteriores.contains(i)
+            ? (i == 0 ? posicionesAnteriores.value(0)
+                      : posicionesAnteriores.value(i - 1))
+            : destino;
+        pieza->setPos(inicio);
+        if (inicio != destino) {
+            auto *animacion = new QVariantAnimation(this);
+            connect(animacion, &QVariantAnimation::valueChanged,
+                    this, [pieza](const QVariant &valor) {
+                        pieza->setPos(valor.toPointF());
+                    });
+            animacion->setStartValue(inicio);
+            animacion->setEndValue(destino);
+            animacion->setDuration(qBound(40, m_timer->interval() * 8 / 10, 120));
+            m_animacionesMovimiento.append(animacion);
+            animacion->start();
+        }
+        m_posicionesVisuales.insert(i, destino);
         if (i == 0) {
             pieza->setTransformOriginPoint(pieza->boundingRect().center());
             if (m_direccionX < 0) pieza->setRotation(270);

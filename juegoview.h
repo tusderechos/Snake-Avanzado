@@ -21,6 +21,7 @@ class QGraphicsScene;
 class QGraphicsTextItem;
 class QGraphicsPixmapItem;
 class QGraphicsEllipseItem;
+class QGraphicsProxyWidget;
 class QKeyEvent;
 class QCloseEvent;
 class QTimer;
@@ -29,6 +30,7 @@ class QPixmap;
 class QMediaPlayer;
 class QAudioOutput;
 class QVideoSink;
+class QPushButton;
 class ProgresoNivel;
 class Snake;
 class Tablero;
@@ -55,11 +57,15 @@ private:
     static constexpr int PANEL_ANCHO = 250;
     static constexpr int INTERVALO_NIVEL_1 = 150;
     static constexpr int INTERVALO_NIVEL_2 = 100;
-    static constexpr int INTERVALO_NIVEL_3 = 50;
+    // Nivel 3 parte en 70 ms; los efectos de aceleración pueden llevarlo
+    // como máximo a 50 ms para conservar una velocidad jugable.
+    static constexpr int INTERVALO_NIVEL_3 = 70;
     static constexpr int TIEMPO_INICIAL_SEGUNDOS = 300;
     static constexpr int COOLDOWN_CAJA_TURNOS = 5;
     static constexpr int GARANTIA_CAJA_TURNOS = 20;
     static constexpr int GARANTIA_CAJA_FRUTAS = 4;
+    static constexpr qint64 DURACION_FRUTA_MS = 7000;
+    static constexpr qint64 DURACION_DESVANECIMIENTO_MS = 1800;
     static constexpr int NIVEL_1 = 1;
     static constexpr int NIVEL_2 = 2;
     static constexpr int NIVEL_3 = 3;
@@ -97,6 +103,7 @@ private:
     void actualizarMapa();
     void redibujar();
     void generarManzana();
+    void actualizarTemporizadoresFrutas();
     int indiceObjetoEn(int x, int y) const;
     TipoFruta frutaAleatoriaParaNivel() const;
     void aplicarItem();
@@ -112,16 +119,23 @@ private:
     void iniciarAnimacionEnHilo();
     void detenerAnimacionEnHilo();
     void cambiarIntervaloEnHilo(int intervalo);
+    void alternarPausa();
+    void mostrarOverlayPausa();
+    void quitarOverlayPausa();
 
     QGraphicsScene *m_escena;
     QGraphicsTextItem *m_informacion;
     QGraphicsRectItem *m_casillas[MAX_FILAS][MAX_COLUMNAS];
+    // Último color aplicado a cada celda. Evita enviar 400 actualizaciones
+    // redundantes a QGraphicsScene en cada tick del juego.
+    int m_valoresVisuales[MAX_FILAS][MAX_COLUMNAS]{};
     QGraphicsPixmapItem *m_sprites[MAX_FILAS][MAX_COLUMNAS];
     QGraphicsEllipseItem *m_resaltos[MAX_FILAS][MAX_COLUMNAS];
     QThread *m_hiloAnimacion;
     AnimadorSerpiente *m_animadorSerpiente;
     QTimer *m_temporizadorCuentaRegresiva;
     QTimer *m_animadorPuntaje;
+    QTimer *m_temporizadorFrutas;
     QGraphicsTextItem *m_cuentaRegresiva;
     int m_cuentaRegresivaValor;
     std::unique_ptr<Snake> m_serpiente;
@@ -136,6 +150,7 @@ private:
         int y = -1;
         int tipo = VACIO;
         Fruta fruta;
+        qint64 creadaEnMs = 0;
     };
     ObjetoActivo m_objetos[MAX_OBJETOS_ACTIVOS];
     int m_nivel;
@@ -146,6 +161,7 @@ private:
     int m_metaPuntos;
     int m_metaLongitud;
     Obstaculo m_obstaculos[MAX_OBSTACULOS_MOVILES];
+    QVector<QPoint> m_obstaculosAleatorios;
     int m_turnoObstaculos;
     int m_turnosObstaculosCongelados;
     int m_turnosHielo;
@@ -184,7 +200,13 @@ private:
     QAudioOutput *m_explosionAudio;
     QVideoSink *m_explosionSink;
     QGraphicsPixmapItem *m_explosionItem;
+    QGraphicsRectItem *m_overlayPausa;
+    QGraphicsPixmapItem *m_shrekPausa;
+    QGraphicsTextItem *m_textoPausa;
+    QGraphicsProxyWidget *m_proxyReanudar;
+    QPushButton *m_botonReanudar;
     bool m_tarjetaDerrotaMostrada;
+    bool m_pausado = false;
     QHash<int, QPointF> m_posicionesVisuales;
     QHash<QGraphicsPixmapItem *, QVariantAnimation *> m_animacionesMovimiento;
 };

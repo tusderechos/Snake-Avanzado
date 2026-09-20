@@ -4,6 +4,7 @@
 #include <QMessageBox>
 #include <QLabel>
 #include <QPainter>
+#include <QSizePolicy>
 
 namespace
 {
@@ -41,20 +42,27 @@ namespace Dialogos
 inline void aplicarEstilo(QMessageBox &dialogo)
 {
     dialogo.setIconPixmap(crearIconoDialogo(dialogo.icon()));
-    dialogo.setMinimumWidth(520);
+    dialogo.setMinimumSize(720, 250);
+    dialogo.setMaximumWidth(820);
     for (QLabel *etiqueta : dialogo.findChildren<QLabel *>()) {
-        etiqueta->setWordWrap(true);
+        if (etiqueta->objectName() == "qt_msgbox_label"
+            || etiqueta->objectName() == "qt_msgbox_informativelabel") {
+            etiqueta->setWordWrap(true);
+            etiqueta->setMinimumWidth(520);
+            etiqueta->setMaximumWidth(650);
+            etiqueta->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+        }
     }
     dialogo.setStyleSheet(
         "QMessageBox { background: qlineargradient(x1:0, y1:0, x2:0, y2:1,"
         " stop:0 #1b2b16, stop:0.48 #10180f, stop:1 #081008);"
         " color: #f4f7ed; border: 3px solid #d2a93b; border-radius: 12px; }"
         "QLabel { color: #f4f7ed; font-family: 'Fredoka';"
-        " font-size: 18px; min-width: 0px; padding: 4px; }"
-        "QLabel#qt_msgbox_label { color: #fff7d1; font-size: 23px;"
-        " font-weight: bold; min-width: 420px; }"
+        " font-size: 16px; padding: 4px; }"
+        "QLabel#qt_msgbox_label { color: #fff7d1; font-size: 20px;"
+        " font-weight: bold; }"
         "QLabel#qt_msgbox_informativelabel { color: #f4f7ed;"
-        " font-size: 17px; min-width: 420px; }"
+        " font-size: 15px; }"
         "QPushButton { background-color: #2f8618; color: white;"
         " border: 2px solid #68dd3e; border-radius: 8px;"
         " font-family: 'Fredoka'; font-size: 16px; font-weight: bold;"
@@ -64,6 +72,7 @@ inline void aplicarEstilo(QMessageBox &dialogo)
         "QPushButton:pressed { background-color: #236e0a;"
         " border-color: white; }"
         );
+    dialogo.adjustSize();
 }
 
 inline void mostrar(QWidget *padre,

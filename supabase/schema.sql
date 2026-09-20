@@ -16,6 +16,13 @@ alter table public.perfiles add column if not exists skins text[] not null defau
 alter table public.perfiles add column if not exists volumen_musica real not null default 0.75 check (volumen_musica between 0 and 1);
 alter table public.perfiles add column if not exists volumen_sonido real not null default 0.75 check (volumen_sonido between 0 and 1);
 alter table public.perfiles add column if not exists actualizado_en timestamptz not null default now();
+alter table public.perfiles add column if not exists avatar text not null default 'clasica';
+do $$ begin
+ if not exists (select 1 from pg_constraint where conname='perfiles_avatar_valido') then
+  alter table public.perfiles add constraint perfiles_avatar_valido
+   check (avatar in ('clasica','gato','dragon','burro','spiderman','miles','personaje','thanos'));
+ end if;
+end $$;
 -- Preservar también la skin equipada antes de que existiera el inventario.
 update public.perfiles set skins = array_append(skins, skin_equipada)
 where not (skin_equipada = any(skins));
@@ -33,7 +40,7 @@ do $$ declare p record; c record; begin
 end $$;
 revoke all on public.perfiles from public, anon, authenticated;
 grant select on public.perfiles to authenticated;
-grant update (volumen_musica, volumen_sonido, control) on public.perfiles to authenticated;
+grant update (volumen_musica, volumen_sonido, control, avatar) on public.perfiles to authenticated;
 create policy snake_leer_propio on public.perfiles for select to authenticated using (id=auth.uid());
 create policy snake_preferencias_propias on public.perfiles for update to authenticated using (id=auth.uid()) with check (id=auth.uid());
 
@@ -81,6 +88,9 @@ begin
  if precio is null then raise exception 'Skin desconocida' using errcode='22023'; end if;
  perform public.snake_perfil();
  select * into strict r from public.perfiles where id=u for update;
+ if p_skin='thanos' and r.nivel_historia < 3 then
+  raise exception 'Complete los 3 niveles de Historia para desbloquear Thanos' using errcode='22023';
+ end if;
  if not (p_skin=any(r.skins)) then
   if r.monedas < precio then raise exception 'Monedas insuficientes' using errcode='22023'; end if;
   update public.perfiles set monedas=monedas-precio,skins=array_append(skins,p_skin),skin_equipada=p_skin where id=u returning * into r;

@@ -3,6 +3,7 @@
 
 #include <QGraphicsScene>
 #include <QString>
+#include <QStringList>
 
 class QLabel;
 class QLineEdit;
@@ -24,6 +25,7 @@ signals:
 private slots:
     void intentarCambiarContrasena();
     void alternarVisibilidadContrasenas();
+    void cambiarAvatar(int paso);
 
 private:
     QString usuarioActual;
@@ -31,6 +33,8 @@ private:
     QLabel *etiquetaInicial;
     QLabel *etiquetaUsuario;
     QLabel *etiquetaPuntos;
+    QLabel *etiquetaAvatar;
+    QLabel *nombreAvatar;
     QLabel *mensajeEstado;
 
     QLineEdit *campoContrasenaActual;
@@ -40,6 +44,11 @@ private:
     QPushButton *botonMostrarContrasenas;
     QPushButton *botonGuardar = nullptr;
     QPushButton *botonVolver = nullptr;
+    QPushButton *avatarAnterior = nullptr;
+    QPushButton *avatarSiguiente = nullptr;
+    QStringList avatares;
+    QStringList nombresAvatares;
+    int avatarActual = 0;
     bool solicitudPendiente = false;
 
     void construirInterfaz();
@@ -52,6 +61,7 @@ private:
         int alto,
         int tamanoLetra
         );
+    void actualizarAvatar();
 };
 
 #endif // PERFIL_H

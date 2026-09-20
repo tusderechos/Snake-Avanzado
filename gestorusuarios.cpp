@@ -28,6 +28,7 @@ int GestorUsuarios::obtenerPuntosUsuario(const QString &u) { return perfil(u).va
 int GestorUsuarios::obtenerMonedasUsuario(const QString &u) { return perfil(u).value("monedas").toInt(); }
 bool GestorUsuarios::tieneSkin(const QString &u,const QString &s) { return perfil(u).value("skins").toArray().contains(s); }
 QString GestorUsuarios::obtenerSkinEquipada(const QString &u) { return perfil(u).value("skin_equipada").toString("clasica"); }
+QString GestorUsuarios::obtenerAvatar(const QString &u) { return perfil(u).value("avatar").toString("clasica"); }
 bool GestorUsuarios::tutorialCompletado(const QString &u) { return perfil(u).value("tutorial_completado").toBool(); }
 int GestorUsuarios::obtenerNivelHistoria(const QString &u) { return perfil(u).value("nivel_historia").toInt(); }
 bool GestorUsuarios::adoptarSesion(const QJsonObject &o) {
@@ -129,7 +130,13 @@ bool GestorUsuarios::registrarPuntajePartida(const QString &u,int p,int b) {
     if(p<0 || b<0 || (p==0 && b==0)) return false;
     return encolar(u,"/rest/v1/rpc/snake_partida",{{"p_operacion",QUuid::createUuid().toString(QUuid::WithoutBraces)}, {"p_puntos",p},{"p_bonus",b}});
 }
-bool GestorUsuarios::comprarSkin(const QString &u,const QString &s,int) {return encolar(u,"/rest/v1/rpc/snake_comprar_skin",{{"p_skin",s}});}
+bool GestorUsuarios::comprarSkin(const QString &u,const QString &s,int) {
+    if (s == "thanos" && obtenerNivelHistoria(u) < 3) {
+        emit instancia().errorGuardado("Thanos se desbloquea al completar los 3 niveles de HISTORIA.");
+        return false;
+    }
+    return encolar(u,"/rest/v1/rpc/snake_comprar_skin",{{"p_skin",s}});
+}
 bool GestorUsuarios::equiparSkin(const QString &u,const QString &s) {return encolar(u,"/rest/v1/rpc/snake_equipar_skin",{{"p_skin",s}});}
 bool GestorUsuarios::marcarTutorialCompletado(const QString &u) {return encolar(u,"/rest/v1/rpc/snake_tutorial",{});}
 bool GestorUsuarios::marcarNivelHistoriaCompletado(const QString &u,int n) {return encolar(u,"/rest/v1/rpc/snake_nivel",{{"p_nivel",n}});}
@@ -137,9 +144,13 @@ bool GestorUsuarios::guardarPreferencias(const QString &u,const QJsonObject &c) 
     for(auto i=c.begin();i!=c.end();++i) {
         if(i.key()=="control") {if(i.value()!="WASD" && i.value()!="FLECHAS") return false;}
         else if(i.key()=="volumen_musica" || i.key()=="volumen_sonido") {if(!i.value().isDouble() || i.value().toDouble()<0 || i.value().toDouble()>1) return false;}
+        else if(i.key()=="avatar") {const QString a=i.value().toString(); if(a!="clasica" && a!="gato" && a!="dragon" && a!="burro" && a!="spiderman" && a!="miles" && a!="personaje" && a!="thanos") return false;}
         else return false;
     }
     return encolar(u,"/rest/v1/perfiles?id=eq."+instancia().m_id,c,"PATCH");
+}
+bool GestorUsuarios::guardarAvatar(const QString &u,const QString &avatar) {
+    return guardarPreferencias(u, {{"avatar", avatar}});
 }
 void GestorUsuarios::cambiarContrasena(const QString &u,const QString &oldPass,const QString &newPass,QObject *ctx,Respuesta cb) {
     auto &g=instancia();

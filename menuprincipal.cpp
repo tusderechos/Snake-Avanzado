@@ -120,6 +120,20 @@ void MenuPrincipal::construirInterfaz()
             310, 965, 635, 150
             );
 
+    m_botonManual = new QPushButton("?", nullptr);
+    m_botonManual->setFixedSize(92, 92);
+    m_botonManual->setCursor(Qt::PointingHandCursor);
+    m_botonManual->setToolTip("Manual de usuario");
+    m_botonManual->setStyleSheet(
+        "QPushButton { background-color: rgba(48, 132, 24, 235); color: white;"
+        " border: 4px solid #68dd3e; border-radius: 10px;"
+        " font-family: 'Fredoka'; font-size: 48px; font-weight: bold; }"
+        "QPushButton:hover { background-color: #4cae22; border-color: #f4d06f; }"
+        );
+    auto *proxyManual = addWidget(m_botonManual);
+    proxyManual->setPos(1050, 1125);
+    proxyManual->setZValue(3);
+
     // =====================================================
     // CONEXIONES
     // =====================================================
@@ -174,6 +188,23 @@ void MenuPrincipal::construirInterfaz()
         }
         );
 
+    connect(
+        m_botonManual,
+        &QPushButton::clicked,
+        this,
+        [this]()
+        {
+            emit manualSolicitado();
+        }
+        );
+
     // Mantener fijo el tamaño
     setSceneRect(0, 0, 1254, 1254);
+}
+
+void MenuPrincipal::establecerManualVisible(bool visible)
+{
+    if (m_botonManual != nullptr) {
+        m_botonManual->setVisible(visible);
+    }
 }

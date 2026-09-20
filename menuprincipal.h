@@ -14,12 +14,15 @@ public:
         QObject *parent = nullptr
         );
 
+    void establecerManualVisible(bool visible);
+
 signals:
     void jugarSolicitado();
     void rankingSolicitado();
     void tiendaSolicitada();
     void configuracionSolicitada();
     void salirSolicitado();
+    void manualSolicitado();
 
 private:
     // Construye el fondo y los cinco botones.
@@ -33,6 +36,7 @@ private:
         qreal ancho,
         qreal alto
         );
+    QPushButton *m_botonManual = nullptr;
 };
 
 #endif // MENUPRINCIPAL_H

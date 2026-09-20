@@ -46,49 +46,50 @@ MenuJuego::MenuJuego(std::function<void(ModoJuego)> alSeleccionar,
     : QWidget(parent), m_alSeleccionar(std::move(alSeleccionar)),
       m_botonTutorial(nullptr) {
     setWindowTitle("Snake - Menú de Juego");
-    setFixedSize(500, 560);
+    setFixedSize(560, 660);
+    auto *fondo = new QLabel(this);
+    fondo->setGeometry(rect());
+    fondo->setPixmap(QPixmap(":/assets/menu_juego_pantano.png"));
+    fondo->setScaledContents(true);
+    fondo->lower();
     setStyleSheet(
-        "QWidget { background: #0d121a; color: #ebf0f5; }"
+        "QWidget { background: transparent; color: #ebf0f5; }"
         "QPushButton { color: white; font-family: 'Fredoka';"
-        " font-weight: bold; }");
+        " font-weight: bold; }"
+        "QLabel#separador { color: #d2a93b; }");
     QFontDatabase::addApplicationFont(":/assets/Fredoka-Variable.ttf");
     setFont(QFont("Fredoka", 14));
 
     auto *layout = new QVBoxLayout(this);
-    layout->setContentsMargins(55, 35, 55, 28);
-    layout->setSpacing(12);
-
-    auto *titulo = new QLabel("SNAKE AVANZADO", this);
-    titulo->setAlignment(Qt::AlignCenter);
-    titulo->setFont(QFont("Fredoka", 26, QFont::Bold));
-    layout->addWidget(titulo);
+    layout->setContentsMargins(58, 32, 58, 28);
+    layout->setSpacing(13);
 
     auto *subtitulo = new QLabel("MENÚ DE JUEGO", this);
     subtitulo->setAlignment(Qt::AlignCenter);
     subtitulo->setFont(QFont("Fredoka", 18, QFont::DemiBold));
     subtitulo->setStyleSheet("color: #7bdc66;");
     layout->addWidget(subtitulo);
-    layout->addSpacing(20);
+    layout->addStretch(1);
 
     const struct Opcion { const char *texto; ModoJuego modo; } opciones[] = {
-        {"TUTORIAL", ModoJuego::Tutorial},
-        {"HISTORIA", ModoJuego::Normal},
-        {"LIBRE", ModoJuego::Libre},
-        {"ALEATORIO", ModoJuego::Aleatorio}
+        {"?  TUTORIAL", ModoJuego::Tutorial},
+        {"★  HISTORIA", ModoJuego::Normal},
+        {"◈  LIBRE", ModoJuego::Libre},
+        {"✦  ALEATORIO", ModoJuego::Aleatorio}
     };
 
     for (const Opcion &opcion : opciones) {
         auto *boton = new QPushButton(opcion.texto, this);
         if (opcion.modo == ModoJuego::Tutorial) m_botonTutorial = boton;
-        boton->setFixedHeight(52);
+        boton->setFixedHeight(60);
         boton->setCursor(Qt::PointingHandCursor);
         boton->setStyleSheet(
             "QPushButton {"
-            "   background-color: rgba(55, 145, 20, 220);"
+            "   background-color: rgba(47, 134, 24, 235);"
             "   color: white;"
             "   border: 3px solid #39ff14;"
             "   border-radius: 12px;"
-            "   font-size: 22px;"
+            "   font-size: 23px;"
             "   font-weight: bold;"
             "}"
             "QPushButton:hover {"
@@ -107,6 +108,7 @@ MenuJuego::MenuJuego(std::function<void(ModoJuego)> alSeleccionar,
             }
         });
     }
+    layout->addStretch(1);
 
     auto *nota = new QLabel("Elegí un modo para comenzar", this);
     nota->setAlignment(Qt::AlignCenter);

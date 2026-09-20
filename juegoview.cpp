@@ -25,6 +25,7 @@
 #include <QRandomGenerator>
 #include <QScreen>
 #include <QTimer>
+#include <QDateTime>
 #include <QThread>
 #include <QMetaObject>
 #include <QVariantAnimation>
@@ -34,6 +35,7 @@
 #include <QMediaPlayer>
 #include <QAudioOutput>
 #include <QAbstractButton>
+#include <QGraphicsProxyWidget>
 #include <QPushButton>
 #include <QVideoSink>
 #include <QVideoFrame>
@@ -50,6 +52,7 @@ JuegoView::JuegoView(int nivelInicial, ConfiguracionJuego configuracion,
       m_animadorSerpiente(new AnimadorSerpiente()),
       m_temporizadorCuentaRegresiva(new QTimer(this)),
       m_animadorPuntaje(new QTimer(this)),
+      m_temporizadorFrutas(new QTimer(this)),
       m_cuentaRegresiva(nullptr),
       m_cuentaRegresivaValor(0),
       m_serpiente(new Snake()),
@@ -102,11 +105,20 @@ JuegoView::JuegoView(int nivelInicial, ConfiguracionJuego configuracion,
       m_explosionAudio(new QAudioOutput(this)),
       m_explosionSink(new QVideoSink(this)),
       m_explosionItem(nullptr),
+      m_overlayPausa(nullptr),
+      m_shrekPausa(nullptr),
+      m_textoPausa(nullptr),
+      m_proxyReanudar(nullptr),
+      m_botonReanudar(nullptr),
       m_tarjetaDerrotaMostrada(false)
 {
     m_esquemaControles = GestorConfiguracion::cargarControl(m_usuario) == "WASD"
         ? EsquemaControles::WASD : EsquemaControles::Flechas;
     setScene(m_escena);
+    // El tablero actualiza muchos elementos con frecuencia y casi nunca hace
+    // búsquedas espaciales. Desactivar el índice BSP evita reconstruirlo en
+    // cada movimiento y reduce el coste del repintado.
+    m_escena->setItemIndexMethod(QGraphicsScene::NoIndex);
     m_escena->setBackgroundBrush(QColor(13, 18, 26));
     setFocusPolicy(Qt::StrongFocus);
     QFontDatabase::addApplicationFont(":/assets/Fredoka-Variable.ttf");
@@ -187,6 +199,9 @@ JuegoView::JuegoView(int nivelInicial, ConfiguracionJuego configuracion,
         m_puntajeVisual = qMin(objetivo, m_puntajeVisual + incremento);
         actualizarInformacion();
     });
+    m_temporizadorFrutas->setInterval(100);
+    connect(m_temporizadorFrutas, &QTimer::timeout, this,
+            [this]() { actualizarTemporizadoresFrutas(); });
     iniciarCuentaRegresiva();
 }
 
@@ -206,6 +221,11 @@ JuegoView::~JuegoView() {
 }
 
 void JuegoView::keyPressEvent(QKeyEvent *evento) {
+    if (evento->key() == Qt::Key_Escape) {
+        alternarPausa();
+        return;
+    }
+    if (m_pausado) return;
     if (Controles::esMovimiento(evento->key())
         && !Controles::esTeclaPermitida(evento->key(), m_esquemaControles)) {
         return;
@@ -267,10 +287,8 @@ void JuegoView::actualizarCuentaRegresiva() {
         return;
     }
 
-    m_cuentaRegresiva->setPlainText("¡YA!");
-    const QRectF areaJuego(m_margenColiseo, m_margenColiseo,
-                           m_columnas * TAMANO_CELDA,
-                           m_filas * TAMANO_CELDA);
+    m_cuentaRegresiva->setPlainText("0");
+    const QRectF areaJuego(m_margenColiseo, m_margenColiseo, m_columnas * TAMANO_CELDA, m_filas * TAMANO_CELDA);
     m_cuentaRegresiva->setPos(
         areaJuego.center().x() - m_cuentaRegresiva->boundingRect().width() / 2,
         areaJuego.center().y() - m_cuentaRegresiva->boundingRect().height() / 2);
@@ -278,6 +296,13 @@ void JuegoView::actualizarCuentaRegresiva() {
     QTimer::singleShot(450, this, [this]() {
         if (m_cuentaRegresivaValor != 0 || m_terminado) return;
         if (m_cuentaRegresiva != nullptr) m_cuentaRegresiva->setVisible(false);
+        const qint64 ahora = QDateTime::currentMSecsSinceEpoch();
+        for (ObjetoActivo &objeto : m_objetos) {
+            if (objeto.activo && objeto.tipo != CAJA_MISTERIOSA) {
+                objeto.creadaEnMs = ahora;
+            }
+        }
+        m_temporizadorFrutas->start();
         iniciarAnimacionEnHilo();
     });
 }
@@ -343,6 +368,8 @@ void JuegoView::crearGrid() {
 
     for (int y = 0; y < MAX_FILAS; ++y) {
         for (int x = 0; x < MAX_COLUMNAS; ++x) {
+            m_casillas[y][x] = nullptr;
+            m_valoresVisuales[y][x] = -1;
             m_sprites[y][x] = nullptr;
             m_resaltos[y][x] = nullptr;
         }
@@ -612,6 +639,7 @@ void JuegoView::configurarNivel(int nivel) {
     m_turnosDesdeCaja = 0;
     m_frutasDesdeCaja = 0;
     m_ultimoEfecto.clear();
+    m_obstaculosAleatorios.clear();
     inicializarObstaculosMoviles();
     detenerAnimacionEnHilo();
     setWindowTitle(QString("Snake - Nivel %1").arg(m_nivel));
@@ -639,10 +667,30 @@ void JuegoView::construirObstaculos() {
         return;
     }
 
-    if (m_nivel == NIVEL_3 || (m_configuracion.esAleatorio
-                               && m_configuracion.obstaculosMoviles)) {
+    if (m_configuracion.esAleatorio) {
+        const int obstaculosObjetivo = m_nivel == NIVEL_1 ? 4
+                                     : m_nivel == NIVEL_2 ? 8 : 13;
+        const int inicioX = 1;
+        const int inicioY = m_filas / 2;
+        int colocados = m_obstaculosAleatorios.size();
+        for (int intento = 0; intento < m_columnas * m_filas * 3
+             && colocados < obstaculosObjetivo; ++intento) {
+            const int x = QRandomGenerator::global()->bounded(m_columnas);
+            const int y = QRandomGenerator::global()->bounded(m_filas);
+            const bool zonaInicial = qAbs(x - inicioX) <= 3 && qAbs(y - inicioY) <= 2;
+            if (zonaInicial || m_tablero->valor(x, y) != VACIO
+                || !posicionObstaculoDisponible(x, y, -1)) continue;
+            m_obstaculosAleatorios.append(QPoint(x, y));
+            ++colocados;
+        }
+        for (const QPoint &posicion : std::as_const(m_obstaculosAleatorios)) {
+            m_tablero->poner(posicion.x(), posicion.y(), OBSTACULO);
+        }
         for (int i = 0; i < MAX_OBSTACULOS_MOVILES; ++i) {
-            m_tablero->poner(m_obstaculos[i].x(), m_obstaculos[i].y(), OBSTACULO);
+            const int limite = m_nivel == NIVEL_1 ? 1 : m_nivel == NIVEL_2 ? 2 : 3;
+            if (m_configuracion.obstaculosMoviles && i < limite) {
+                m_tablero->poner(m_obstaculos[i].x(), m_obstaculos[i].y(), OBSTACULO);
+            }
         }
         return;
     }
@@ -659,15 +707,38 @@ void JuegoView::construirObstaculos() {
         return;
     }
 
-    static const int obstaculos[][2] = {
+    if (m_nivel == NIVEL_3 && m_configuracion.obstaculosMoviles) {
+        for (int i = 0; i < 4; ++i) {
+            if (m_tablero->valor(m_obstaculos[i].x(), m_obstaculos[i].y()) == VACIO) {
+                m_tablero->poner(m_obstaculos[i].x(), m_obstaculos[i].y(), OBSTACULO);
+            }
+        }
+    }
+
+    static const int obstaculosNivel2[][2] = {
         {2, 4}, {3, 4}, {4, 4}, {10, 4}, {11, 4}, {12, 4},
         {6, 6}, {7, 6}, {8, 6},
         {6, 8}, {7, 8}, {8, 8},
         {2, 10}, {3, 10}, {4, 10}, {10, 10}, {11, 10}, {12, 10}
     };
+    static const int obstaculosNivel3[][2] = {
+        {4, 4}, {5, 4}, {6, 4}, {13, 4}, {14, 4}, {15, 4},
+        {4, 7}, {4, 8}, {15, 7}, {15, 8},
+        {8, 6}, {9, 6}, {10, 6}, {11, 6},
+        {8, 13}, {9, 13}, {10, 13}, {11, 13},
+        {4, 15}, {5, 15}, {6, 15}, {13, 15}, {14, 15}, {15, 15}
+    };
 
-    for (const auto &obstaculo : obstaculos) {
-        m_tablero->poner(obstaculo[0], obstaculo[1], OBSTACULO);
+    const auto &obstaculos = m_nivel == NIVEL_3
+        ? obstaculosNivel3 : obstaculosNivel2;
+    const int cantidad = m_nivel == NIVEL_3
+        ? static_cast<int>(sizeof(obstaculosNivel3) / sizeof(obstaculosNivel3[0]))
+        : static_cast<int>(sizeof(obstaculosNivel2) / sizeof(obstaculosNivel2[0]));
+    for (int i = 0; i < cantidad; ++i) {
+        const auto &obstaculo = obstaculos[i];
+        if (m_tablero->valor(obstaculo[0], obstaculo[1]) == VACIO) {
+            m_tablero->poner(obstaculo[0], obstaculo[1], OBSTACULO);
+        }
     }
 }
 
@@ -675,7 +746,7 @@ void JuegoView::moverObstaculos() {
     const bool usaMoviles = m_configuracion.obstaculosMoviles
                          && (m_nivel == NIVEL_3 || m_configuracion.esAleatorio);
     if (!usaMoviles
-        || (++m_turnoObstaculos % 4) != 0) {
+        || (++m_turnoObstaculos % (m_configuracion.esAleatorio ? 7 : 4)) != 0) {
         return;
     }
 
@@ -684,7 +755,9 @@ void JuegoView::moverObstaculos() {
         return;
     }
 
-    for (int i = 0; i < 4; ++i) {
+    const int cantidadMoviles = m_configuracion.esAleatorio
+        ? (m_nivel == NIVEL_1 ? 1 : m_nivel == NIVEL_2 ? 2 : 3) : 4;
+    for (int i = 0; i < cantidadMoviles; ++i) {
         int nuevaX = m_obstaculos[i].x() + m_obstaculos[i].direccionX();
         int nuevaY = m_obstaculos[i].y() + m_obstaculos[i].direccionY();
 
@@ -708,7 +781,8 @@ void JuegoView::moverObstaculos() {
 
 bool JuegoView::posicionObstaculoDisponible(int x, int y, int ignorar) const {
     if (x < 0 || x >= m_columnas || y < 0 || y >= m_filas
-        || m_serpiente->ocupa(x, y)) {
+        || m_serpiente->ocupa(x, y)
+        || m_tablero->valor(x, y) == OBSTACULO) {
         return false;
     }
 
@@ -760,7 +834,9 @@ void JuegoView::reiniciar() {
         objeto.x = -1;
         objeto.y = -1;
         objeto.tipo = VACIO;
+        objeto.creadaEnMs = 0;
     }
+    m_obstaculosAleatorios.clear();
     inicializarObstaculosMoviles();
 
     actualizarMapa();
@@ -816,6 +892,9 @@ void JuegoView::redibujar() {
         }
         ++indiceSegmento;
     }
+    const int longitudActual = m_serpiente->longitud();
+    const int cabezaX = m_serpiente->cabezaX();
+    const int cabezaY = m_serpiente->cabezaY();
 
     for (int y = 0; y < m_filas; ++y) {
         for (int x = 0; x < m_columnas; ++x) {
@@ -827,31 +906,19 @@ void JuegoView::redibujar() {
             }
 
             const int casilla = m_tablero->valor(x, y);
-            QColor color(Qt::transparent);
-
-            if (casilla == SERPIENTE) {
-                color = Qt::transparent;
-            } else if (casilla == MANZANA) {
-                color = Qt::transparent;
-            } else if (casilla == MANZANA_DORADA) {
-                color = Qt::transparent;
-            } else if (casilla == FRUTA_GRANDE) {
-                color = Qt::transparent;
-            } else if (casilla == FRUTA_ENERGETICA) {
-                color = Qt::transparent;
-            } else if (casilla == CAJA_MISTERIOSA) {
-                color = Qt::transparent;
-            } else if (casilla == OBSTACULO) {
-                color = QColor(116, 82, 58);
+            if (m_valoresVisuales[y][x] != casilla) {
+                QColor color(Qt::transparent);
+                if (casilla == OBSTACULO) {
+                    color = QColor(116, 82, 58);
+                }
+                m_casillas[y][x]->setBrush(QBrush(color));
+                m_valoresVisuales[y][x] = casilla;
             }
 
-            m_casillas[y][x]->setBrush(QBrush(color));
-
             if (casilla == SERPIENTE) {
-                const bool esCabeza = x == m_serpiente->cabezaX()
-                                   && y == m_serpiente->cabezaY();
-                const bool esCola = !esCabeza && m_serpiente->ocupaCola(x, y);
+                const bool esCabeza = x == cabezaX && y == cabezaY;
                 const int indice = indicesSegmentos[y][x];
+                const bool esCola = !esCabeza && indice == longitudActual - 1;
                 const QPixmap *spriteSeleccionado = m_spriteCuerpo;
                 if (esCabeza) {
                     spriteSeleccionado = m_spriteCabeza;
@@ -871,6 +938,7 @@ void JuegoView::redibujar() {
                     }
                     item->setPixmap(sprite);
                     item->setVisible(true);
+                    item->setOpacity(1.0);
 
                     const int margen = esCabeza ? -2 : 2;
                     const QPointF destino(m_margenColiseo + x * TAMANO_CELDA + margen,
@@ -918,8 +986,23 @@ void JuegoView::redibujar() {
                                       : casilla == MANZANA_DORADA ? m_spriteFrutaDorada
                                       : casilla == FRUTA_GRANDE ? m_spriteFrutaGrande
                                       : casilla == FRUTA_ENERGETICA ? m_spriteFrutaEnergetica
-                                                                    : m_spriteCaja;
+                                                              : m_spriteCaja;
                 if (sprite != nullptr && !sprite->isNull()) {
+                    qreal opacidad = 1.0;
+                    for (const ObjetoActivo &objeto : m_objetos) {
+                        if (objeto.activo && objeto.x == x && objeto.y == y
+                            && objeto.tipo != CAJA_MISTERIOSA
+                            && objeto.creadaEnMs > 0) {
+                            const qint64 edad = QDateTime::currentMSecsSinceEpoch()
+                                               - objeto.creadaEnMs;
+                            if (edad > DURACION_FRUTA_MS - DURACION_DESVANECIMIENTO_MS) {
+                                opacidad = qBound(0.0,
+                                    static_cast<qreal>(DURACION_FRUTA_MS - edad)
+                                    / DURACION_DESVANECIMIENTO_MS, 1.0);
+                            }
+                            break;
+                        }
+                    }
                     if (casilla != CAJA_MISTERIOSA) {
                         auto *resalto = m_resaltos[y][x];
                         if (resalto == nullptr) {
@@ -932,6 +1015,7 @@ void JuegoView::redibujar() {
                         }
                         resalto->setPos(m_margenColiseo + x * TAMANO_CELDA + 3,
                                        m_margenColiseo + y * TAMANO_CELDA + 3);
+                        resalto->setOpacity(opacidad);
                         resalto->setVisible(true);
                     }
                     auto *item = m_sprites[y][x];
@@ -944,6 +1028,7 @@ void JuegoView::redibujar() {
                                  m_margenColiseo + y * TAMANO_CELDA + 2);
                     item->setZValue(4);
                     item->setRotation(0);
+                    item->setOpacity(opacidad);
                     item->setVisible(true);
                 }
             }
@@ -985,6 +1070,7 @@ void JuegoView::generarManzana() {
                                       : fruta == TipoFruta::Dorada ? MANZANA_DORADA
                                       : fruta == TipoFruta::Grande ? FRUTA_GRANDE
                                                                    : FRUTA_ENERGETICA;
+                m_objetos[indice].creadaEnMs = QDateTime::currentMSecsSinceEpoch();
                 m_tablero->poner(x, y, m_objetos[indice].tipo);
                 ++frutasActivas;
                 generada = true;
@@ -1027,6 +1113,104 @@ void JuegoView::generarManzana() {
             }
         }
     }
+}
+
+void JuegoView::alternarPausa() {
+    if (m_terminado) return;
+    m_pausado = !m_pausado;
+    if (m_pausado) {
+        m_temporizadorCuentaRegresiva->stop();
+        m_temporizadorFrutas->stop();
+        m_animadorPuntaje->stop();
+        detenerAnimacionEnHilo();
+        mostrarOverlayPausa();
+    } else {
+        quitarOverlayPausa();
+        if (m_cuentaRegresivaValor > 0) {
+            m_temporizadorCuentaRegresiva->start(1000);
+        } else {
+            if (m_cuentaRegresiva != nullptr) m_cuentaRegresiva->setVisible(false);
+            m_temporizadorFrutas->start();
+            iniciarAnimacionEnHilo();
+        }
+    }
+}
+
+void JuegoView::mostrarOverlayPausa() {
+    const QRectF tablero(m_margenColiseo, m_margenColiseo,
+                         m_columnas * TAMANO_CELDA, m_filas * TAMANO_CELDA);
+    m_overlayPausa = m_escena->addRect(tablero, QPen(Qt::NoPen),
+                                       QBrush(QColor(5, 8, 12, 185)));
+    m_overlayPausa->setZValue(50);
+    m_textoPausa = m_escena->addText(
+        "PAUSA\n\nTomate un descanso, una vez estés preparado/a\n"
+        "presioná ESC o el botón verde para continuar.");
+    m_textoPausa->setDefaultTextColor(Qt::white);
+    m_textoPausa->setFont(QFont("Fredoka", 17, QFont::Bold));
+    m_textoPausa->setTextWidth(tablero.width() - 80);
+    m_textoPausa->setZValue(52);
+    m_textoPausa->setPos(tablero.left() + 40, tablero.top() + tablero.height() / 2 - 85);
+
+    m_botonReanudar = new QPushButton("CONTINUAR");
+    m_botonReanudar->setFixedSize(190, 56);
+    m_botonReanudar->setCursor(Qt::PointingHandCursor);
+    m_botonReanudar->setStyleSheet(
+        "QPushButton { background: #2f8618; color: white; border: 3px solid #68dd3e;"
+        " border-radius: 10px; font: bold 18px 'Fredoka'; }"
+        "QPushButton:hover { background: #4cae22; border-color: #f4d06f; }");
+    m_proxyReanudar = m_escena->addWidget(m_botonReanudar);
+    m_proxyReanudar->setZValue(53);
+    m_proxyReanudar->setPos(tablero.center().x() - 95, tablero.bottom() - 85);
+    connect(m_botonReanudar, &QPushButton::clicked, this, &JuegoView::alternarPausa);
+
+    QPixmap shrek(":/assets/manual/shrek_pausa.png");
+    if (!shrek.isNull()) {
+        m_shrekPausa = m_escena->addPixmap(shrek.scaled(
+            210, 260, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+        m_shrekPausa->setZValue(51);
+        m_shrekPausa->setPos(tablero.right() - 225, tablero.bottom() - 275);
+    }
+}
+
+void JuegoView::quitarOverlayPausa() {
+    delete m_overlayPausa;
+    delete m_shrekPausa;
+    delete m_textoPausa;
+    delete m_proxyReanudar;
+    m_overlayPausa = nullptr;
+    m_shrekPausa = nullptr;
+    m_textoPausa = nullptr;
+    m_proxyReanudar = nullptr;
+    m_botonReanudar = nullptr;
+}
+
+void JuegoView::actualizarTemporizadoresFrutas() {
+    if (m_terminado) return;
+
+    const qint64 ahora = QDateTime::currentMSecsSinceEpoch();
+    bool cambio = false;
+    bool expiro = false;
+    for (ObjetoActivo &objeto : m_objetos) {
+        if (!objeto.activo || objeto.tipo == CAJA_MISTERIOSA
+            || objeto.creadaEnMs <= 0) continue;
+        const qint64 edad = ahora - objeto.creadaEnMs;
+        if (edad >= DURACION_FRUTA_MS) {
+            objeto.activo = false;
+            objeto.x = -1;
+            objeto.y = -1;
+            objeto.tipo = VACIO;
+            objeto.creadaEnMs = 0;
+            expiro = true;
+            cambio = true;
+        } else if (edad >= DURACION_FRUTA_MS - DURACION_DESVANECIMIENTO_MS) {
+            cambio = true;
+        }
+    }
+    if (expiro) {
+        actualizarMapa();
+        generarManzana();
+    }
+    if (cambio) redibujar();
 }
 
 int JuegoView::indiceObjetoEn(int x, int y) const {
@@ -1213,7 +1397,10 @@ void JuegoView::avanzarJuego() {
     Fruta frutaComida;
     if (indiceObjeto >= 0) {
         frutaComida = m_objetos[indiceObjeto].fruta;
-        if (comioFruta || tomoCaja) m_objetos[indiceObjeto].activo = false;
+        if (comioFruta || tomoCaja) {
+            m_objetos[indiceObjeto].activo = false;
+            m_objetos[indiceObjeto].creadaEnMs = 0;
+        }
     }
     const int crecimiento = comioFruta
                                 ? frutaComida.crecimiento(m_nivel == NIVEL_3)
@@ -1247,6 +1434,12 @@ void JuegoView::avanzarJuego() {
     } else if (tomoCaja) {
         AudioManager::instancia().reproducirEfecto(AudioManager::Efecto::Moneda);
         aplicarItem();
+        if (m_progreso->gano()) {
+            redibujar();
+            actualizarInformacion();
+            ganarNivel();
+            return;
+        }
         generarManzana();
     }
 
@@ -1257,6 +1450,7 @@ void JuegoView::avanzarJuego() {
 
 void JuegoView::terminarJuego() {
     m_terminado = true;
+    m_temporizadorFrutas->stop();
     detenerAnimacionEnHilo();
     AudioManager::instancia().detenerMusica();
     AudioManager::instancia().reproducirEfecto(AudioManager::Efecto::Perder);
@@ -1322,6 +1516,7 @@ void JuegoView::mostrarTarjetaDerrota() {
 
 void JuegoView::ganarNivel() {
     m_terminado = true;
+    m_temporizadorFrutas->stop();
     detenerAnimacionEnHilo();
     AudioManager::instancia().detenerMusica();
     AudioManager::instancia().reproducirEfecto(AudioManager::Efecto::Ganar);
@@ -1362,11 +1557,11 @@ void JuegoView::ganarNivel() {
         tarjeta.setWindowTitle("Juego completado");
         tarjeta.setIcon(QMessageBox::Information);
         tarjeta.setText("<h2>¡JUEGO COMPLETADO!</h2>");
-        tarjeta.setInformativeText("Completaste todos los niveles de Snake.");
+        tarjeta.setInformativeText("¡Completaste los 3 niveles de HISTORIA! "
+                                   "Tu premio se encuentra en la Tienda.");
         Dialogos::aplicarEstilo(tarjeta);
         tarjeta.exec();
-        setWindowTitle("Snake - Juego completado");
-        actualizarInformacion();
+        close();
         return;
     }
 
@@ -1415,7 +1610,7 @@ int JuegoView::intervaloActual() const {
         intervalo += 50;
     }
     if (m_turnosEnergia > 0) {
-        intervalo = qMax(30, intervalo - 20);
+        intervalo = qMax(50, intervalo - 20);
     }
     return intervalo;
 }
