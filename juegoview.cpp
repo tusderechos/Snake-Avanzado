@@ -1130,13 +1130,9 @@ void JuegoView::alternarPausa() {
         mostrarOverlayPausa();
     } else {
         quitarOverlayPausa();
-        if (m_cuentaRegresivaValor > 0) {
-            m_temporizadorCuentaRegresiva->start(1000);
-        } else {
-            if (m_cuentaRegresiva != nullptr) m_cuentaRegresiva->setVisible(false);
-            m_temporizadorFrutas->start();
-            iniciarAnimacionEnHilo();
-        }
+        // Toda reanudación pasa por la cuenta regresiva para evitar que el
+        // jugador pause y continúe repetidamente sin ceder turnos.
+        iniciarCuentaRegresiva();
     }
 }
 

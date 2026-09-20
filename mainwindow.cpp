@@ -757,6 +757,7 @@ void MainWindow::mostrarMenuJuego()
         [this]()
         {
             menuJuego = nullptr;
+            escenaMenuPrincipal->establecerManualVisible(true);
             show();
         }
         );

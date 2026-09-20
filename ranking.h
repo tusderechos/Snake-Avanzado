@@ -5,6 +5,7 @@
 
 class QLabel;
 class QPushButton;
+class QScrollArea;
 class QWidget;
 
 class Ranking : public QGraphicsScene
@@ -17,8 +18,7 @@ public:
         );
 
 public slots:
-    // Consulta el ranking remoto y actualiza
-    // las cinco posiciones mostradas.
+    // Consulta el ranking remoto y actualiza las posiciones mostradas.
     void actualizarRanking();
 
 signals:
@@ -26,17 +26,18 @@ signals:
     void volverSolicitado();
 
 private:
-    static const int CANTIDAD_POSICIONES = 5;
+    static const int CANTIDAD_POSICIONES = 100;
 
-    // Panel que contiene cada posición.
+    // Paneles que contienen las posiciones del ranking desplazable.
     QWidget *panelesFila[CANTIDAD_POSICIONES];
 
-    // Textos mostrados en las cinco filas.
+    // Textos mostrados en las filas del ranking.
     QLabel *etiquetasPosicion[CANTIDAD_POSICIONES];
     QLabel *etiquetasUsuario[CANTIDAD_POSICIONES];
     QLabel *etiquetasAvatar[CANTIDAD_POSICIONES];
     QLabel *etiquetasPuntos[CANTIDAD_POSICIONES];
 
+    QScrollArea *areaScroll;
     QPushButton *botonVolver;
     bool cargando = false;
 

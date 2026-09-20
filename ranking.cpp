@@ -5,13 +5,18 @@
 
 #include <QGraphicsPixmapItem>
 #include <QGraphicsProxyWidget>
+#include <QFrame>
 #include <QLabel>
 #include <QPixmap>
 #include <QPushButton>
+#include <QScrollArea>
+#include <QScrollBar>
+#include <QVBoxLayout>
 #include <QWidget>
 
 Ranking::Ranking(QObject *parent)
     : QGraphicsScene(parent)
+    , areaScroll(nullptr)
     , botonVolver(nullptr)
 {
     for (int i = 0; i < CANTIDAD_POSICIONES; i++)
@@ -146,15 +151,43 @@ void Ranking::construirInterfaz()
     proxyEncabezado->setZValue(2);
 
     // =====================================================
-    // CINCO FILAS DEL RANKING
+    // FILAS DEL RANKING EN UN ÁREA DESPLAZABLE
     // =====================================================
 
-    const qreal posicionInicialY = 360;
-    const qreal separacionFilas = 88;
+    auto *contenedorFilas = new QWidget;
+    contenedorFilas->setFixedSize(760, CANTIDAD_POSICIONES * 88 - 10);
+
+    auto *layoutFilas = new QVBoxLayout(contenedorFilas);
+    layoutFilas->setContentsMargins(0, 0, 0, 0);
+    layoutFilas->setSpacing(10);
+
+    areaScroll = new QScrollArea;
+    areaScroll->setFixedSize(780, 450);
+    areaScroll->setFrameShape(QFrame::NoFrame);
+    areaScroll->setWidgetResizable(false);
+    areaScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    areaScroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    areaScroll->setWidget(contenedorFilas);
+    areaScroll->viewport()->setStyleSheet("background: transparent;");
+    areaScroll->setStyleSheet(
+        "QScrollArea { background: transparent; border: none; }"
+        "QScrollBar:vertical { background: rgba(35, 20, 10, 220);"
+        " width: 16px; margin: 2px; border-radius: 8px; }"
+        "QScrollBar::handle:vertical { background: #d5a52e;"
+        " min-height: 42px; border-radius: 7px; }"
+        "QScrollBar::handle:vertical:hover { background: #f0c84b; }"
+        "QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {"
+        " height: 0px; }"
+        "QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {"
+        " background: transparent; }");
+
+    QGraphicsProxyWidget *proxyScroll = addWidget(areaScroll);
+    proxyScroll->setPos(247, 360);
+    proxyScroll->setZValue(2);
 
     for (int i = 0; i < CANTIDAD_POSICIONES; i++)
     {
-        panelesFila[i] = new QWidget;
+        panelesFila[i] = new QWidget(contenedorFilas);
 
         panelesFila[i]->setFixedSize(
             760,
@@ -207,17 +240,7 @@ void Ranking::construirInterfaz()
             );
 
         configurarEstiloFila(i);
-
-        QGraphicsProxyWidget *proxyFila =
-            addWidget(panelesFila[i]);
-
-        proxyFila->setPos(
-            247,
-            posicionInicialY
-                + i * separacionFilas
-            );
-
-        proxyFila->setZValue(2);
+        layoutFilas->addWidget(panelesFila[i]);
     }
 
     // =====================================================
@@ -341,6 +364,9 @@ void Ranking::actualizarRanking()
 {
     if (cargando) return;
     cargando = true;
+    if (areaScroll != nullptr) {
+        areaScroll->verticalScrollBar()->setValue(0);
+    }
     for (int i = 0; i < CANTIDAD_POSICIONES; ++i) {
         etiquetasAvatar[i]->clear();
         etiquetasUsuario[i]->setText(i == 0 ? "Cargando..." : "---");
