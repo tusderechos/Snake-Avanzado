@@ -167,9 +167,20 @@ void GestorUsuarios::cambiarContrasena(const QString &u,const QString &oldPass,c
     });
 }
 void GestorUsuarios::obtenerRanking(int n,QObject *ctx,std::function<void(bool,const QString &,QVector<DatoRanking>)> cb) {
-    SupabaseClient::solicitar("GET","/rest/v1/ranking_publico?select=nombre_usuario,puntos&order=puntos.desc,nombre_usuario.asc&limit="+QString::number(qBound(1,n,100)),{}, {},ctx,[cb](auto r){
+    const QString rutaBase="/rest/v1/ranking_publico?select=nombre_usuario,puntos";
+    const QString orden="&order=puntos.desc,nombre_usuario.asc&limit="+QString::number(qBound(1,n,100));
+    SupabaseClient::solicitar("GET",rutaBase+",avatar"+orden,{}, {},ctx,[cb,ctx,rutaBase,orden](auto r){
+        if (!r.exito && (r.codigo==400 || r.codigo==404)) {
+            // La vista antigua aún funciona mientras se aplica ranking_avatares.sql.
+            SupabaseClient::solicitar("GET",rutaBase+orden,{}, {},ctx,[cb](auto anterior){
+                QVector<DatoRanking> datos;
+                if(anterior.exito && anterior.datos.isArray()) for(const auto &v:anterior.datos.toArray()) {auto o=v.toObject(); datos.append({o.value("nombre_usuario").toString(),o.value("puntos").toInt(),"clasica"});}
+                cb(anterior.exito && anterior.datos.isArray(),anterior.mensaje,datos);
+            });
+            return;
+        }
         QVector<DatoRanking> datos;
-        if(r.exito && r.datos.isArray()) for(const auto &v:r.datos.toArray()) {auto o=v.toObject(); datos.append({o.value("nombre_usuario").toString(),o.value("puntos").toInt()});}
+        if(r.exito && r.datos.isArray()) for(const auto &v:r.datos.toArray()) {auto o=v.toObject(); datos.append({o.value("nombre_usuario").toString(),o.value("puntos").toInt(),o.value("avatar").toString("clasica")});}
         cb(r.exito && r.datos.isArray(),r.mensaje,datos);
     });
 }

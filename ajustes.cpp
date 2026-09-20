@@ -143,13 +143,14 @@ QSlider *Ajustes::crearBarraVolumen(
     qreal y,
     int valorInicial,
     const QString &imagenPerilla,
-    int ancho
+    int ancho,
+    int anchoPerilla
     )
 {
     QSlider *barra = new QSlider(Qt::Horizontal);
     // El ancho incluye la mitad de la perilla a cada lado. Así, el centro
     // visual del handle recorre exactamente el canal oscuro de cada asset.
-    barra->setFixedSize(ancho, 82);
+    barra->setFixedSize(ancho, 120);
     barra->setRange(0, 100);
     // El audio responde mientras se arrastra; el guardado permanece protegido
     // por el debounce de 400 ms.
@@ -167,7 +168,8 @@ QSlider *Ajustes::crearBarraVolumen(
         "   height: 72px; background: transparent; border: none;"
         "}"
         "QSlider::handle:horizontal {"
-        "   width: 76px; height: 76px; margin: -2px 0; border: none;"
+        "   width: " + QString::number(anchoPerilla) + "px;"
+        "   height: 112px; margin: -20px 0; border: none;"
         "   image: url(" + imagenPerilla + ");"
         "}"
         "QSlider::handle:horizontal:hover {"
@@ -251,23 +253,27 @@ void Ajustes::construirInterfaz()
     textoSonido->setStyleSheet(estiloEtiquetaCanva);
 
     barraMusica = crearBarraVolumen(
-        594, 267, 75, ":/imagenes/imagenes/ajustes_perilla_musica.png", 572
+        570, 241, 75, ":/imagenes/imagenes/ajustes_perilla_musica.png", 620, 125
         );
 
     barraSonido = crearBarraVolumen(
-        613, 452, 75, ":/imagenes/imagenes/ajustes_perilla_sonido.png", 553
+        563, 426, 75, ":/imagenes/imagenes/ajustes_perilla_sonido.png", 634, 138
         );
 
-    auto agregarBarraDecorativa = [this](const QString &ruta, qreal x, qreal y) {
+    auto agregarBarraDecorativa = [this](const QString &ruta, qreal x, qreal y,
+                                        int ancho, int alto) {
         const QPixmap original(ruta);
         if (original.isNull()) return;
-        auto *barra = addPixmap(original.scaled(700, 177, Qt::IgnoreAspectRatio,
+        auto *barra = addPixmap(original.scaled(ancho, alto, Qt::IgnoreAspectRatio,
                                                  Qt::SmoothTransformation));
         barra->setPos(x, y);
         barra->setZValue(2);
     };
-    agregarBarraDecorativa(":/imagenes/imagenes/ajustes_barra_musica.png", 495, 220);
-    agregarBarraDecorativa(":/imagenes/imagenes/ajustes_barra_sonido.png", 495, 405);
+    agregarBarraDecorativa(":/imagenes/imagenes/ajustes_barra_musica.png", 495, 205, 700, 177);
+    // El archivo de sonido tiene más margen transparente a la izquierda y
+    // menos píxeles visibles de ancho. Estas medidas igualan los bordes
+    // visibles de ambas barras sin alterar sus imágenes.
+    agregarBarraDecorativa(":/imagenes/imagenes/ajustes_barra_sonido.png", 473, 394, 717, 173);
 
     etiquetaVolumenMusica = crearEtiqueta("75%", 985, 307, 82, 58, 22);
     etiquetaVolumenSonido = crearEtiqueta("75%", 985, 492, 82, 58, 22);

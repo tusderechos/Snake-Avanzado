@@ -19,6 +19,7 @@ Ranking::Ranking(QObject *parent)
         panelesFila[i] = nullptr;
         etiquetasPosicion[i] = nullptr;
         etiquetasUsuario[i] = nullptr;
+        etiquetasAvatar[i] = nullptr;
         etiquetasPuntos[i] = nullptr;
     }
 
@@ -171,6 +172,9 @@ void Ranking::construirInterfaz()
         etiquetasUsuario[i] =
             new QLabel(panelesFila[i]);
 
+        etiquetasAvatar[i] =
+            new QLabel(panelesFila[i]);
+
         etiquetasPuntos[i] =
             new QLabel(panelesFila[i]);
 
@@ -178,9 +182,8 @@ void Ranking::construirInterfaz()
             10, 5, 130, 68
             );
 
-        etiquetasUsuario[i]->setGeometry(
-            150, 5, 400, 68
-            );
+        etiquetasAvatar[i]->setGeometry(225, 9, 60, 60);
+        etiquetasUsuario[i]->setGeometry(295, 5, 255, 68);
 
         etiquetasPuntos[i]->setGeometry(
             560, 5, 180, 68
@@ -191,8 +194,9 @@ void Ranking::construirInterfaz()
             );
 
         etiquetasUsuario[i]->setAlignment(
-            Qt::AlignCenter
+            Qt::AlignLeft | Qt::AlignVCenter
             );
+        etiquetasAvatar[i]->setAlignment(Qt::AlignCenter);
 
         etiquetasPuntos[i]->setAlignment(
             Qt::AlignCenter
@@ -338,6 +342,7 @@ void Ranking::actualizarRanking()
     if (cargando) return;
     cargando = true;
     for (int i = 0; i < CANTIDAD_POSICIONES; ++i) {
+        etiquetasAvatar[i]->clear();
         etiquetasUsuario[i]->setText(i == 0 ? "Cargando..." : "---");
         etiquetasPuntos[i]->setText("---");
     }
@@ -345,6 +350,16 @@ void Ranking::actualizarRanking()
         [this](bool exito, const QString &mensaje, QVector<GestorUsuarios::DatoRanking> datos) {
         cargando = false;
         for (int i = 0; i < CANTIDAD_POSICIONES; ++i) {
+            etiquetasAvatar[i]->clear();
+            if (exito && i < datos.size()) {
+                static const QStringList avatares = {"clasica", "gato", "dragon", "burro", "spiderman", "miles", "personaje", "thanos"};
+                const QString avatar = avatares.contains(datos[i].avatar) ? datos[i].avatar : "clasica";
+                const QString ruta = avatar == "clasica" ? ":/assets/cabeza_snake.png"
+                    : ":/assets/skin_" + avatar + ".png";
+                const QPixmap imagen(ruta);
+                if (!imagen.isNull())
+                    etiquetasAvatar[i]->setPixmap(imagen.scaled(56, 56, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+            }
             etiquetasUsuario[i]->setText(exito && i < datos.size() ? datos[i].usuario : "---");
             etiquetasPuntos[i]->setText(exito && i < datos.size() ? QString::number(datos[i].puntos) : "---");
         }

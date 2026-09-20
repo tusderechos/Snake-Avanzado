@@ -34,6 +34,7 @@ private:
     // Textos mostrados en las cinco filas.
     QLabel *etiquetasPosicion[CANTIDAD_POSICIONES];
     QLabel *etiquetasUsuario[CANTIDAD_POSICIONES];
+    QLabel *etiquetasAvatar[CANTIDAD_POSICIONES];
     QLabel *etiquetasPuntos[CANTIDAD_POSICIONES];
 
     QPushButton *botonVolver;

@@ -11,7 +11,7 @@ class GestorUsuarios : public QObject {
     Q_OBJECT
 public:
     using Respuesta = std::function<void(bool, const QString &)>;
-    struct DatoRanking { QString usuario; int puntos; };
+    struct DatoRanking { QString usuario; int puntos; QString avatar; };
     static GestorUsuarios &instancia();
     static QString nombreActual();
     static bool sesionActiva();
