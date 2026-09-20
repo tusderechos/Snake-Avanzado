@@ -69,7 +69,7 @@ void MenuPrincipal::construirInterfaz()
     // =====================================================
 
     QPixmap fondoOriginal(
-        ":/imagenes/imagenes/MenuP.png"
+        ":/imagenes/imagenes/MenuP.webp"
         );
 
     QPixmap fondoAjustado =

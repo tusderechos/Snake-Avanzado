@@ -46,7 +46,7 @@ void EscenaRegistro::construirInterfaz()
     // =====================================================
 
     // Cargar el fondo original
-    QPixmap fondoOriginal(":/imagenes/imagenes/MenuI.png");
+    QPixmap fondoOriginal(":/imagenes/imagenes/MenuI.webp");
 
     // Ajustarlo exactamente al tamaño de la escena
     QPixmap fondoAjustado = fondoOriginal.scaled(1254,

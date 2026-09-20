@@ -256,7 +256,7 @@ void MainWindow::construirMenuInicio()
     // =====================================================
 
     QPixmap fondo(
-        ":/imagenes/imagenes/MenuI.png"
+        ":/imagenes/imagenes/MenuI.webp"
         );
 
     QGraphicsPixmapItem *imagenFondo =

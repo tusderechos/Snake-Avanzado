@@ -408,9 +408,9 @@ void JuegoView::crearGrid() {
     m_informacion->setTextWidth(PANEL_ANCHO - 30);
     m_informacion->setPos(m_fondoNivel->width() + 15, 24);
 
-    const QString panelRuta = m_nivel == NIVEL_1 ? ":/assets/panel_arena.png"
-                              : m_nivel == NIVEL_2 ? ":/assets/panel_hielo.png"
-                                                   : ":/assets/panel_madera.png";
+    const QString panelRuta = m_nivel == NIVEL_1 ? ":/assets/panel_arena.webp"
+                              : m_nivel == NIVEL_2 ? ":/assets/panel_hielo.webp"
+                                                   : ":/assets/panel_madera.webp";
     const QPixmap panelOriginal(panelRuta);
     if (!panelOriginal.isNull()) {
         auto *panel = m_escena->addPixmap(panelOriginal.scaled(
@@ -592,9 +592,9 @@ void JuegoView::cargarSprites() {
     cargarObjeto(m_spriteFrutaEnergetica, ":/assets/fruta_energetica.png");
     cargarObjeto(m_spriteCaja, ":/assets/caja_misteriosa.png");
 
-    const QString fondo = m_nivel == NIVEL_1 ? ":/assets/tablero_arena.png"
-                         : m_nivel == NIVEL_2 ? ":/assets/tablero_hielo.png"
-                                              : ":/assets/tablero_madera.png";
+    const QString fondo = m_nivel == NIVEL_1 ? ":/assets/tablero_arena.webp"
+                         : m_nivel == NIVEL_2 ? ":/assets/tablero_hielo.webp"
+                                              : ":/assets/tablero_madera.webp";
     const QPixmap originalFondo(fondo);
     if (!originalFondo.isNull()) {
         *m_fondoNivel = originalFondo.scaled(m_columnas * TAMANO_CELDA + 2 * m_margenColiseo,

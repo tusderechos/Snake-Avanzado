@@ -65,7 +65,7 @@ void Tienda::establecerUsuario(const QString &usuario)
 
 void Tienda::construirInterfaz()
 {
-    QPixmap fondoOriginal(":/imagenes/imagenes/Tienda.png");
+    QPixmap fondoOriginal(":/imagenes/imagenes/Tienda.webp");
     QPixmap fondoAjustado = fondoOriginal.scaled(
         1254, 1254, Qt::IgnoreAspectRatio, Qt::SmoothTransformation
         );

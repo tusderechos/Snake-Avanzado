@@ -49,7 +49,7 @@ MenuJuego::MenuJuego(std::function<void(ModoJuego)> alSeleccionar,
     setFixedSize(560, 660);
     auto *fondo = new QLabel(this);
     fondo->setGeometry(rect());
-    fondo->setPixmap(QPixmap(":/assets/menu_juego_pantano.png"));
+    fondo->setPixmap(QPixmap(":/assets/menu_juego_pantano.webp"));
     fondo->setScaledContents(true);
     fondo->lower();
     setStyleSheet(

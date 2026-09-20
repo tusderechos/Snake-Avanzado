@@ -210,7 +210,7 @@ void Ajustes::crearIcono(
 void Ajustes::construirInterfaz()
 {
     QPixmap fondoOriginal(
-        ":/imagenes/imagenes/Ajustes.png"
+        ":/imagenes/imagenes/Ajustes.webp"
         );
 
     QPixmap fondoAjustado = fondoOriginal.scaled(

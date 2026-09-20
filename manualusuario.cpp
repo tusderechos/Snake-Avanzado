@@ -36,8 +36,8 @@ ManualUsuario::ManualUsuario(QWidget *parent)
         "QPushButton:hover { background: #4cae22; border-color: #f4d06f; }");
 
     paginas = {
-        ":/assets/manual/00_portada_fondo.png",
-        ":/assets/manual/00_introduccion_fondo.png",
+        ":/assets/manual/00_portada_fondo.webp",
+        ":/assets/manual/00_introduccion_fondo.webp",
         ":/assets/manual/02_cuenta.png",
         ":/assets/manual/03_menu_niveles.png",
         ":/assets/manual/04_tienda.png",
