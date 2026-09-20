@@ -30,6 +30,10 @@ void ProgresoNivel::registrarItem(int puntosObtenidos, int longitudActual) {
     m_longitudActual = longitudActual;
 }
 
+void ProgresoNivel::actualizarLongitud(int longitudActual) {
+    m_longitudActual = longitudActual;
+}
+
 bool ProgresoNivel::gano() const {
     return m_frutasComidas >= m_metaFrutas && m_puntaje >= m_metaPuntos && m_longitudActual >= m_metaLongitud;
 }

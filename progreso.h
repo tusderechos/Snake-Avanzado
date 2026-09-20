@@ -8,6 +8,7 @@ public:
     void reiniciar();
     void registrarFruta(int puntosObtenidos, int longitudActual, int frutasContadas = 1);
     void registrarItem(int puntosObtenidos, int longitudActual);
+    void actualizarLongitud(int longitudActual);
     bool gano() const;
     int frutasComidas() const;
     int puntaje() const;

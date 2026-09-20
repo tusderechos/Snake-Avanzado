@@ -1142,14 +1142,11 @@ void JuegoView::mostrarOverlayPausa() {
     m_overlayPausa = m_escena->addRect(tablero, QPen(Qt::NoPen),
                                        QBrush(QColor(5, 8, 12, 185)));
     m_overlayPausa->setZValue(50);
-    m_textoPausa = m_escena->addText(
-        "PAUSA\n\nTomate un descanso, una vez estés preparado/a\n"
-        "presioná ESC o el botón verde para continuar.");
+    m_textoPausa = m_escena->addText("PAUSA");
     m_textoPausa->setDefaultTextColor(Qt::white);
-    m_textoPausa->setFont(QFont("Fredoka", 17, QFont::Bold));
-    m_textoPausa->setTextWidth(tablero.width() - 80);
+    m_textoPausa->setFont(QFont("Fredoka", 25, QFont::Bold));
     m_textoPausa->setZValue(52);
-    m_textoPausa->setPos(tablero.left() + 40, tablero.top() + tablero.height() / 2 - 85);
+    m_textoPausa->setPos(tablero.left() + 42, tablero.top() + 42);
 
     m_botonReanudar = new QPushButton("CONTINUAR");
     m_botonReanudar->setFixedSize(190, 56);
@@ -1168,8 +1165,19 @@ void JuegoView::mostrarOverlayPausa() {
         m_shrekPausa = m_escena->addPixmap(shrek.scaled(
             210, 260, Qt::KeepAspectRatio, Qt::SmoothTransformation));
         m_shrekPausa->setZValue(51);
-        m_shrekPausa->setPos(tablero.right() - 225, tablero.bottom() - 275);
+        m_shrekPausa->setPos(tablero.right() - 225, tablero.top() + 35);
     }
+}
+
+bool JuegoView::verificarVictoria() {
+    if (m_terminado || m_progreso == nullptr || !m_progreso->gano()) {
+        return false;
+    }
+
+    redibujar();
+    actualizarInformacion();
+    ganarNivel();
+    return true;
 }
 
 void JuegoView::quitarOverlayPausa() {
@@ -1407,6 +1415,7 @@ void JuegoView::avanzarJuego() {
                                 : 0;
     m_serpiente->avanzar(nuevaX, nuevaY, crecimiento);
     actualizarMapa();
+    m_progreso->actualizarLongitud(m_serpiente->longitud());
 
     if (comioFruta) {
         AudioManager::instancia().reproducirEfecto(AudioManager::Efecto::Comer);
@@ -1423,26 +1432,17 @@ void JuegoView::avanzarJuego() {
             m_ultimoEfecto = "Fruta energética: acelera 5 segundos";
         }
         cambiarIntervaloEnHilo(intervaloActual());
-        if (m_progreso->gano()) {
-            redibujar();
-            actualizarInformacion();
-            ganarNivel();
-            return;
-        }
+        if (verificarVictoria()) return;
 
         generarManzana();
     } else if (tomoCaja) {
         AudioManager::instancia().reproducirEfecto(AudioManager::Efecto::Moneda);
         aplicarItem();
-        if (m_progreso->gano()) {
-            redibujar();
-            actualizarInformacion();
-            ganarNivel();
-            return;
-        }
+        if (verificarVictoria()) return;
         generarManzana();
     }
 
+    if (verificarVictoria()) return;
     redibujar();
     actualizarInformacion();
 

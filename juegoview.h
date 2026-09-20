@@ -122,6 +122,7 @@ private:
     void alternarPausa();
     void mostrarOverlayPausa();
     void quitarOverlayPausa();
+    bool verificarVictoria();
 
     QGraphicsScene *m_escena;
     QGraphicsTextItem *m_informacion;

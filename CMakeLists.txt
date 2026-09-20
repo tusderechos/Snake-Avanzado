@@ -101,13 +101,22 @@ endif()
 if (WIN32)
     set(QT_WEBP_PLUGIN "${Qt6Core_DIR}/../../../plugins/imageformats/qwebp.dll")
     if (EXISTS "${QT_WEBP_PLUGIN}")
+        # El ejecutable carga los WebP desde el .qrc mediante el plugin de Qt.
+        # Copiarlo al árbol de salida evita que los fondos desaparezcan fuera
+        # del entorno de Qt Creator.
         add_custom_command(TARGET Snake POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E make_directory
                     "$<TARGET_FILE_DIR:Snake>/imageformats"
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
                     "${QT_WEBP_PLUGIN}"
                     "$<TARGET_FILE_DIR:Snake>/imageformats/qwebp.dll"
-            VERBATIM)
+                    VERBATIM)
+
+        # Mantener el plugin también al generar el paquete con `cmake --install`.
+        # La carpeta debe conservar el nombre imageformats para que Qt la
+        # descubra junto al ejecutable en cualquier computadora Windows.
+        install(FILES "${QT_WEBP_PLUGIN}"
+                DESTINATION "${CMAKE_INSTALL_BINDIR}/imageformats")
     endif()
 endif()
 
@@ -134,3 +143,15 @@ install(TARGETS Snake
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
+
+# Generar una instalación portable de Windows con las DLL de Qt y sus
+# plugins. Esto evita publicar solo Snake.exe, que deja los WebP sin soporte
+# cuando se ejecuta en una computadora que no tiene Qt instalado.
+if (WIN32 AND COMMAND qt_generate_deploy_app_script)
+    qt_generate_deploy_app_script(
+        TARGET Snake
+        OUTPUT_SCRIPT snake_deploy_script
+        NO_TRANSLATIONS
+    )
+    install(SCRIPT "${snake_deploy_script}")
+endif()
