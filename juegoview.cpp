@@ -110,6 +110,8 @@ JuegoView::JuegoView(int nivelInicial, ConfiguracionJuego configuracion,
       m_textoPausa(nullptr),
       m_proxyReanudar(nullptr),
       m_botonReanudar(nullptr),
+      m_proxyMenuPrincipal(nullptr),
+      m_botonMenuPrincipal(nullptr),
       m_tarjetaDerrotaMostrada(false)
 {
     m_esquemaControles = GestorConfiguracion::cargarControl(m_usuario) == "WASD"
@@ -327,7 +329,9 @@ void JuegoView::cambiarIntervaloEnHilo(int intervalo) {
 }
 
 void JuegoView::closeEvent(QCloseEvent *evento) {
-    guardarPuntajePartida();
+    if (!m_omitirGuardado) {
+        guardarPuntajePartida();
+    }
     evento->accept();
 }
 
@@ -1157,8 +1161,21 @@ void JuegoView::mostrarOverlayPausa() {
         "QPushButton:hover { background: #4cae22; border-color: #f4d06f; }");
     m_proxyReanudar = m_escena->addWidget(m_botonReanudar);
     m_proxyReanudar->setZValue(53);
-    m_proxyReanudar->setPos(tablero.center().x() - 95, tablero.bottom() - 85);
+    m_proxyReanudar->setPos(tablero.center().x() - 95, tablero.bottom() - 150);
     connect(m_botonReanudar, &QPushButton::clicked, this, &JuegoView::alternarPausa);
+
+    m_botonMenuPrincipal = new QPushButton("VOLVER");
+    m_botonMenuPrincipal->setFixedSize(190, 56);
+    m_botonMenuPrincipal->setCursor(Qt::PointingHandCursor);
+    m_botonMenuPrincipal->setStyleSheet(
+        "QPushButton { background: #2f8618; color: white; border: 3px solid #68dd3e;"
+        " border-radius: 10px; font: bold 16px 'Fredoka'; }"
+        "QPushButton:hover { background: #4cae22; border-color: #f4d06f; }");
+    m_proxyMenuPrincipal = m_escena->addWidget(m_botonMenuPrincipal);
+    m_proxyMenuPrincipal->setZValue(53);
+    m_proxyMenuPrincipal->setPos(tablero.center().x() - 95, tablero.bottom() - 82);
+    connect(m_botonMenuPrincipal, &QPushButton::clicked,
+            this, &JuegoView::salirAlMenuPrincipal);
 
     QPixmap shrek(":/assets/manual/shrek_pausa.png");
     if (!shrek.isNull()) {
@@ -1180,16 +1197,37 @@ bool JuegoView::verificarVictoria() {
     return true;
 }
 
+void JuegoView::salirAlMenuPrincipal() {
+    QMessageBox confirmacion(this);
+    confirmacion.setWindowTitle("Salir de la partida");
+    confirmacion.setIcon(QMessageBox::Warning);
+    confirmacion.setText("¿Querés volver al menú principal?");
+    confirmacion.setInformativeText(
+        "El progreso, puntaje y monedas obtenidos en esta partida no se guardarán.");
+    QAbstractButton *salir = confirmacion.addButton("Salir al menú",
+                                                     QMessageBox::AcceptRole);
+    confirmacion.addButton("Cancelar", QMessageBox::RejectRole);
+    Dialogos::aplicarEstilo(confirmacion);
+    confirmacion.exec();
+    if (confirmacion.clickedButton() != salir) return;
+
+    m_omitirGuardado = true;
+    close();
+}
+
 void JuegoView::quitarOverlayPausa() {
     delete m_overlayPausa;
     delete m_shrekPausa;
     delete m_textoPausa;
     delete m_proxyReanudar;
+    delete m_proxyMenuPrincipal;
     m_overlayPausa = nullptr;
     m_shrekPausa = nullptr;
     m_textoPausa = nullptr;
     m_proxyReanudar = nullptr;
     m_botonReanudar = nullptr;
+    m_proxyMenuPrincipal = nullptr;
+    m_botonMenuPrincipal = nullptr;
 }
 
 void JuegoView::actualizarTemporizadoresFrutas() {

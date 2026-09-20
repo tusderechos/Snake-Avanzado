@@ -122,6 +122,7 @@ private:
     void alternarPausa();
     void mostrarOverlayPausa();
     void quitarOverlayPausa();
+    void salirAlMenuPrincipal();
     bool verificarVictoria();
 
     QGraphicsScene *m_escena;
@@ -206,7 +207,10 @@ private:
     QGraphicsTextItem *m_textoPausa;
     QGraphicsProxyWidget *m_proxyReanudar;
     QPushButton *m_botonReanudar;
+    QGraphicsProxyWidget *m_proxyMenuPrincipal;
+    QPushButton *m_botonMenuPrincipal;
     bool m_tarjetaDerrotaMostrada;
+    bool m_omitirGuardado = false;
     bool m_pausado = false;
     QHash<int, QPointF> m_posicionesVisuales;
     QHash<QGraphicsPixmapItem *, QVariantAnimation *> m_animacionesMovimiento;
