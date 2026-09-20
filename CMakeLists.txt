@@ -95,31 +95,6 @@ if(BUILD_TESTING)
     target_sources(test_gestorusuarios PRIVATE gestorusuarios.cpp gestorconfiguracion.cpp)
 endif()
 
-# Algunos assets exportados desde Canva son WebP aunque conserven una
-# extensión .png. Copiar el plugin oficial evita que desaparezcan al ejecutar
-# el binario fuera del entorno completo de Qt.
-if (WIN32)
-    set(QT_WEBP_PLUGIN "${Qt6Core_DIR}/../../../plugins/imageformats/qwebp.dll")
-    if (EXISTS "${QT_WEBP_PLUGIN}")
-        # El ejecutable carga los WebP desde el .qrc mediante el plugin de Qt.
-        # Copiarlo al árbol de salida evita que los fondos desaparezcan fuera
-        # del entorno de Qt Creator.
-        add_custom_command(TARGET Snake POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E make_directory
-                    "$<TARGET_FILE_DIR:Snake>/imageformats"
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                    "${QT_WEBP_PLUGIN}"
-                    "$<TARGET_FILE_DIR:Snake>/imageformats/qwebp.dll"
-                    VERBATIM)
-
-        # Mantener el plugin también al generar el paquete con `cmake --install`.
-        # La carpeta debe conservar el nombre imageformats para que Qt la
-        # descubra junto al ejecutable en cualquier computadora Windows.
-        install(FILES "${QT_WEBP_PLUGIN}"
-                DESTINATION "${CMAKE_INSTALL_BINDIR}/imageformats")
-    endif()
-endif()
-
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     target_compile_options(Snake PRIVATE -Wall -Wextra -Wpedantic)
     # Optimizaciones de distribución: reducen trabajo del ejecutable sin
@@ -145,8 +120,7 @@ install(TARGETS Snake
 )
 
 # Generar una instalación portable de Windows con las DLL de Qt y sus
-# plugins. Esto evita publicar solo Snake.exe, que deja los WebP sin soporte
-# cuando se ejecuta en una computadora que no tiene Qt instalado.
+# plugins. Esto evita publicar solo Snake.exe sin sus dependencias de Qt.
 if (WIN32 AND COMMAND qt_generate_deploy_app_script)
     qt_generate_deploy_app_script(
         TARGET Snake

@@ -36,7 +36,7 @@ void InicioSesion::construirInterfaz()
     // =====================================================
 
     QPixmap fondoOriginal(
-        ":/imagenes/imagenes/MenuI.webp"
+        ":/imagenes/imagenes/MenuI.png"
         );
 
     QPixmap fondoAjustado =

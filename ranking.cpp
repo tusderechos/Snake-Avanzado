@@ -34,7 +34,7 @@ void Ranking::construirInterfaz()
     // =====================================================
 
     QPixmap fondoOriginal(
-        ":/imagenes/imagenes/Ranking.webp"
+        ":/imagenes/imagenes/Ranking.png"
         );
 
     QPixmap fondoAjustado =

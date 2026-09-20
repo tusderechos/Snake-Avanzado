@@ -69,7 +69,7 @@ QLabel *Perfil::crearEtiqueta(
 void Perfil::construirInterfaz()
 {
     QPixmap fondoOriginal(
-        ":/imagenes/imagenes/Ajustes.webp"
+        ":/imagenes/imagenes/Ajustes.png"
         );
 
     QPixmap fondoAjustado = fondoOriginal.scaled(

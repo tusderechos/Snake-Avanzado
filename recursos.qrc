@@ -29,16 +29,16 @@
         <file alias="fruta_grande.png">assets/fruta_grande.png</file>
         <file alias="fruta_energetica.png">assets/fruta_energetica.png</file>
         <file alias="caja_misteriosa.png">assets/caja_misteriosa.png</file>
-        <file alias="tablero_arena.webp">assets/tablero_arena.webp</file>
-        <file alias="tablero_hielo.webp">assets/tablero_hielo.webp</file>
-        <file alias="tablero_madera.webp">assets/tablero_madera.webp</file>
-        <file alias="panel_arena.webp">assets/panel_arena.webp</file>
-        <file alias="panel_hielo.webp">assets/panel_hielo.webp</file>
-        <file alias="panel_madera.webp">assets/panel_madera.webp</file>
-        <file alias="menu_juego_pantano.webp">assets/menu/menu_juego_pantano.webp</file>
-        <file alias="manual/01_portada.webp">assets/manual/01_portada.webp</file>
-        <file alias="manual/00_portada_fondo.webp">assets/manual/00_portada_fondo.webp</file>
-        <file alias="manual/00_introduccion_fondo.webp">assets/manual/00_introduccion_fondo.webp</file>
+        <file alias="tablero_arena.png">assets/tablero_arena.png</file>
+        <file alias="tablero_hielo.png">assets/tablero_hielo.png</file>
+        <file alias="tablero_madera.png">assets/tablero_madera.png</file>
+        <file alias="panel_arena.png">assets/panel_arena.png</file>
+        <file alias="panel_hielo.png">assets/panel_hielo.png</file>
+        <file alias="panel_madera.png">assets/panel_madera.png</file>
+        <file alias="menu_juego_pantano.png">assets/menu/menu_juego_pantano.png</file>
+        <file alias="manual/01_portada.png">assets/manual/01_portada.png</file>
+        <file alias="manual/00_portada_fondo.png">assets/manual/00_portada_fondo.png</file>
+        <file alias="manual/00_introduccion_fondo.png">assets/manual/00_introduccion_fondo.png</file>
         <file alias="manual/shrek_manual.png">assets/manual/shrek_manual.png</file>
         <file alias="manual/shrek_pausa.png">assets/manual/shrek_pausa.png</file>
         <file alias="manual/02_cuenta.png">assets/manual/02_cuenta.png</file>
@@ -50,15 +50,15 @@
         <file alias="manual/08_caja_misteriosa.png">assets/manual/08_caja_misteriosa.png</file>
     </qresource>
     <qresource prefix="/imagenes">
-        <file alias="imagenes/MenuI.webp">assets/menu/MenuI.webp</file>
+        <file alias="imagenes/MenuI.png">assets/menu/MenuI.png</file>
         <file alias="imagenes/Logo2.png">assets/menu/Logo2.png</file>
-        <file alias="imagenes/MenuP.webp">assets/menu/MenuP.webp</file>
-        <file alias="imagenes/Ranking.webp">assets/menu/Ranking.webp</file>
-        <file alias="imagenes/Ajustes.webp">assets/menu/Ajustes.webp</file>
+        <file alias="imagenes/MenuP.png">assets/menu/MenuP.png</file>
+        <file alias="imagenes/Ranking.png">assets/menu/Ranking.png</file>
+        <file alias="imagenes/Ajustes.png">assets/menu/Ajustes.png</file>
         <file alias="imagenes/ajustes_barra_musica.png">assets/menu/ajustes_barra_musica.png</file>
         <file alias="imagenes/ajustes_barra_sonido.png">assets/menu/ajustes_barra_sonido.png</file>
         <file alias="imagenes/ajustes_perilla_musica.png">assets/menu/ajustes_perilla_musica.png</file>
         <file alias="imagenes/ajustes_perilla_sonido.png">assets/menu/ajustes_perilla_sonido.png</file>
-        <file alias="imagenes/Tienda.webp">assets/menu/Tienda.webp</file>
+        <file alias="imagenes/Tienda.png">assets/menu/Tienda.png</file>
     </qresource>
 </RCC>

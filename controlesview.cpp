@@ -96,7 +96,7 @@ QString ControlesView::estiloOpcion(bool activa) const
 
 void ControlesView::construirInterfaz()
 {
-    QPixmap fondoOriginal(":/imagenes/imagenes/Ajustes.webp");
+    QPixmap fondoOriginal(":/imagenes/imagenes/Ajustes.png");
     QPixmap fondoAjustado = fondoOriginal.scaled(
         1254, 1254, Qt::IgnoreAspectRatio, Qt::SmoothTransformation
         );
