@@ -181,7 +181,7 @@ JuegoView::JuegoView(int nivelInicial, ConfiguracionJuego configuracion,
     connect(m_hiloAnimacion, &QThread::finished,
             m_animadorSerpiente, &QObject::deleteLater);
     connect(m_animadorSerpiente, &AnimadorSerpiente::tick, this,
-            [this]() { avanzarJuego(); }, Qt::QueuedConnection);
+            [this]() { avanzarJuego(); }, Qt::BlockingQueuedConnection);
     m_hiloAnimacion->start();
     connect(m_temporizadorCuentaRegresiva, &QTimer::timeout, this,
             [this]() { actualizarCuentaRegresiva(); });
@@ -318,7 +318,7 @@ void JuegoView::iniciarAnimacionEnHilo() {
 void JuegoView::detenerAnimacionEnHilo() {
     if (m_hiloAnimacion != nullptr && m_hiloAnimacion->isRunning()) {
         QMetaObject::invokeMethod(m_animadorSerpiente, "detener",
-                                  Qt::BlockingQueuedConnection);
+                                  Qt::QueuedConnection);
     }
 }
 
@@ -1396,11 +1396,9 @@ void JuegoView::avanzarJuego() {
             m_trampaY = -1;
         }
     }
-    cambiarIntervaloEnHilo(intervaloActual());
-    moverObstaculos();
-
-    // El tablero debe representar las posiciones nuevas antes de revisar
-    // la siguiente casilla de la serpiente.
+    // La serpiente comprueba la casilla que ya era visible al jugador.
+    // Los obstáculos se desplazan una vez resuelto este turno para que su
+    // nueva posición no pueda provocar una colisión antes de dibujarse.
     actualizarMapa();
 
     int nuevaX = m_serpiente->cabezaX() + m_direccionX;
@@ -1465,7 +1463,6 @@ void JuegoView::avanzarJuego() {
             m_turnosEnergia = 100;
             m_ultimoEfecto = "Fruta energética: acelera 5 segundos";
         }
-        cambiarIntervaloEnHilo(intervaloActual());
         if (verificarVictoria()) return;
 
         generarManzana();
@@ -1477,6 +1474,12 @@ void JuegoView::avanzarJuego() {
     }
 
     if (verificarVictoria()) return;
+
+    // Los obstáculos actualizan su posición para el siguiente turno y se
+    // redibujan junto a la nueva posición de la serpiente.
+    moverObstaculos();
+    actualizarMapa();
+    cambiarIntervaloEnHilo(intervaloActual());
     redibujar();
     actualizarInformacion();
 
