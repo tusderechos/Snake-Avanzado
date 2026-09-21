@@ -835,6 +835,7 @@ void MainWindow::iniciarModoJuego(ModoJuego modo)
 
         QDialog dialogo(menuJuego);
         dialogo.setWindowTitle("Modo Libre");
+        dialogo.setWindowFlag(Qt::WindowCloseButtonHint, false);
         dialogo.setFixedSize(430, 270);
         dialogo.setStyleSheet(
             "QDialog { background: #102214; color: #fff9df; }"
@@ -879,6 +880,7 @@ void MainWindow::iniciarModoJuego(ModoJuego modo)
     {
         QDialog dialogo(menuJuego);
         dialogo.setWindowTitle("Modo Aleatorio");
+        dialogo.setWindowFlag(Qt::WindowCloseButtonHint, false);
         dialogo.setFixedSize(480, 540);
         dialogo.setStyleSheet(
             "QDialog { background: #102214; color: #fff9df; }"
@@ -1039,6 +1041,13 @@ void MainWindow::mostrarErrorGuardado(const QString &mensaje)
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
+    // La X nativa solo cierra la aplicación desde el menú inicial. Las demás
+    // pantallas tienen botones propios para conservar el flujo de navegación.
+    if (ui->graphicsView->scene() != escenaInicio) {
+        event->ignore();
+        return;
+    }
+
     escenaAjustes->confirmarCambios();
     if (GestorUsuarios::pendientes()) {
         event->ignore();

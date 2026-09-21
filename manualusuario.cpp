@@ -27,6 +27,7 @@ ManualUsuario::ManualUsuario(QWidget *parent)
           "tienda y a tener cuidado con los caprichos de la caja misteriosa.\n\n"
           "Abre el libro cuando necesites recordar algo. El sendero te espera.") {
     setWindowTitle("Manual de usuario - Serpent Society");
+    setWindowFlag(Qt::WindowCloseButtonHint, false);
     setFixedSize(980, 760);
     setStyleSheet(
         "QWidget { background: #0b160b; color: #fff9df; }"

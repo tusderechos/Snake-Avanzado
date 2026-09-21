@@ -46,6 +46,7 @@ MenuJuego::MenuJuego(std::function<void(ModoJuego)> alSeleccionar,
     : QWidget(parent), m_alSeleccionar(std::move(alSeleccionar)),
       m_botonTutorial(nullptr) {
     setWindowTitle("Snake - Menú de Juego");
+    setWindowFlag(Qt::WindowCloseButtonHint, false);
     setFixedSize(560, 660);
     auto *fondo = new QLabel(this);
     fondo->setGeometry(rect());

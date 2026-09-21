@@ -146,6 +146,7 @@ TutorialView::TutorialView(const QString &usuario)
     m_escena->setItemIndexMethod(QGraphicsScene::NoIndex);
     setFixedSize(TABLERO * CELDA + PANEL_ANCHO + 4, TABLERO * CELDA + 4);
     setWindowTitle("Snake - Tutorial");
+    setWindowFlag(Qt::WindowCloseButtonHint, false);
     setFocusPolicy(Qt::StrongFocus);
     m_escena->setSceneRect(0, 0, TABLERO * CELDA + PANEL_ANCHO,
                             TABLERO * CELDA);

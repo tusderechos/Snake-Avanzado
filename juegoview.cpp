@@ -122,6 +122,7 @@ JuegoView::JuegoView(int nivelInicial, ConfiguracionJuego configuracion,
     // cada movimiento y reduce el coste del repintado.
     m_escena->setItemIndexMethod(QGraphicsScene::NoIndex);
     m_escena->setBackgroundBrush(QColor(13, 18, 26));
+    setWindowFlag(Qt::WindowCloseButtonHint, false);
     setFocusPolicy(Qt::StrongFocus);
     QFontDatabase::addApplicationFont(":/assets/Fredoka-Variable.ttf");
 
