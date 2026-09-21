@@ -2,6 +2,7 @@
 #include "audio.h"
 #include "gestorconfiguracion.h"
 #include "gestorusuarios.h"
+#include "reglasmovimiento.h"
 
 #include <QBrush>
 #include <QGraphicsRectItem>
@@ -226,8 +227,8 @@ void TutorialView::keyPressEvent(QKeyEvent *evento) {
 
     if (m_fase == 0) {
         m_fase = 1;
-        quitarOverlay();
-        m_timer->start(170);
+        m_overlayFrutasIniciales = true;
+        mostrarOverlay("MANZANAS\n\nLa fruta ROJA suma 10 puntos y aumenta un segmento.\n\nLa fruta DORADA suma 30 puntos y aumenta dos segmentos.\n\nPresioná ENTER para empezar a recogerlas.");
         dibujar();
         return;
     }
@@ -237,10 +238,15 @@ void TutorialView::keyPressEvent(QKeyEvent *evento) {
 }
 
 void TutorialView::siguienteDireccion(int x, int y) {
+    // Conserva el rumbo que la serpiente tenía al iniciar este turno. Sin
+    // este bloqueo, dos teclas entre pulsos podían encadenarse y producir
+    // una reversa de 180° respecto al movimiento real.
+    if (m_cambioDireccionPendiente) return;
     if (x != 0 && m_direccionX == -x) return;
     if (y != 0 && m_direccionY == -y) return;
     m_direccionX = x;
     m_direccionY = y;
+    m_cambioDireccionPendiente = true;
 }
 
 bool TutorialView::come(int x, int y) {
@@ -248,6 +254,15 @@ bool TutorialView::come(int x, int y) {
         if (m_serpiente[i] == QPoint(x, y)) return true;
     }
     return false;
+}
+
+void TutorialView::crecerSerpiente(int segmentos, const QPoint &colaAnterior) {
+    while (segmentos-- > 0 && m_longitud < MAX_SERPIENTE) {
+        // El nuevo tramo ocupa la cola que la serpiente dejó al avanzar.
+        // Así nunca se dibuja una coordenada residual del arreglo.
+        m_serpiente[m_longitud] = colaAnterior;
+        ++m_longitud;
+    }
 }
 
 void TutorialView::avanzar() {
@@ -265,30 +280,36 @@ void TutorialView::avanzar() {
     if (m_fase == 3 && !m_grande && !m_energetica && ++m_turnos >= 25) {
         m_timer->stop();
         m_fase = 4;
+        prepararEtapaObstaculos();
         mostrarOverlay("OBSTÁCULOS\n\nLos obstáculos bloquean casillas y pueden hacerte perder.\n\nPresioná ENTER para continuar.");
         dibujar();
         return;
     }
 
     if (m_direccionX == 0 && m_direccionY == 0) return;
+    // A partir de este punto el turno ya usa la dirección elegida y puede
+    // aceptar un único giro para el siguiente avance.
+    m_cambioDireccionPendiente = false;
     QPoint nueva = m_serpiente[0] + QPoint(m_direccionX, m_direccionY);
-    if (nueva.x() < 0) nueva.setX(TABLERO - 1);
-    if (nueva.x() >= TABLERO) nueva.setX(0);
-    if (nueva.y() < 0) nueva.setY(TABLERO - 1);
-    if (nueva.y() >= TABLERO) nueva.setY(0);
+    nueva.setX(ReglasMovimiento::envolverCoordenada(nueva.x(), TABLERO));
+    nueva.setY(ReglasMovimiento::envolverCoordenada(nueva.y(), TABLERO));
     const bool chocaConObstaculo = (m_fase == 5)
         && ((nueva == QPoint(4, 3)) || (nueva == QPoint(5, 3)));
-    bool chocaConCuerpo = false;
+    bool destinoEsCuerpo = false;
     for (int i = 1; i < m_longitud; ++i) {
         if (m_serpiente[i] == nueva) {
-            chocaConCuerpo = true;
+            destinoEsCuerpo = true;
             break;
         }
     }
-    if (chocaConObstaculo || chocaConCuerpo) {
+    const bool destinoEsCola = m_longitud > 0
+        && m_serpiente[m_longitud - 1] == nueva;
+    if (chocaConObstaculo || ReglasMovimiento::colisionaConSerpiente(
+                                destinoEsCuerpo, destinoEsCola, false)) {
         reproducirExplosion();
         return;
     }
+    const QPoint colaAnterior = m_serpiente[m_longitud - 1];
     for (int i = m_longitud - 1; i > 0; --i) {
         m_serpiente[i] = m_serpiente[i - 1];
     }
@@ -299,14 +320,13 @@ void TutorialView::avanzar() {
             m_manzana = false;
             m_frutaActual.configurar(TipoFruta::Normal);
             m_puntaje += m_frutaActual.puntos();
-            if (m_longitud < MAX_SERPIENTE) ++m_longitud;
+            crecerSerpiente(1, colaAnterior);
         }
         if (m_dorada && come(8, 5)) {
             m_dorada = false;
             m_frutaActual.configurar(TipoFruta::Dorada);
             m_puntaje += m_frutaActual.puntos();
-            for (int i = 0; i < m_frutaActual.crecimiento(true) && m_longitud < MAX_SERPIENTE; ++i)
-                m_longitud++;
+            crecerSerpiente(m_frutaActual.crecimiento(true), colaAnterior);
         }
         if (!m_manzana && !m_dorada) {
             m_timer->stop();
@@ -322,22 +342,21 @@ void TutorialView::avanzar() {
             m_grande = false;
             m_frutaActual.configurar(TipoFruta::Grande);
             m_puntaje += m_frutaActual.puntos();
-            for (int i = 0; i < m_frutaActual.crecimiento(true)
-                            && m_longitud < MAX_SERPIENTE; ++i) ++m_longitud;
+            crecerSerpiente(m_frutaActual.crecimiento(true), colaAnterior);
         }
         if (m_energetica && come(9, 2)) {
             m_energetica = false;
             m_frutaActual.configurar(TipoFruta::Energetica);
             m_puntaje += m_frutaActual.puntos();
-            for (int i = 0; i < m_frutaActual.crecimiento(true)
-                            && m_longitud < MAX_SERPIENTE; ++i) ++m_longitud;
+            crecerSerpiente(m_frutaActual.crecimiento(true), colaAnterior);
             m_turnosEfecto = 30;
             m_timer->setInterval(90);
         }
         if (!m_grande && !m_energetica) {
             m_timer->stop();
-        m_fase = 4;
-        mostrarOverlay("OBSTÁCULOS\n\nLos obstáculos bloquean casillas y pueden hacerte perder.\n\nPresioná ENTER para continuar.");
+            m_fase = 4;
+            prepararEtapaObstaculos();
+            mostrarOverlay("OBSTÁCULOS\n\nLos obstáculos bloquean casillas y pueden hacerte perder.\n\nPresioná ENTER para continuar.");
         }
     } else if (m_fase == 5 && m_caja && come(7, 7)) {
         m_caja = false;
@@ -348,6 +367,23 @@ void TutorialView::avanzar() {
         mostrarOverlay("EFECTO OBTENIDO\n\nObtuviste Hielo: la serpiente va más lento durante 10 turnos.\nAdemás de Hielo, existen Reloj, Rayo, Tijeras, Bomba y Trampa.\n\nPresioná ENTER para continuar.");
     }
     dibujar();
+}
+
+void TutorialView::prepararEtapaObstaculos() {
+    // Los obstáculos de esta etapa son fijos. Reubicar la serpiente antes
+    // de mostrarlos impide que una posición heredada de la etapa anterior
+    // quede visualmente superpuesta con un obstáculo nuevo.
+    for (int i = 0; i < m_longitud; ++i) {
+        const int fila = TABLERO - 2 - i / TABLERO;
+        const int columna = (i / TABLERO) % 2 == 0
+            ? TABLERO - 1 - i % TABLERO
+            : i % TABLERO;
+        m_serpiente[i] = QPoint(columna, fila);
+    }
+    m_direccionX = 0;
+    m_direccionY = 0;
+    m_cambioDireccionPendiente = false;
+    m_posicionesVisuales.clear();
 }
 
 void TutorialView::reproducirExplosion() {
@@ -401,6 +437,7 @@ void TutorialView::reiniciarEtapa() {
     m_longitud = 3;
     m_direccionX = 0;
     m_direccionY = 0;
+    m_cambioDireccionPendiente = false;
     m_turnos = 0;
     if (m_fase == 1) {
         m_manzana = true;

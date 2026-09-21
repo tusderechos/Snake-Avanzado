@@ -43,6 +43,8 @@ private:
     void actualizarInformacion();
     void avanzar();
     void siguienteDireccion(int x, int y);
+    void crecerSerpiente(int segmentos, const QPoint &colaAnterior);
+    void prepararEtapaObstaculos();
     bool come(int x, int y);
     void reproducirExplosion();
     void reiniciarEtapa();
@@ -54,6 +56,7 @@ private:
     int m_longitud;
     int m_direccionX;
     int m_direccionY;
+    bool m_cambioDireccionPendiente = false;
     int m_fase;
     int m_turnos;
     bool m_manzana;
