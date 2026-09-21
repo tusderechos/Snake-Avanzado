@@ -11,7 +11,7 @@ set(CMAKE_AUTORCC ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Widgets Multimedia Network)
 
-add_executable(Snake
+add_executable(Snake WIN32
     main.cpp
     Nodo.h
     progreso.h
@@ -74,10 +74,14 @@ add_executable(Snake
     validarcuenta.cpp
     supabaseclient.h
     supabaseclient.cpp
-    recursos.qrc
 )
 
 target_link_libraries(Snake PRIVATE Qt6::Widgets Qt6::Multimedia Qt6::Network)
+
+# Los recursos visuales son numerosos. Qt los transforma directamente en un
+# recurso binario, evitando compilar una matriz C++ enorme en cada Release.
+qt_add_big_resources(snake_resource_objects recursos.qrc)
+target_sources(Snake PRIVATE ${snake_resource_objects})
 
 include(CTest)
 if(BUILD_TESTING)
