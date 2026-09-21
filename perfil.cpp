@@ -29,8 +29,8 @@ Perfil::Perfil(QObject *parent)
     , campoConfirmacion(nullptr)
     , botonMostrarContrasenas(nullptr)
 {
-    avatares = {"clasica", "gato", "dragon", "burro", "spiderman", "miles", "personaje", "thanos"};
-    nombresAvatares = {"Clásica", "Gato", "Dragón", "Burro", "Spider-Man", "Miles", "Farquaad", "Thanos"};
+    avatares = {"clasica", "gato", "dragon", "burro", "spiderman", "miles", "personaje", "thanos", "hada_madrina", "encantador", "gengibre"};
+    nombresAvatares = {"Clásica", "Gato", "Dragón", "Burro", "Spider-Man", "Miles", "Farquaad", "Thanos", "Hada Madrina", "Príncipe Encantador", "Jengi"};
     setSceneRect(0, 0, 1254, 1254);
     construirInterfaz();
 }

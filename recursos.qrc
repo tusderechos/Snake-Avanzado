@@ -22,6 +22,9 @@
         <file alias="skin_spiderman.png">assets/skin_spiderman.png</file>
         <file alias="skin_miles.png">assets/skin_miles.png</file>
         <file alias="skin_personaje.png">assets/skin_personaje.png</file>
+        <file alias="skin_hada_madrina.png">assets/skin_hada_madrina.png</file>
+        <file alias="skin_encantador.png">assets/skin_encantador.png</file>
+        <file alias="skin_gengibre.png">assets/skin_gengibre.png</file>
         <file alias="Fredoka-Variable.ttf">assets/Fredoka-Variable.ttf</file>
         <file alias="deltarune_explosion.mp4">assets/deltarune_explosion.mp4</file>
         <file alias="fruta_roja.png">assets/fruta_roja.png</file>

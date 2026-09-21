@@ -378,7 +378,7 @@ void Ranking::actualizarRanking()
         for (int i = 0; i < CANTIDAD_POSICIONES; ++i) {
             etiquetasAvatar[i]->clear();
             if (exito && i < datos.size()) {
-                static const QStringList avatares = {"clasica", "gato", "dragon", "burro", "spiderman", "miles", "personaje", "thanos"};
+                static const QStringList avatares = {"clasica", "gato", "dragon", "burro", "spiderman", "miles", "personaje", "thanos", "hada_madrina", "encantador", "gengibre"};
                 const QString avatar = avatares.contains(datos[i].avatar) ? datos[i].avatar : "clasica";
                 const QString ruta = avatar == "clasica" ? ":/assets/cabeza_snake.png"
                     : ":/assets/skin_" + avatar + ".png";

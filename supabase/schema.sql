@@ -17,12 +17,13 @@ alter table public.perfiles add column if not exists volumen_musica real not nul
 alter table public.perfiles add column if not exists volumen_sonido real not null default 0.75 check (volumen_sonido between 0 and 1);
 alter table public.perfiles add column if not exists actualizado_en timestamptz not null default now();
 alter table public.perfiles add column if not exists avatar text not null default 'clasica';
-do $$ begin
- if not exists (select 1 from pg_constraint where conname='perfiles_avatar_valido') then
-  alter table public.perfiles add constraint perfiles_avatar_valido
-   check (avatar in ('clasica','gato','dragon','burro','spiderman','miles','personaje','thanos'));
- end if;
-end $$;
+-- Se recrea para que instalaciones ya existentes también reciban los avatares nuevos.
+alter table public.perfiles drop constraint if exists perfiles_avatar_valido;
+alter table public.perfiles add constraint perfiles_avatar_valido
+ check (avatar in (
+  'clasica', 'gato', 'dragon', 'burro', 'spiderman', 'miles', 'personaje', 'thanos',
+  'hada_madrina', 'encantador', 'gengibre'
+ ));
 -- Preservar también la skin equipada antes de que existiera el inventario.
 update public.perfiles set skins = array_append(skins, skin_equipada)
 where not (skin_equipada = any(skins));

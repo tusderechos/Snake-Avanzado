@@ -144,7 +144,7 @@ bool GestorUsuarios::guardarPreferencias(const QString &u,const QJsonObject &c) 
     for(auto i=c.begin();i!=c.end();++i) {
         if(i.key()=="control") {if(i.value()!="WASD" && i.value()!="FLECHAS") return false;}
         else if(i.key()=="volumen_musica" || i.key()=="volumen_sonido") {if(!i.value().isDouble() || i.value().toDouble()<0 || i.value().toDouble()>1) return false;}
-        else if(i.key()=="avatar") {const QString a=i.value().toString(); if(a!="clasica" && a!="gato" && a!="dragon" && a!="burro" && a!="spiderman" && a!="miles" && a!="personaje" && a!="thanos") return false;}
+        else if(i.key()=="avatar") {const QString a=i.value().toString(); if(a!="clasica" && a!="gato" && a!="dragon" && a!="burro" && a!="spiderman" && a!="miles" && a!="personaje" && a!="thanos" && a!="hada_madrina" && a!="encantador" && a!="gengibre") return false;}
         else return false;
     }
     return encolar(u,"/rest/v1/perfiles?id=eq."+instancia().m_id,c,"PATCH");
